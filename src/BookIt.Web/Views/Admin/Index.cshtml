@@ -26,40 +26,56 @@
 
 <!-- Stats Row -->
 <div class="row g-3 mb-4">
-    <div class="col-6 col-xl-3">
+    <div class="col-sm-6 col-lg-3">
         <div class="stat-card stat-primary">
-            <div class="stat-icon" style="background:var(--primary-subtle);color:var(--primary);">
-                <i class="bi bi-calendar-check"></i>
+            <div class="stat-card-inner">
+                <div class="stat-icon" style="background:var(--primary-subtle);color:var(--primary);">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div>
+                    <div class="stat-value">@todayAppts.Count</div>
+                    <div class="stat-label">Today's Appointments</div>
+                </div>
             </div>
-            <div class="stat-value">@todayAppts.Count</div>
-            <div class="stat-label">Today's Appointments</div>
         </div>
     </div>
-    <div class="col-6 col-xl-3">
+    <div class="col-sm-6 col-lg-3">
         <div class="stat-card stat-success">
-            <div class="stat-icon" style="background:#d1fae5;color:var(--success);">
-                <i class="bi bi-calendar3"></i>
+            <div class="stat-card-inner">
+                <div class="stat-icon" style="background:#d1fae5;color:var(--success);">
+                    <i class="bi bi-calendar3"></i>
+                </div>
+                <div>
+                    <div class="stat-value">@upcomingAppts.Count</div>
+                    <div class="stat-label">Upcoming (30 days)</div>
+                </div>
             </div>
-            <div class="stat-value">@upcomingAppts.Count</div>
-            <div class="stat-label">Upcoming (30 days)</div>
         </div>
     </div>
-    <div class="col-6 col-xl-3">
+    <div class="col-sm-6 col-lg-3">
         <div class="stat-card stat-info">
-            <div class="stat-icon" style="background:#dbeafe;color:var(--info);">
-                <i class="bi bi-currency-pound"></i>
+            <div class="stat-card-inner">
+                <div class="stat-icon" style="background:#dbeafe;color:var(--info);">
+                    <i class="bi bi-currency-pound"></i>
+                </div>
+                <div>
+                    <div class="stat-value" style="font-size:1.375rem;">£@totalRevenue.ToString("N0")</div>
+                    <div class="stat-label">Revenue (30 days)</div>
+                </div>
             </div>
-            <div class="stat-value" style="font-size:1.5rem;">£@totalRevenue.ToString("N0")</div>
-            <div class="stat-label">Revenue (30 days)</div>
         </div>
     </div>
-    <div class="col-6 col-xl-3">
+    <div class="col-sm-6 col-lg-3">
         <div class="stat-card stat-warning">
-            <div class="stat-icon" style="background:#fef3c7;color:var(--warning);">
-                <i class="bi bi-exclamation-circle"></i>
+            <div class="stat-card-inner">
+                <div class="stat-icon" style="background:#fef3c7;color:var(--warning);">
+                    <i class="bi bi-exclamation-circle"></i>
+                </div>
+                <div>
+                    <div class="stat-value">@unpaidCount</div>
+                    <div class="stat-label">Unpaid</div>
+                </div>
             </div>
-            <div class="stat-value">@unpaidCount</div>
-            <div class="stat-label">Unpaid</div>
         </div>
     </div>
 </div>

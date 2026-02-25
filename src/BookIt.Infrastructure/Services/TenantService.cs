@@ -1,3 +1,4 @@
+using BookIt.Core.Enums;
 using BookIt.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 
@@ -29,7 +30,7 @@ public class TenantService : ITenantService
     {
         // Super admins can access any tenant
         var roleClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("role")?.Value;
-        if (roleClaim == "1") return true; // SuperAdmin
+        if (roleClaim == ((int)UserRole.SuperAdmin).ToString()) return true; // SuperAdmin
 
         var currentTenantId = GetCurrentTenantId();
         return currentTenantId.HasValue && currentTenantId.Value == resourceTenantId;
