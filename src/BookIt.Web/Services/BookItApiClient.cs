@@ -170,4 +170,84 @@ public class BookItApiClient
             new StringContent(json, Encoding.UTF8, "application/json"));
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<List<BookingFormResponse>> GetFormsAsync(string tenantSlug)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/booking-forms");
+        if (!response.IsSuccessStatusCode) return new();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<BookingFormResponse>>(content, _jsonOptions) ?? new();
+    }
+
+    public async Task<BookingFormResponse?> GetDefaultFormAsync(string tenantSlug)
+    {
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/booking-forms/default");
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<BookingFormResponse>(content, _jsonOptions);
+    }
+
+    public async Task<BookingFormResponse?> GetFormAsync(string tenantSlug, Guid formId)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/booking-forms/{formId}");
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<BookingFormResponse>(content, _jsonOptions);
+    }
+
+    public async Task<BookingFormResponse?> CreateFormAsync(string tenantSlug, CreateBookingFormRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/booking-forms",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<BookingFormResponse>(content, _jsonOptions);
+    }
+
+    public async Task<bool> DeleteFormAsync(string tenantSlug, Guid formId)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.DeleteAsync($"/api/tenants/{tenantSlug}/booking-forms/{formId}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<BookingFormFieldResponse?> AddFormFieldAsync(string tenantSlug, Guid formId, AddFormFieldRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/booking-forms/{formId}/fields",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<BookingFormFieldResponse>(content, _jsonOptions);
+    }
+
+    public async Task<bool> UpdateFormFieldAsync(string tenantSlug, Guid formId, Guid fieldId, UpdateFormFieldRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PutAsync($"/api/tenants/{tenantSlug}/booking-forms/{formId}/fields/{fieldId}",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteFormFieldAsync(string tenantSlug, Guid formId, Guid fieldId)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.DeleteAsync($"/api/tenants/{tenantSlug}/booking-forms/{formId}/fields/{fieldId}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> ReorderFormFieldsAsync(string tenantSlug, Guid formId, List<Guid> fieldIds)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(new ReorderFieldsRequest { FieldIds = fieldIds });
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/booking-forms/{formId}/fields/reorder",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
 }

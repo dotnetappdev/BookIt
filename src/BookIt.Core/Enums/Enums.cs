@@ -92,7 +92,8 @@ public enum BookingFormFieldType
     Select = 5,
     Checkbox = 6,
     Date = 7,
-    Number = 8
+    Number = 8,
+    Radio = 9
 }
 
 public enum ClassType

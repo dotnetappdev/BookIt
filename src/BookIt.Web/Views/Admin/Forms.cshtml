@@ -1,0 +1,113 @@
+@using BookIt.Core.DTOs
+@{
+    ViewData["Title"] = "Booking Forms";
+    Layout = "_AdminLayout";
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+    var forms = ViewBag.Forms as List<BookingFormResponse> ?? new();
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Booking Forms</h1>
+        <p class="page-subtitle">Build custom forms to ask customers before they book</p>
+    </div>
+    <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#createFormModal">
+        <i class="bi bi-plus-circle me-2"></i>New Form
+    </button>
+</div>
+
+@if (!forms.Any())
+{
+    <div class="card text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-ui-checks-grid fs-1 text-muted opacity-25 d-block mb-3"></i>
+            <h5 class="text-muted fw-medium mb-1">No forms yet</h5>
+            <p class="small text-muted mb-3">Create a form to collect custom information from customers before they book</p>
+            <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#createFormModal">
+                <i class="bi bi-plus me-2"></i>Create Your First Form
+            </button>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var form in forms)
+        {
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start justify-content-between mb-3">
+                            <div class="feature-icon" style="margin:0;"><i class="bi bi-ui-checks"></i></div>
+                            @if (form.IsDefault)
+                            {
+                                <span class="badge" style="background:var(--primary-subtle);color:var(--primary);">Default</span>
+                            }
+                        </div>
+                        <h5 class="fw-semibold mb-1" style="letter-spacing:-.02em;">@form.Name</h5>
+                        @if (!string.IsNullOrEmpty(form.Description))
+                        {
+                            <p class="text-muted small mb-2">@form.Description</p>
+                        }
+                        <p class="small text-muted mb-3">
+                            <i class="bi bi-list-check me-1"></i>@form.Fields.Count field@(form.Fields.Count != 1 ? "s" : "")
+                        </p>
+                        <div class="d-flex gap-2">
+                            <a asp-controller="Admin" asp-action="FormBuilder" asp-route-tenantSlug="@tenantSlug" asp-route-formId="@form.Id"
+                               class="btn btn-sm btn-brand flex-grow-1">
+                                <i class="bi bi-pencil-square me-1"></i>Edit Form
+                            </a>
+                            @if (!form.IsDefault)
+                            {
+                                <form method="post" asp-controller="Admin" asp-action="DeleteForm" asp-route-tenantSlug="@tenantSlug" class="d-inline">
+                                    <input type="hidden" name="formId" value="@form.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this form?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Create Form Modal -->
+<div class="modal fade" id="createFormModal" tabindex="-1" aria-labelledby="createFormModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:var(--radius-lg);">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-semibold" id="createFormModalLabel"><i class="bi bi-ui-checks me-2 text-brand"></i>New Booking Form</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post" asp-controller="Admin" asp-action="CreateForm" asp-route-tenantSlug="@tenantSlug">
+                    <div class="mb-3">
+                        <label class="form-label">Form Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="Name" required placeholder="e.g. New Client Intake" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-control" name="Description" placeholder="Short description" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Welcome Message</label>
+                        <textarea class="form-control" name="WelcomeMessage" rows="2" placeholder="Message shown at the top of the form"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="IsDefault" id="setDefault" value="true" />
+                            <label class="form-check-label" for="setDefault">Set as default form (shown for all bookings)</label>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-brand"><i class="bi bi-arrow-right me-2"></i>Create &amp; Build</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

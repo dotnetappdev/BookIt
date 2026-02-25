@@ -146,4 +146,52 @@ public class AdminController : Controller
         TempData["Success"] = "Slot removed.";
         return RedirectToAction("Interviews", new { tenantSlug });
     }
+
+    public async Task<IActionResult> Forms(string tenantSlug)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+        var forms = await _apiClient.GetFormsAsync(tenantSlug);
+        ViewBag.Tenant = tenant;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.Forms = forms;
+        return View();
+    }
+
+    public async Task<IActionResult> FormBuilder(string tenantSlug, Guid? formId)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+        BookingFormResponse? form = null;
+        if (formId.HasValue)
+            form = await _apiClient.GetFormAsync(tenantSlug, formId.Value);
+        ViewBag.Tenant = tenant;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.Form = form;
+        ViewBag.FormId = formId;
+        ViewBag.AccessToken = HttpContext.Session.GetString("AccessToken") ?? "";
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateForm(string tenantSlug, CreateBookingFormRequest request)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        var form = await _apiClient.CreateFormAsync(tenantSlug, request);
+        if (form != null)
+            return RedirectToAction("FormBuilder", new { tenantSlug, formId = form.Id });
+        TempData["Error"] = "Failed to create form.";
+        return RedirectToAction("Forms", new { tenantSlug });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteForm(string tenantSlug, Guid formId)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        await _apiClient.DeleteFormAsync(tenantSlug, formId);
+        TempData["Success"] = "Form deleted.";
+        return RedirectToAction("Forms", new { tenantSlug });
+    }
 }

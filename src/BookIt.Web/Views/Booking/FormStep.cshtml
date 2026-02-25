@@ -1,0 +1,104 @@
+@using BookIt.Core.DTOs
+@{
+    ViewData["Title"] = "Tell Us More";
+    var tenant = ViewBag.Tenant as TenantResponse;
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+    var serviceId = (Guid)ViewBag.ServiceId;
+    var form = ViewBag.Form as BookingFormResponse;
+}
+
+@if (tenant != null)
+{
+    <style>:root { --primary: @(tenant.PrimaryColor ?? "#6c5ce7"); }</style>
+
+    <!-- Business Header -->
+    <div class="bg-brand text-white py-3">
+        <div class="container d-flex align-items-center gap-3">
+            @if (!string.IsNullOrEmpty(tenant.LogoUrl))
+            {
+                <img src="@tenant.LogoUrl" alt="@tenant.Name" class="rounded" style="width:44px;height:44px;object-fit:cover;" />
+            }
+            else
+            {
+                <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center" style="width:44px;height:44px;">
+                    <i class="bi bi-building fs-4"></i>
+                </div>
+            }
+            <h1 class="h5 mb-0 fw-bold">@tenant.Name</h1>
+        </div>
+    </div>
+
+    <div class="container py-4 py-md-5">
+        <!-- Progress Steps (5 steps) -->
+        <div class="row justify-content-center mb-4 mb-md-5">
+            <div class="col-lg-8">
+                <div class="booking-steps">
+                    <div class="booking-step done">
+                        <div class="booking-step-circle"><i class="bi bi-check2"></i></div>
+                        <div class="booking-step-label">Service</div>
+                    </div>
+                    <div class="booking-step active">
+                        <div class="booking-step-circle">2</div>
+                        <div class="booking-step-label">Questions</div>
+                    </div>
+                    <div class="booking-step">
+                        <div class="booking-step-circle">3</div>
+                        <div class="booking-step-label">Time</div>
+                    </div>
+                    <div class="booking-step">
+                        <div class="booking-step-circle">4</div>
+                        <div class="booking-step-label">Details</div>
+                    </div>
+                    <div class="booking-step">
+                        <div class="booking-step-circle">5</div>
+                        <div class="booking-step-label">Confirm</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-xl-6">
+                @if (form != null && !string.IsNullOrEmpty(form.WelcomeMessage))
+                {
+                    <p class="text-muted mb-4">@form.WelcomeMessage</p>
+                }
+
+                @if (form == null || !form.Fields.Any())
+                {
+                    <!-- No custom fields — redirect automatically -->
+                    <div class="text-center py-4">
+                        <p class="text-muted">Redirecting to time selection...</p>
+                    </div>
+                    <script>window.location.href = '/@tenantSlug/booking/selectslot?serviceId=@serviceId&date=@DateTime.Today.ToString("yyyy-MM-dd")';</script>
+                }
+                else
+                {
+                    <div class="card" style="border-radius:var(--radius-lg);">
+                        <div class="card-header px-4 py-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-chat-square-text text-brand"></i>
+                            <span class="fw-semibold">@(form.Name)</span>
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="post" asp-controller="Booking" asp-action="FormStep" asp-route-tenantSlug="@tenantSlug" asp-route-serviceId="@serviceId" novalidate>
+                                @foreach (var field in form.Fields)
+                                {
+                                    @await Html.PartialAsync("_BookingFormField", field)
+                                }
+                                <hr class="my-4" />
+                                <div class="d-flex gap-3">
+                                    <button type="submit" class="btn btn-brand btn-lg flex-grow-1">
+                                        <i class="bi bi-arrow-right me-2"></i>Continue to Choose Time
+                                    </button>
+                                    <a href="/@tenantSlug/book" class="btn btn-outline-secondary btn-lg">
+                                        <i class="bi bi-arrow-left"></i>
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}

@@ -28,6 +28,34 @@ public class BookingController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> FormStep(string tenantSlug, Guid serviceId)
+    {
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+        var form = await _apiClient.GetDefaultFormAsync(tenantSlug);
+        ViewBag.Tenant = tenant;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.ServiceId = serviceId;
+        ViewBag.Form = form;
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> FormStep(string tenantSlug, Guid serviceId, IFormCollection formData)
+    {
+        var answers = new Dictionary<string, string>();
+        foreach (var key in formData.Keys.Where(k => k.StartsWith("field_")))
+        {
+            var vals = formData[key].ToArray();
+            answers[key] = string.Join(", ", vals);
+        }
+        var json = System.Text.Json.JsonSerializer.Serialize(answers);
+        HttpContext.Session.SetString("BookingFormAnswers_" + serviceId, json);
+        var today = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
+        return Redirect($"/{tenantSlug}/booking/selectslot?serviceId={serviceId}&date={today}");
+    }
+
+    [HttpGet]
     public async Task<IActionResult> SelectSlot(string tenantSlug, Guid serviceId, Guid? staffId, DateOnly? date)
     {
         var selectedDate = date ?? DateOnly.FromDateTime(DateTime.Today);
@@ -65,6 +93,12 @@ public class BookingController : Controller
     {
         var tenant = await _apiClient.GetTenantAsync(tenantSlug);
         if (tenant == null) return NotFound();
+
+        // Retrieve any saved form answers for this service
+        var formAnswersKey = "BookingFormAnswers_" + (request.ServiceIds.Any() ? request.ServiceIds.First() : request.ServiceId);
+        var savedAnswers = HttpContext.Session.GetString(formAnswersKey);
+        if (!string.IsNullOrEmpty(savedAnswers))
+            request.CustomFormDataJson = savedAnswers;
 
         request.TenantId = tenant.Id;
         var appointment = await _apiClient.CreateAppointmentAsync(tenantSlug, request);
