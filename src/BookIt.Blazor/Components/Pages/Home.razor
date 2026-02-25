@@ -1,0 +1,157 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+<PageTitle>BookIt — Smart Booking Software for Service Businesses</PageTitle>
+
+<!-- Hero -->
+<MudPaper Elevation="0" Style="background:linear-gradient(135deg,#0f0f23 0%,#16213e 40%,#1a1a3e 70%,#2d1b69 100%);position:relative;overflow:hidden;padding:5rem 0 3rem;">
+    <!-- Grid overlay -->
+    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;"></div>
+    <!-- Glow -->
+    <div style="position:absolute;top:-20%;left:50%;width:800px;height:800px;background:radial-gradient(circle,rgba(108,92,231,.3) 0%,transparent 65%);transform:translateX(-50%);pointer-events:none;"></div>
+    <MudContainer MaxWidth="MaxWidth.Large" Style="position:relative;z-index:1;">
+        <MudGrid Spacing="5">
+            <MudItem xs="12" lg="6">
+                <!-- Badge -->
+                <MudChip T="string" Color="Color.Primary" Variant="Variant.Text" Size="Size.Small"
+                         Style="border:1px solid rgba(108,92,231,.45);background:rgba(108,92,231,.18);color:#a29bfe;" Class="mb-4">
+                    ● Trusted by service businesses everywhere
+                </MudChip>
+                <MudText Typo="Typo.h2" Style="color:white;font-weight:800;letter-spacing:-.05em;line-height:1.05;margin-bottom:1.5rem;">
+                    Your business,<br /><span style="background:linear-gradient(135deg,#a29bfe,#c7b8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">always booked.</span>
+                </MudText>
+                <MudText Style="color:rgba(255,255,255,.65);font-size:1.1rem;line-height:1.75;margin-bottom:2.25rem;max-width:480px;">
+                    The all-in-one booking CRM for barbers, salons, spas, gyms and recruitment agencies. Accept appointments 24/7, manage your team, and get paid online.
+                </MudText>
+                <MudStack Row="true" Spacing="2" Class="mb-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+                               StartIcon="@Icons.Material.Filled.RocketLaunch" Href="/setup"
+                               Style="font-size:1rem;border-radius:10px;padding:.75rem 2rem;">Start for Free</MudButton>
+                    <MudButton Variant="Variant.Outlined" Size="Size.Large"
+                               StartIcon="@Icons.Material.Filled.PlayCircleOutline" Href="/demo-barber/book" Target="_blank"
+                               Style="font-size:1rem;border-radius:10px;padding:.75rem 1.5rem;border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.9);">Live Demo</MudButton>
+                </MudStack>
+                <MudStack Row="true" Spacing="3" Class="flex-wrap">
+                    @foreach (var t in new[] { "Free 14-day trial", "No credit card needed", "Cancel anytime" })
+                    {
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Style="color:#10b981;" />
+                            <MudText Style="color:rgba(255,255,255,.55);font-size:.8125rem;font-weight:500;">@t</MudText>
+                        </MudStack>
+                    }
+                </MudStack>
+            </MudItem>
+            <MudItem xs="12" lg="6">
+                <!-- Dashboard preview card -->
+                <MudCard Elevation="10" Style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(16px);">
+                    <MudCardContent Style="padding:0;">
+                        <div style="background:rgba(108,92,231,.25);padding:.875rem 1.25rem;display:flex;align-items:center;gap:.5rem;">
+                            <div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div>
+                            <div style="width:10px;height:10px;border-radius:50%;background:#febc2e;"></div>
+                            <div style="width:10px;height:10px;border-radius:50%;background:#28c840;"></div>
+                            <MudText Style="color:rgba(255,255,255,.45);font-size:.75rem;margin-left:.5rem;" Typo="Typo.caption">BookIt — Admin Dashboard</MudText>
+                        </div>
+                        <div style="padding:1.75rem;">
+                            <MudGrid Spacing="2" Class="mb-3">
+                                @foreach (var s in new[] {
+                                    ("Today","8","#6c5ce7","rgba(108,92,231,.15)"),
+                                    ("This Week","34","#10b981","rgba(16,185,129,.15)"),
+                                    ("Revenue","£840","#3b82f6","rgba(59,130,246,.15)"),
+                                    ("Pending","3","#f59e0b","rgba(245,158,11,.15)"),
+                                })
+                                {
+                                    <MudItem xs="6">
+                                        <div style="background:@s.Item4;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.75rem;">
+                                            <div style="color:@s.Item3;font-size:1.3rem;font-weight:800;line-height:1;">@s.Item2</div>
+                                            <div style="color:rgba(255,255,255,.45);font-size:.7rem;margin-top:.2rem;">@s.Item1</div>
+                                        </div>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+</MudPaper>
+
+<!-- Stats bar -->
+<MudPaper Elevation="1" Style="border-radius:0;padding:2rem 0;">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <MudGrid Justify="Justify.Center">
+            @foreach (var s in new[] { ("500+","Businesses"), ("24/7","Online Booking"), ("3","Payment Options"), ("99.9%","Uptime SLA") })
+            {
+                <MudItem xs="6" md="3" Style="text-align:center;">
+                    <MudText Typo="Typo.h4" Color="Color.Primary" Class="fw-bold" Style="letter-spacing:-.04em;">@s.Item1</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@s.Item2</MudText>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudContainer>
+</MudPaper>
+
+<!-- Features Section -->
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8" id="features">
+    <MudStack AlignItems="AlignItems.Center" Class="text-center mb-5">
+        <MudText Style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--mud-palette-primary);">Features</MudText>
+        <MudText Typo="Typo.h4" Class="fw-bold">Everything you need to grow</MudText>
+        <MudText Color="Color.Secondary" Style="max-width:500px;">Powerful tools built for service businesses. No extra plugins, no per-feature paywalls.</MudText>
+    </MudStack>
+    <MudGrid>
+        @foreach (var f in _features)
+        {
+            <MudItem xs="12" sm="6" lg="4">
+                <MudCard Elevation="1" Style="height:100%;" Class="hover-card">
+                    <MudCardContent>
+                        <MudAvatar Style="@($"background:{f.Bg};color:{f.Color};border-radius:14px;width:52px;height:52px;margin-bottom:1.25rem;")" Rounded="false">
+                            <MudIcon Icon="@f.Icon" />
+                        </MudAvatar>
+                        <MudText Typo="Typo.h6" Class="fw-bold mb-2">@f.Title</MudText>
+                        <MudText Color="Color.Secondary" Typo="Typo.body2" Style="line-height:1.65;">@f.Desc</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+<!-- CTA -->
+<MudPaper Elevation="0" Style="background:linear-gradient(135deg,#0f0f23 0%,#1a1a3e 50%,#2d1b69 100%);padding:5rem 2rem;text-align:center;border-radius:0;" Class="mt-4">
+    <MudText Typo="Typo.h4" Style="color:white;font-weight:800;letter-spacing:-.04em;margin-bottom:1rem;">
+        Ready to fill your schedule?
+    </MudText>
+    <MudText Style="color:rgba(255,255,255,.6);font-size:1.05rem;max-width:420px;margin:0 auto 2rem;">
+        Join hundreds of service businesses already using BookIt.
+    </MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+               StartIcon="@Icons.Material.Filled.RocketLaunch" Href="/setup"
+               Style="font-size:1rem;border-radius:10px;padding:.75rem 2.5rem;">Get Started Free</MudButton>
+</MudPaper>
+
+@code {
+    private record Feature(string Icon, string Title, string Desc, string Bg, string Color);
+
+    private Feature[] _features = new[]
+    {
+        new Feature(Icons.Material.Filled.CalendarMonth, "Smart Calendar",
+            "Full week/month view with drag-and-drop. Complete availability management.",
+            "#f0eeff", "#6c5ce7"),
+        new Feature(Icons.Material.Filled.CreditCard, "Stripe & PayPal",
+            "Accept Stripe, PayPal and Apple Pay. Require deposits or pay-at-appointment.",
+            "#ecfdf5", "#10b981"),
+        new Feature(Icons.Material.Filled.People, "Staff Management",
+            "Multiple staff with individual schedules, services and working hours.",
+            "#eff6ff", "#3b82f6"),
+        new Feature(Icons.Material.Filled.Assignment, "Custom Form Builder",
+            "Drag-and-drop form builder with 9 field types for pre-booking questions.",
+            "#fff7ed", "#f97316"),
+        new Feature(Icons.Material.Filled.SmartToy, "AI Chat Assistant",
+            "Embedded chat widget with PIN-based booking lookup and GPT-3.5 upgrade.",
+            "#f0eeff", "#6c5ce7"),
+        new Feature(Icons.Material.Filled.Business, "Multi-Tenant Ready",
+            "One platform, unlimited businesses. Fully isolated data with JWT protection.",
+            "#f1f5f9", "#475569"),
+    };
+}
+

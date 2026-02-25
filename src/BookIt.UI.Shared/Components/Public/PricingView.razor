@@ -1,0 +1,145 @@
+<MudStack>
+    <!-- Hero -->
+    <MudPaper Elevation="0" Style="background:linear-gradient(135deg,#0f0f23 0%,#16213e 40%,#2d1b69 100%);padding:4rem 2rem;text-align:center;border-radius:0;">
+        <MudText Typo="Typo.h3" Style="color:white;font-weight:800;letter-spacing:-.05em;">
+            Plans for every business
+        </MudText>
+        <MudText Typo="Typo.body1" Style="color:rgba(255,255,255,.65);margin-top:.75rem;max-width:480px;margin-left:auto;margin-right:auto;">
+            Start free, upgrade when you're ready. All plans include a 14-day trial. No credit card required.
+        </MudText>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2" Class="mt-4">
+            <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,.7);">Monthly</MudText>
+            <MudSwitch @bind-Value="_annual" Color="Color.Primary" />
+            <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,.7);">
+                Annual
+                <MudChip T="string" Size="Size.Small" Color="Color.Success" Label="true" Class="ml-1">Save 20%</MudChip>
+            </MudText>
+        </MudStack>
+    </MudPaper>
+
+    <!-- Plans -->
+    <MudContainer MaxWidth="MaxWidth.Large" Class="py-6">
+        <MudGrid Justify="Justify.Center">
+            @foreach (var plan in _plans)
+            {
+                <MudItem xs="12" sm="6" lg="3">
+                    <MudCard Elevation="@(plan.Featured ? 6 : 1)"
+                             Style="@(plan.Featured
+                                 ? "background:linear-gradient(135deg,#16213e,#2d1b69);border:1.5px solid rgba(108,92,231,.5);height:100%;position:relative;"
+                                 : "height:100%;position:relative;")"
+                             Class="@(plan.Featured ? "mt-n2" : "")">
+                        @if (plan.Featured)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Label="true"
+                                     Style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);z-index:1;">
+                                Most Popular
+                            </MudChip>
+                        }
+                        <MudCardContent Class="pa-6">
+                            <MudAvatar Style="@($"background:{plan.IconBg};color:{plan.IconColor};border-radius:12px;margin-bottom:.875rem;")" Rounded="false">
+                                <MudIcon Icon="@plan.Icon" />
+                            </MudAvatar>
+                            <MudText Typo="Typo.h6" Class="fw-bold" Style="@(plan.Featured ? "color:white;" : "")">
+                                @plan.Name
+                            </MudText>
+                            <MudText Typo="Typo.body2" Style="@(plan.Featured ? "color:rgba(255,255,255,.65);" : "")" Class="mb-3">
+                                @plan.Desc
+                            </MudText>
+                            <MudText Typo="Typo.h3" Class="fw-bold" Style="@(plan.Featured ? "color:white;" : "")">
+                                @((_annual ? plan.AnnualPrice : plan.MonthlyPrice))
+                                <MudText Typo="Typo.body2" HtmlTag="span" Style="@(plan.Featured ? "color:rgba(255,255,255,.6);" : "opacity:.6;")">/mo</MudText>
+                            </MudText>
+                            @if (_annual && plan.MonthlyPrice != "£0")
+                            {
+                                <MudText Typo="Typo.caption" Style="@(plan.Featured ? "color:rgba(255,255,255,.5);" : "opacity:.6;")">
+                                    Billed annually — save 20%
+                                </MudText>
+                            }
+                        </MudCardContent>
+                        <MudDivider />
+                        <MudCardContent Class="pa-4">
+                            @foreach (var feat in plan.Features)
+                            {
+                                var icon = feat.Available ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel;
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-2">
+                                    <MudIcon Icon="@icon"
+                                             Size="Size.Small"
+                                             Color="@(feat.Available ? Color.Success : Color.Default)"
+                                             Style="@(feat.Available ? "" : "opacity:.4;")" />
+                                    <MudText Typo="Typo.body2"
+                                             Style="@(plan.Featured ? "color:rgba(255,255,255,.85);" : (!feat.Available ? "opacity:.5;" : ""))">
+                                        @feat.Label
+                                    </MudText>
+                                </MudStack>
+                            }
+                        </MudCardContent>
+                        <MudCardActions Class="pa-4 pt-0">
+                            @if (plan.Name == "Enterprise")
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Dark" FullWidth="true"
+                                           Href="mailto:sales@bookit.app">Contact Sales</MudButton>
+                            }
+                            else if (plan.Featured)
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Surface" FullWidth="true"
+                                           Href="/setup" Style="color:#1e293b;font-weight:600;">Start Free Trial</MudButton>
+                            }
+                            else
+                            {
+                                <MudButton Variant="@(plan.Name == "Free" ? Variant.Outlined : Variant.Filled)"
+                                           Color="Color.Primary" FullWidth="true" Href="/setup">
+                                    @(plan.Name == "Free" ? "Get Started Free" : "Start Free Trial")
+                                </MudButton>
+                            }
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudContainer>
+</MudStack>
+
+@code {
+    private bool _annual = false;
+
+    private record PlanFeature(string Label, bool Available);
+    private record PlanDef(
+        string Name, string Desc, string MonthlyPrice, string AnnualPrice, string Icon,
+        string IconBg, string IconColor, bool Featured, PlanFeature[] Features);
+
+    private PlanDef[] _plans => new[]
+    {
+        new PlanDef("Free", "Solo businesses", "£0", "£0",
+            Icons.Material.Filled.RocketLaunch, "#f1f5f9", "#475569", false,
+            new PlanFeature[] {
+                new("Up to 3 services", true), new("1 staff member", true),
+                new("Online booking page", true), new("Basic calendar", true),
+                new("Online payments", false), new("Custom forms", false),
+                new("AI assistant", false), new("API access", false),
+            }),
+        new PlanDef("Starter", "Growing teams", "£19", "£15",
+            Icons.Material.Filled.Bolt, "#f0eeff", "#6c5ce7", false,
+            new PlanFeature[] {
+                new("Up to 10 services", true), new("Up to 5 staff", true),
+                new("Online booking page", true), new("Full calendar", true),
+                new("Stripe & PayPal payments", true), new("Custom forms", true),
+                new("AI assistant", false), new("API access", false),
+            }),
+        new PlanDef("Pro", "Scale your business", "£49", "£39",
+            Icons.Material.Filled.Stars, "rgba(108,92,231,.15)", "white", true,
+            new PlanFeature[] {
+                new("Up to 50 services", true), new("Up to 25 staff", true),
+                new("Online booking page", true), new("Full calendar", true),
+                new("All payment methods", true), new("Custom forms", true),
+                new("AI chat assistant", true), new("Interview scheduling", true),
+            }),
+        new PlanDef("Enterprise", "Unlimited scale", "£129", "£99",
+            Icons.Material.Filled.BusinessCenter, "#0f172a", "#a29bfe", false,
+            new PlanFeature[] {
+                new("Unlimited services", true), new("Unlimited staff", true),
+                new("All Pro features", true), new("White-label branding", true),
+                new("API access", true), new("Priority support", true),
+                new("SLA guarantee", true), new("Custom integrations", true),
+            }),
+    };
+}

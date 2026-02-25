@@ -1,0 +1,105 @@
+@inherits LayoutComponentBase
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+
+<MudThemeProvider Theme="BookItTheme.Default" IsDarkMode="@_isDark" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Surface" Dense="false"
+               Style="backdrop-filter:blur(12px);border-bottom:1px solid var(--mud-palette-divider);">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="width:100%;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                <MudAvatar Color="Color.Primary" Style="border-radius:9px;width:32px;height:32px;" Rounded="false">
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" />
+                </MudAvatar>
+                <MudLink Href="/" Typo="Typo.h6" Color="Color.Default" Class="fw-bold text-decoration-none"
+                         Style="letter-spacing:-.03em;">BookIt</MudLink>
+            </MudStack>
+            <MudSpacer />
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="d-none d-md-flex">
+                <MudLink Href="/#features" Color="Color.Default" Typo="Typo.body2">Features</MudLink>
+                <MudLink Href="/#how-it-works" Color="Color.Default" Typo="Typo.body2">How it works</MudLink>
+                <MudLink Href="/pricing" Color="Color.Default" Typo="Typo.body2">Pricing</MudLink>
+            </MudStack>
+            <MudTooltip Text="@(_isDark ? "Light mode" : "Dark mode")">
+                <MudIconButton Icon="@(_isDark ? Icons.Material.Filled.WbSunny : Icons.Material.Filled.DarkMode)"
+                               Color="Color.Inherit" OnClick="ToggleDark" Size="Size.Small" />
+            </MudTooltip>
+            @if (Auth.IsAuthenticated)
+            {
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Primary"
+                           Href="@($"/{Auth.TenantSlug}/admin")">Dashboard</MudButton>
+                <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                    <ActivatorContent>
+                        <MudAvatar Color="Color.Primary" Style="cursor:pointer;width:32px;height:32px;font-size:.8rem;">
+                            @Auth.Initials
+                        </MudAvatar>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Dashboard"
+                                     Href="@($"/{Auth.TenantSlug}/admin")">Dashboard</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Settings"
+                                     Href="@($"/{Auth.TenantSlug}/admin/settings")">Settings</MudMenuItem>
+                        <MudDivider />
+                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="Logout"
+                                     IconColor="Color.Error">Sign Out</MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+            }
+            else
+            {
+                <MudButton Variant="Variant.Text" Size="Size.Small" Href="/login">Sign In</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Href="/setup">
+                    Get Started
+                </MudButton>
+            }
+        </MudStack>
+    </MudAppBar>
+
+    <MudMainContent Style="padding-top:64px;">
+        @Body
+    </MudMainContent>
+
+    <!-- Footer -->
+    <MudPaper Elevation="0" Style="background:#0f0f1a;padding:3rem 2rem 2rem;margin-top:3rem;border-radius:0;">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MudGrid>
+                <MudItem xs="12" md="4">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
+                        <MudAvatar Color="Color.Primary" Style="border-radius:8px;width:30px;height:30px;" Rounded="false">
+                            <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" />
+                        </MudAvatar>
+                        <MudText Style="color:white;font-weight:800;font-size:1.05rem;">BookIt</MudText>
+                    </MudStack>
+                    <MudText Style="color:rgba(255,255,255,.4);font-size:.875rem;line-height:1.65;">
+                        The smart booking CRM for modern service businesses.
+                    </MudText>
+                </MudItem>
+                <MudItem xs="6" md="2">
+                    <MudText Style="color:rgba(255,255,255,.35);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.875rem;">
+                        Product
+                    </MudText>
+                    <MudStack Spacing="2">
+                        <MudLink Href="/#features" Style="color:rgba(255,255,255,.5);font-size:.875rem;">Features</MudLink>
+                        <MudLink Href="/pricing" Style="color:rgba(255,255,255,.5);font-size:.875rem;">Pricing</MudLink>
+                        <MudLink Href="/demo-barber/book" Style="color:rgba(255,255,255,.5);font-size:.875rem;">Live Demo</MudLink>
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+            <MudDivider Style="border-color:rgba(255,255,255,.08);margin-top:2rem;margin-bottom:1.5rem;" />
+            <MudText Style="color:rgba(255,255,255,.3);font-size:.8125rem;">
+                &copy; @DateTime.Now.Year BookIt. All rights reserved.
+            </MudText>
+        </MudContainer>
+    </MudPaper>
+</MudLayout>
+
+@code {
+    private bool _isDark = false;
+    private void ToggleDark() => _isDark = !_isDark;
+    private void Logout() { Auth.Clear(); Nav.NavigateTo("/login"); }
+}
+

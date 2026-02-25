@@ -1,0 +1,146 @@
+@using MudBlazor
+@using Microsoft.AspNetCore.Components.Routing
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<MudThemeProvider Theme="_theme" IsDarkMode="@_isDark" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <!-- App Bar -->
+    <MudAppBar Elevation="1" Color="Color.Default" Dense="false" Style="backdrop-filter:blur(12px);">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="@(() => _drawerOpen = !_drawerOpen)" />
+        <MudSpacer />
+        <!-- Dark Mode Toggle -->
+        <MudTooltip Text="@(_isDark ? "Light mode" : "Dark mode")">
+            <MudIconButton Icon="@(_isDark ? Icons.Material.Filled.WbSunny : Icons.Material.Filled.DarkMode)"
+                           Color="Color.Inherit" OnClick="ToggleDark" />
+        </MudTooltip>
+        <!-- View Booking Page -->
+        @if (Auth.IsAuthenticated)
+        {
+            <MudTooltip Text="View booking page">
+                <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Color="Color.Inherit"
+                               Href="@($"/{Auth.TenantSlug}/book")" Target="_blank" />
+            </MudTooltip>
+            <!-- Profile Menu -->
+            <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                <ActivatorContent>
+                    <MudAvatar Color="Color.Primary" Style="cursor:pointer;width:36px;height:36px;font-size:.85rem;">
+                        @Auth.Initials
+                    </MudAvatar>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem Disabled="true">
+                        <MudText Typo="Typo.body2" Class="fw-bold">@Auth.UserName</MudText>
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@Auth.UserEmail</MudText>
+                    </MudMenuItem>
+                    <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.Dashboard"
+                                 Href="@($"/{Auth.TenantSlug}/admin")">Dashboard</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Settings"
+                                 Href="@($"/{Auth.TenantSlug}/admin/settings")">Profile &amp; Settings</MudMenuItem>
+                    <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="Logout"
+                                 IconColor="Color.Error">Sign Out</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        }
+    </MudAppBar>
+
+    <!-- Sidebar Drawer -->
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="2" Variant="DrawerVariant.Responsive"
+               ClipMode="DrawerClipMode.Always" Color="Color.Dark">
+        <!-- Brand -->
+        <MudDrawerHeader>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Style="border-radius:9px;">
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" />
+                </MudAvatar>
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.h6" Class="mud-text-primary fw-bold">BookIt</MudText>
+                    <MudText Typo="Typo.caption" Style="opacity:.6;">Admin Portal</MudText>
+                </MudStack>
+            </MudStack>
+        </MudDrawerHeader>
+
+        <MudNavMenu>
+            <!-- Main Menu -->
+            <MudText Typo="Typo.overline" Class="px-4 mud-text-secondary" Style="font-size:.65rem;opacity:.6;">
+                Main Menu
+            </MudText>
+            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin")" Match="NavLinkMatch.All"
+                        Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/calendar")"
+                        Icon="@Icons.Material.Filled.CalendarMonth">Calendar</MudNavLink>
+
+            <MudText Typo="Typo.overline" Class="px-4 mud-text-secondary mt-2" Style="font-size:.65rem;opacity:.6;">
+                Management
+            </MudText>
+            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/services")"
+                        Icon="@Icons.Material.Filled.GridView">Services</MudNavLink>
+            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/forms")"
+                        Icon="@Icons.Material.Filled.Assignment">Forms</MudNavLink>
+            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/interviews")"
+                        Icon="@Icons.Material.Filled.People">Interviews</MudNavLink>
+            <MudNavLink Href="@($"/{Auth.TenantSlug}/book")" Target="_blank"
+                        Icon="@Icons.Material.Filled.OpenInNew">Booking Page</MudNavLink>
+
+            <MudText Typo="Typo.overline" Class="px-4 mud-text-secondary mt-2" Style="font-size:.65rem;opacity:.6;">
+                Configuration
+            </MudText>
+            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/settings")"
+                        Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/subscriptions")"
+                        Icon="@Icons.Material.Filled.CreditCard">Subscription</MudNavLink>
+        </MudNavMenu>
+
+        <!-- User footer -->
+        <MudSpacer />
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="pa-3">
+            <MudAvatar Color="Color.Primary" Size="Size.Small">@Auth.Initials</MudAvatar>
+            <MudStack Spacing="0" Style="overflow:hidden;flex:1;">
+                <MudText Typo="Typo.body2" Class="fw-semibold mud-text-primary"
+                         Style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    @Auth.UserName
+                </MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">Administrator</MudText>
+            </MudStack>
+            <MudIconButton Icon="@Icons.Material.Filled.Logout" Size="Size.Small"
+                           Color="Color.Default" OnClick="Logout" />
+        </MudStack>
+    </MudDrawer>
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+    private bool _isDark = false;
+    private MudTheme _theme = BookItTheme.Default;
+
+    protected override void OnInitialized()
+    {
+        Auth.OnChange += StateHasChanged;
+    }
+
+    private void ToggleDark() => _isDark = !_isDark;
+
+    private void Logout()
+    {
+        Auth.Clear();
+        Nav.NavigateTo("/login");
+    }
+
+    public void Dispose() => Auth.OnChange -= StateHasChanged;
+}

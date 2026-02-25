@@ -1,0 +1,91 @@
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<MudGrid Justify="Justify.Center" Style="min-height:100vh;">
+    <MudItem xs="12" sm="8" md="5" lg="4">
+        <MudCard Elevation="4">
+            <MudCardContent Class="pa-8">
+                <!-- Brand -->
+                <MudStack AlignItems="AlignItems.Center" Class="mb-6">
+                    <MudAvatar Color="Color.Primary" Size="Size.Large" Style="border-radius:12px;">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Large" />
+                    </MudAvatar>
+                    <MudText Typo="Typo.h5" Class="fw-bold mt-2">Sign in to BookIt</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Enter your business slug and credentials</MudText>
+                </MudStack>
+
+                <MudForm @ref="_form" @bind-IsValid="_valid">
+                    <MudStack Spacing="3">
+                        <MudTextField @bind-Value="_slug" Label="Business Slug" Variant="Variant.Outlined"
+                                      Placeholder="e.g. my-barber-shop" Required="true"
+                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Store" />
+                        <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
+                                      InputType="InputType.Email" Required="true"
+                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
+                        <MudTextField @bind-Value="_password" Label="Password" Variant="Variant.Outlined"
+                                      InputType="@(_showPw ? InputType.Text : InputType.Password)" Required="true"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@(_showPw ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                      OnAdornmentClick="@(() => _showPw = !_showPw)" />
+
+                        @if (!string.IsNullOrEmpty(_error))
+                        {
+                            <MudAlert Severity="Severity.Error" Dense="true">@_error</MudAlert>
+                        }
+
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                                   Size="Size.Large" OnClick="DoLogin" Disabled="_busy">
+                            @(_busy ? "Signing in…" : "Sign In")
+                        </MudButton>
+
+                        <MudDivider />
+                        <MudText Typo="Typo.body2" Align="Align.Center">
+                            New here?
+                            <MudLink Href="/setup">Create your account</MudLink>
+                        </MudText>
+                    </MudStack>
+                </MudForm>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public string? ReturnUrl { get; set; }
+
+    private MudForm? _form;
+    private bool _valid;
+    private bool _busy;
+    private bool _showPw;
+    private string _slug = "";
+    private string _email = "";
+    private string _password = "";
+    private string _error = "";
+
+    private async Task DoLogin()
+    {
+        await _form!.Validate();
+        if (!_valid) return;
+        _busy = true;
+        _error = "";
+        var result = await Api.LoginAsync(new LoginRequest
+        {
+            TenantSlug = _slug,
+            Email = _email,
+            Password = _password
+        });
+        _busy = false;
+        if (result != null)
+        {
+            Auth.SetUser(result);
+            Api.SetToken(result.AccessToken);
+            Nav.NavigateTo(ReturnUrl ?? $"/{result.TenantSlug}/admin");
+        }
+        else
+        {
+            _error = "Invalid credentials. Please try again.";
+        }
+    }
+}

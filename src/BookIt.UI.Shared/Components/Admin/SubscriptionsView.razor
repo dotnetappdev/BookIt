@@ -1,0 +1,142 @@
+@using BookIt.Core
+
+<MudStack>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+        <div>
+            <MudText Typo="Typo.h5" Class="fw-bold">Subscription</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Manage your plan and billing</MudText>
+        </div>
+    </MudStack>
+
+    <!-- Current Plan Banner -->
+    <MudCard Elevation="1" Style="border-left:4px solid var(--mud-palette-primary);" Class="mb-4">
+        <MudCardContent>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="flex-wrap">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Style="border-radius:12px;">
+                        <MudIcon Icon="@Icons.Material.Filled.CreditCard" />
+                    </MudAvatar>
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.h6" Class="fw-bold">@CurrentPlan Plan</MudText>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            @if (CurrentStatus == SubscriptionStatus.Trialing)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Label="true">Trial</MudChip>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    Free trial — expires @(TrialEndsAt?.ToString("d MMM yyyy") ?? "soon")
+                                </MudText>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Label="true">Active</MudChip>
+                            }
+                        </MudStack>
+                    </MudStack>
+                </MudStack>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/pricing"
+                           StartIcon="@Icons.Material.Filled.ArrowUpward">
+                    Upgrade Plan
+                </MudButton>
+            </MudStack>
+        </MudCardContent>
+    </MudCard>
+
+    <!-- Feature Availability -->
+    <MudText Typo="Typo.h6" Class="fw-bold mb-2">Features on your plan</MudText>
+    <MudGrid Class="mb-4">
+        @foreach (var f in _features)
+        {
+            <MudItem xs="12" sm="6" lg="4">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="pa-3 rounded-lg"
+                          Style="background:var(--mud-palette-surface);border:1px solid var(--mud-palette-table-lines);">
+                    <MudAvatar Style="@(f.Available
+                        ? "background:rgba(108,92,231,.1);color:#6c5ce7;border-radius:9px;width:38px;height:38px;"
+                        : "background:var(--mud-palette-action-default-hover);color:var(--mud-palette-action-disabled);border-radius:9px;width:38px;height:38px;")">
+                        <MudIcon Icon="@f.Icon" Size="Size.Small" />
+                    </MudAvatar>
+                    <MudText Typo="Typo.body2" Class="fw-medium flex-grow-1">@f.Label</MudText>
+                    @if (f.Available)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text" Label="true">Enabled</MudChip>
+                    }
+                    else
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text" Label="true">Upgrade</MudChip>
+                    }
+                </MudStack>
+            </MudItem>
+        }
+    </MudGrid>
+
+    <!-- Plans -->
+    <MudText Typo="Typo.h6" Class="fw-bold mb-2">Available Plans</MudText>
+    <MudGrid>
+        @foreach (var plan in _plans)
+        {
+            <MudItem xs="12" sm="6" xl="3">
+                <MudCard Elevation="1" Style="@(plan.Plan == CurrentPlan ? "border:2px solid var(--mud-palette-primary);" : "")"
+                         Class="h-100 position-relative">
+                    @if (plan.Plan == CurrentPlan)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Label="true"
+                                 Style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);">
+                            Current Plan
+                        </MudChip>
+                    }
+                    <MudCardContent>
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.h6" Class="fw-bold">@plan.Name</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@plan.Desc</MudText>
+                            <MudText Typo="Typo.h4" Class="fw-bold mt-2">
+                                @plan.Price<MudText Typo="Typo.caption" Color="Color.Secondary" HtmlTag="span">/mo</MudText>
+                            </MudText>
+                        </MudStack>
+                    </MudCardContent>
+                    <MudCardActions>
+                        @if (plan.Plan == CurrentPlan)
+                        {
+                            <MudButton Variant="Variant.Outlined" Disabled="true" FullWidth="true">Current Plan</MudButton>
+                        }
+                        else if (plan.Plan > CurrentPlan)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                                       Href="/pricing">Upgrade</MudButton>
+                        }
+                        else
+                        {
+                            <MudButton Variant="Variant.Outlined" FullWidth="true" Href="/pricing">Downgrade</MudButton>
+                        }
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudStack>
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+    [Parameter] public SubscriptionPlan CurrentPlan { get; set; } = SubscriptionPlan.Free;
+    [Parameter] public SubscriptionStatus CurrentStatus { get; set; } = SubscriptionStatus.Trialing;
+    [Parameter] public DateTime? TrialEndsAt { get; set; }
+
+    private record PlanCard(SubscriptionPlan Plan, string Name, string Price, string Desc);
+    private record FeatureItem(string Label, string Icon, bool Available);
+
+    private PlanCard[] _plans => new[]
+    {
+        new PlanCard(SubscriptionPlan.Free,       "Free",       "£0",   "Solo businesses"),
+        new PlanCard(SubscriptionPlan.Starter,    "Starter",    "£19",  "Growing teams"),
+        new PlanCard(SubscriptionPlan.Pro,        "Pro",        "£49",  "Scale your business"),
+        new PlanCard(SubscriptionPlan.Enterprise, "Enterprise", "£129", "Unlimited scale"),
+    };
+
+    private FeatureItem[] _features => new[]
+    {
+        new FeatureItem("Online Payments",       Icons.Material.Filled.CreditCard,         FeatureFlags.CanUseOnlinePayments(CurrentPlan)),
+        new FeatureItem("Custom Forms",          Icons.Material.Filled.Assignment,         FeatureFlags.CanUseCustomForms(CurrentPlan)),
+        new FeatureItem("AI Assistant",          Icons.Material.Filled.SmartToy,           FeatureFlags.CanUseAiAssistant(CurrentPlan)),
+        new FeatureItem("Interview Scheduling",  Icons.Material.Filled.People,             FeatureFlags.CanUseInterviews(CurrentPlan)),
+        new FeatureItem("API Access",            Icons.Material.Filled.Code,               FeatureFlags.CanUseApiAccess(CurrentPlan)),
+        new FeatureItem("White-label Branding",  Icons.Material.Filled.BrandingWatermark,  FeatureFlags.CanRemoveBranding(CurrentPlan)),
+    };
+}

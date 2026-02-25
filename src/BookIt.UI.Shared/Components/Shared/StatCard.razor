@@ -1,0 +1,39 @@
+<MudCard Elevation="1" Style="padding:10px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:@ColorHex;"></div>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+        <MudAvatar Style="@($"background:{LightBg};color:{ColorHex};border-radius:10px;width:40px;height:40px;")" Rounded="false">
+            <MudIcon Icon="@Icon" />
+        </MudAvatar>
+        <MudStack Spacing="0">
+            <MudText Typo="Typo.h5" Class="fw-bold" Style="line-height:1;">@Value</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">@Label</MudText>
+        </MudStack>
+    </MudStack>
+</MudCard>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = Icons.Material.Filled.Info;
+    [Parameter] public Color Color { get; set; } = Color.Primary;
+
+    private string ColorHex => Color switch
+    {
+        Color.Primary => "#6c5ce7",
+        Color.Success => "#10b981",
+        Color.Warning => "#f59e0b",
+        Color.Info => "#3b82f6",
+        Color.Error => "#ef4444",
+        _ => "#6c5ce7"
+    };
+
+    private string LightBg => Color switch
+    {
+        Color.Primary => "rgba(108,92,231,.1)",
+        Color.Success => "rgba(16,185,129,.1)",
+        Color.Warning => "rgba(245,158,11,.1)",
+        Color.Info => "rgba(59,130,246,.1)",
+        Color.Error => "rgba(239,68,68,.1)",
+        _ => "rgba(108,92,231,.1)"
+    };
+}

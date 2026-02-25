@@ -1,0 +1,159 @@
+@using BookIt.Core.Enums
+
+<MudStack>
+    <!-- Page header -->
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+        <div>
+            <MudText Typo="Typo.h5" Class="fw-bold">Dashboard</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Welcome back, @UserName</MudText>
+        </div>
+        <MudButton Variant="Variant.Outlined" Color="Color.Default" StartIcon="@Icons.Material.Filled.OpenInNew"
+                   Href="@($"/{TenantSlug}/book")" Target="_blank">View Booking Page</MudButton>
+    </MudStack>
+
+    <!-- Stats -->
+    <MudGrid>
+        <MudItem xs="12" sm="6" lg="3">
+            <StatCard Label="Today's Appointments" Value="@TodayCount.ToString()"
+                      Icon="@Icons.Material.Filled.CalendarToday" Color="Color.Primary" />
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <StatCard Label="Upcoming (30 days)" Value="@UpcomingCount.ToString()"
+                      Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Success" />
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <StatCard Label="Revenue (30 days)" Value="@Revenue.ToString("C0")"
+                      Icon="@Icons.Material.Filled.AttachMoney" Color="Color.Info" />
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <StatCard Label="Unpaid" Value="@UnpaidCount.ToString()"
+                      Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" />
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid Class="mt-2">
+        <!-- Today's Schedule -->
+        <MudItem xs="12" lg="8">
+            <MudCard Elevation="1">
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Color="Color.Primary" />
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Today — @DateTime.Today.ToString("dddd, d MMMM")</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary"
+                                   Href="@($"/{TenantSlug}/admin/calendar")">Full Calendar</MudButton>
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (!TodayAppointments.Any())
+                    {
+                        <MudStack AlignItems="AlignItems.Center" Class="py-8">
+                            <MudIcon Icon="@Icons.Material.Filled.CalendarMonth"
+                                     Size="Size.Large" Color="Color.Default" Style="opacity:.3;" />
+                            <MudText Typo="Typo.body1" Class="fw-medium">No appointments today</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                Share your booking page to get appointments
+                            </MudText>
+                        </MudStack>
+                    }
+                    else
+                    {
+                        <MudList T="AppointmentResponse" Dense="true" Padding="false">
+                            @foreach (var apt in TodayAppointments.OrderBy(a => a.StartTime))
+                            {
+                                <MudListItem T="AppointmentResponse" Value="apt">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                                        <MudStack Spacing="0" Style="min-width:52px;text-align:center;">
+                                            <MudText Typo="Typo.body2" Class="fw-bold">
+                                                @apt.StartTime.ToString("h:mm")
+                                            </MudText>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                @apt.StartTime.ToString("tt")
+                                            </MudText>
+                                        </MudStack>
+                                        <MudStack Spacing="0" Style="flex:1;overflow:hidden;">
+                                            <MudText Typo="Typo.body2" Class="fw-semibold"
+                                                     Style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                @apt.CustomerName
+                                            </MudText>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                @string.Join(", ", apt.Services.Select(s => s.Name))
+                                            </MudText>
+                                        </MudStack>
+                                        <MudStack AlignItems="AlignItems.End" Spacing="1">
+                                            <MudChip T="string" Size="Size.Small"
+                                                     Color="@StatusColor(apt.Status)" Label="true">
+                                                @apt.Status
+                                            </MudChip>
+                                            <MudText Typo="Typo.caption" Class="fw-bold">
+                                                £@apt.TotalAmount.ToString("0.00")
+                                            </MudText>
+                                        </MudStack>
+                                    </MudStack>
+                                </MudListItem>
+                                <MudDivider />
+                            }
+                        </MudList>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Quick Actions -->
+        <MudItem xs="12" lg="4">
+            <MudCard Elevation="1" Class="mb-4">
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudIcon Icon="@Icons.Material.Filled.Bolt" Color="Color.Primary" />
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Quick Actions</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudStack Spacing="2">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Default" FullWidth="true"
+                                   StartIcon="@Icons.Material.Filled.CalendarMonth"
+                                   Href="@($"/{TenantSlug}/admin/calendar")"
+                                   Class="justify-start">View Full Calendar</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Default" FullWidth="true"
+                                   StartIcon="@Icons.Material.Filled.GridView"
+                                   Href="@($"/{TenantSlug}/admin/services")"
+                                   Class="justify-start">Manage Services</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Default" FullWidth="true"
+                                   StartIcon="@Icons.Material.Filled.Settings"
+                                   Href="@($"/{TenantSlug}/admin/settings")"
+                                   Class="justify-start">Business Settings</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                                   StartIcon="@Icons.Material.Filled.Link"
+                                   Href="@($"/{TenantSlug}/book")" Target="_blank"
+                                   Class="justify-start">Open Booking Page</MudButton>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudStack>
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+    [Parameter] public string UserName { get; set; } = "";
+    [Parameter] public List<AppointmentResponse> TodayAppointments { get; set; } = new();
+    [Parameter] public List<AppointmentResponse> UpcomingAppointments { get; set; } = new();
+
+    private int TodayCount => TodayAppointments.Count;
+    private int UpcomingCount => UpcomingAppointments.Count;
+    private decimal Revenue => TodayAppointments.Concat(UpcomingAppointments).Sum(a => a.TotalAmount);
+    private int UnpaidCount => TodayAppointments.Concat(UpcomingAppointments).Count(a => a.PaymentStatus == PaymentStatus.Unpaid);
+
+    private static Color StatusColor(AppointmentStatus s) => s switch
+    {
+        AppointmentStatus.Confirmed => Color.Success,
+        AppointmentStatus.Pending => Color.Warning,
+        AppointmentStatus.Cancelled => Color.Error,
+        _ => Color.Default
+    };
+}

@@ -1,0 +1,132 @@
+@page "/{tenantSlug}/admin/interviews"
+@rendermode InteractiveServer
+@layout BookIt.UI.Shared.Components.Admin.AdminLayout
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<PageTitle>Interviews — BookIt Admin</PageTitle>
+
+@if (!Auth.IsAuthenticated)
+{
+    <MudText>Redirecting…</MudText>
+}
+else
+{
+    <MudStack>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+            <div>
+                <MudText Typo="Typo.h5" Class="fw-bold">Interview Scheduling</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Manage slots and candidate invitations</MudText>
+            </div>
+        </MudStack>
+
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12" lg="6">
+                    <MudCard Elevation="1">
+                        <MudCardHeader>
+                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.Schedule" Color="Color.Primary" /></CardHeaderAvatar>
+                            <CardHeaderContent><MudText Typo="Typo.h6">Interview Slots</MudText></CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            @if (!_slots.Any())
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">No slots created yet.</MudText>
+                            }
+                            else
+                            {
+                                <MudList T="InterviewSlotResponse" Dense="true">
+                                    @foreach (var slot in _slots)
+                                    {
+                                        <MudListItem T="InterviewSlotResponse" Value="slot">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                                <MudStack Spacing="0">
+                                                    <MudText Typo="Typo.body2" Class="fw-semibold">
+                                                        @slot.SlotStart.ToString("ddd d MMM, h:mm tt")
+                                                    </MudText>
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                        @slot.InterviewerName · @(slot.IsBooked ? "Booked" : "Available")
+                                                    </MudText>
+                                                </MudStack>
+                                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                               Color="Color.Error" OnClick="@(() => DeleteSlot(slot))" />
+                                            </MudStack>
+                                        </MudListItem>
+                                        <MudDivider />
+                                    }
+                                </MudList>
+                            }
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" lg="6">
+                    <MudCard Elevation="1">
+                        <MudCardHeader>
+                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.Email" Color="Color.Primary" /></CardHeaderAvatar>
+                            <CardHeaderContent><MudText Typo="Typo.h6">Candidate Invitations</MudText></CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            @if (!_invitations.Any())
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">No invitations sent yet.</MudText>
+                            }
+                            else
+                            {
+                                <MudList T="CandidateInvitationResponse" Dense="true">
+                                    @foreach (var inv in _invitations)
+                                    {
+                                        <MudListItem T="CandidateInvitationResponse" Value="inv">
+                                            <MudStack Spacing="0">
+                                                <MudText Typo="Typo.body2" Class="fw-semibold">@inv.CandidateEmail</MudText>
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary">@inv.CandidateName</MudText>
+                                            </MudStack>
+                                        </MudListItem>
+                                        <MudDivider />
+                                    }
+                                </MudList>
+                            }
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        }
+    </MudStack>
+}
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+    private List<InterviewSlotResponse> _slots = new();
+    private List<CandidateInvitationResponse> _invitations = new();
+    private bool _loading = true;
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAuthenticated)
+            Nav.NavigateTo($"/login?returnUrl=/{TenantSlug}/admin/interviews");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !Auth.IsAuthenticated) return;
+        Api.SetToken(Auth.AccessToken);
+        _slots = await Api.GetInterviewSlotsAsync(TenantSlug) ?? new();
+        _invitations = await Api.GetInterviewInvitationsAsync(TenantSlug) ?? new();
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task DeleteSlot(InterviewSlotResponse slot)
+    {
+        Api.SetToken(Auth.AccessToken);
+        await Api.DeleteInterviewSlotAsync(TenantSlug, slot.Id);
+        _slots.Remove(slot);
+        Snackbar.Add("Slot removed.", Severity.Success);
+    }
+}
