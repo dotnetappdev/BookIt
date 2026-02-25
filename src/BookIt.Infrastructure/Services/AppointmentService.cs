@@ -141,7 +141,9 @@ public class AppointmentService : IAppointmentService
         if (serviceId.HasValue)
             query = query.Where(cs => cs.ServiceId == serviceId.Value);
 
-        return await query.OrderBy(cs => cs.SessionDate).ThenBy(cs => cs.StartTime).ToListAsync();
+        // Fetch ordered by date, then sort by StartTime in memory to avoid SQLite TimeSpan translation issue
+        var results = await query.OrderBy(cs => cs.SessionDate).ToListAsync();
+        return results.OrderBy(cs => cs.SessionDate).ThenBy(cs => cs.StartTime);
     }
 
     public async Task<ClassSession> CreateClassSessionAsync(ClassSession session)
