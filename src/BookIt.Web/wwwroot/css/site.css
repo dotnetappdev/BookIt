@@ -713,3 +713,96 @@ body {
     .toolbox-panel { position: static !important; }
     .field-card { padding: .875rem 1rem; }
 }
+
+/* ─── Profile / Nav Avatar ─── */
+.nav-avatar {
+    width: var(--avatar-size, 36px);
+    height: var(--avatar-size, 36px);
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: var(--avatar-font, .85rem);
+    letter-spacing: .02em;
+    flex-shrink: 0;
+    user-select: none;
+}
+.nav-avatar-lg {
+    width: 40px;
+    height: 40px;
+    font-size: .9rem;
+}
+.nav-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: var(--surface-3, #f8f9fa);
+    border: 1.5px solid var(--border, #e2e8f0);
+    border-radius: var(--radius-sm, 10px);
+    padding: .3rem .65rem .3rem .4rem;
+    cursor: pointer;
+    transition: var(--transition, all .15s);
+    font-size: .875rem;
+    font-weight: 500;
+    color: var(--text, #1e293b);
+    line-height: 1;
+}
+.nav-profile-btn:hover {
+    background: var(--surface-2, #f1f5f9);
+    border-color: var(--primary-light, #a89cf5);
+    color: var(--primary, #6c5ce7);
+}
+.nav-profile-btn:hover .nav-avatar { box-shadow: 0 0 0 3px rgba(108,92,231,.15); }
+.nav-username {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.nav-chevron {
+    font-size: .7rem;
+    opacity: .5;
+    margin-left: .1rem;
+    transition: transform .2s;
+}
+.nav-profile-btn[aria-expanded="true"] .nav-chevron { transform: rotate(180deg); }
+
+/* ─── Profile dropdown ─── */
+.nav-profile-dropdown {
+    border-radius: var(--radius, 12px) !important;
+    padding: .35rem 0;
+    min-width: 210px;
+    border: 1px solid var(--border, #e2e8f0) !important;
+}
+.nav-profile-dropdown .dropdown-item {
+    font-size: .875rem;
+    padding: .5rem 1rem;
+    border-radius: 6px;
+    margin: 0 .35rem;
+    width: calc(100% - .7rem);
+    color: var(--text, #1e293b);
+    transition: background .12s;
+}
+.nav-profile-dropdown .dropdown-item:hover {
+    background: var(--primary-subtle, #f0eeff);
+    color: var(--primary, #6c5ce7);
+}
+.nav-profile-dropdown .dropdown-item.text-danger:hover {
+    background: #fff1f2;
+    color: #dc2626;
+}
+.nav-profile-dropdown .dropdown-divider { border-color: var(--border, #e2e8f0); margin: .25rem .75rem; }
+.dropdown-header-user {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+/* ─── Admin topbar profile button inherits same styles ─── */
+.admin-topbar .nav-profile-btn {
+    background: var(--surface-2);
+    border-color: var(--border);
+}
