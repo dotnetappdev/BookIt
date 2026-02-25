@@ -3,16 +3,18 @@
 @model TenantResponse
 @{
     ViewData["Title"] = "Business Settings";
+    Layout = "_AdminLayout";
     var tenantSlug = ViewBag.TenantSlug as string ?? "";
 }
 
-<div class="bg-brand text-white py-3">
-    <div class="container">
-        <h4 class="mb-0"><i class="bi bi-gear me-2"></i>Business Settings</h4>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Settings</h1>
+        <p class="page-subtitle">Manage your business profile and configuration</p>
     </div>
 </div>
 
-<div class="container py-4">
+<div>
     <form method="post" asp-controller="Admin" asp-action="Settings" asp-route-tenantSlug="@tenantSlug" enctype="multipart/form-data">
         <div class="row g-4">
             <!-- Business Profile -->

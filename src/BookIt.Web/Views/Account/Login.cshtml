@@ -1,54 +1,125 @@
 @using BookIt.Core.DTOs
 @{
-    ViewData["Title"] = "Admin Login";
+    ViewData["Title"] = "Sign In";
+    Layout = null;
     var tenantSlug = ViewBag.TenantSlug as string;
 }
-
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card border-0 shadow-lg" style="border-radius: 16px;">
-                <div class="card-body p-5">
-                    <div class="text-center mb-4">
-                        <i class="bi bi-person-circle fs-1 text-brand d-block mb-2"></i>
-                        <h3 class="fw-bold">Admin Login</h3>
-                        @if (!string.IsNullOrEmpty(tenantSlug))
-                        {
-                            <p class="text-muted small">Signing in to <strong>@tenantSlug</strong></p>
-                        }
-                    </div>
-
-                    <form method="post" asp-controller="Account" asp-action="Login">
-                        <div class="mb-3">
-                            <label for="email" class="form-label fw-semibold">Email Address</label>
-                            <input type="email" class="form-control" id="email" name="Email" required aria-required="true" autocomplete="email" autofocus />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In - BookIt</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body style="margin:0;padding:0;overflow:hidden;">
+<div class="auth-wrapper">
+    <!-- Left decorative panel (hidden on mobile) -->
+    <div class="auth-left col-lg-5 d-none d-lg-flex flex-column justify-content-between">
+        <div style="position:relative;z-index:1;">
+            <a href="/" class="d-flex align-items-center gap-2 text-decoration-none mb-4">
+                <div style="width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.2);">
+                    <i class="bi bi-calendar-check text-white"></i>
+                </div>
+                <span style="color:white;font-weight:700;font-size:1.2rem;letter-spacing:-.03em;">BookIt</span>
+            </a>
+            <h2 style="color:white;font-size:2rem;font-weight:700;line-height:1.2;letter-spacing:-.04em;margin-bottom:1rem;">
+                Manage your bookings<br><span style="color:var(--primary-light);">all in one place.</span>
+            </h2>
+            <p style="color:rgba(255,255,255,.6);font-size:.95rem;line-height:1.7;">
+                View today's appointments, manage services, accept payments and grow your business with BookIt's powerful dashboard.
+            </p>
+        </div>
+        <div style="position:relative;z-index:1;">
+            <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1.25rem;">
+                <div class="d-flex gap-3 align-items-start mb-3">
+                    @foreach (var item in new[] {
+                        new { icon = "bi-calendar-check-fill", val = "24/7", label = "Online Bookings" },
+                        new { icon = "bi-credit-card-fill", val = "3", label = "Payment Options" },
+                        new { icon = "bi-people-fill", val = "∞", label = "Staff Accounts" }
+                    })
+                    {
+                        <div class="text-center flex-fill">
+                            <div style="color:var(--primary-light);font-size:1.5rem;font-weight:700;">@item.val</div>
+                            <div style="color:rgba(255,255,255,.5);font-size:.75rem;">@item.label</div>
                         </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label fw-semibold">Password</label>
-                            <input type="password" class="form-control" id="password" name="Password" required aria-required="true" autocomplete="current-password" />
-                        </div>
-                        <div class="mb-4">
-                            <label for="tenantSlugInput" class="form-label fw-semibold">Business Slug</label>
-                            <input type="text" class="form-control" id="tenantSlugInput" name="TenantSlug" value="@tenantSlug" required aria-required="true" placeholder="your-business-name" />
-                            <div class="form-text">Enter the URL slug for your business</div>
-                        </div>
-
-                        @if (!ViewData.ModelState.IsValid)
-                        {
-                            <div class="alert alert-danger" role="alert">
-                                <i class="bi bi-exclamation-triangle me-2"></i>Invalid email, password, or business slug.
-                            </div>
-                        }
-
-                        <button type="submit" class="btn btn-brand btn-lg w-100 mb-3">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
-                        </button>
-                        <a asp-controller="Home" asp-action="Setup" class="btn btn-outline-secondary w-100">
-                            <i class="bi bi-plus-circle me-2"></i>Create New Account
-                        </a>
-                    </form>
+                    }
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Right form panel -->
+    <div class="auth-right col-12 col-lg-7">
+        <div class="auth-form-container">
+            <!-- Mobile logo -->
+            <a href="/" class="d-flex d-lg-none align-items-center gap-2 text-decoration-none mb-4">
+                <div style="width:32px;height:32px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-calendar-check text-white" style="font-size:.85rem;"></i>
+                </div>
+                <span class="text-brand fw-bold">BookIt</span>
+            </a>
+
+            <div class="mb-4">
+                <h1 style="font-size:1.75rem;font-weight:700;letter-spacing:-.03em;margin-bottom:.35rem;">Welcome back</h1>
+                <p class="text-muted" style="font-size:.9375rem;">
+                    @if (!string.IsNullOrEmpty(tenantSlug))
+                    { <text>Signing in to <strong class="text-brand">@tenantSlug</strong></text> }
+                    else
+                    { <text>Sign in to your admin account</text> }
+                </p>
+            </div>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger rounded-3 border-0 mb-4" role="alert" style="background:#fef2f2;color:#dc2626;font-size:.875rem;">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>Invalid email, password, or business slug.
+                </div>
+            }
+
+            <form method="post" asp-controller="Account" asp-action="Login" novalidate>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email address</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" class="form-control" id="email" name="Email" required autocomplete="email" autofocus placeholder="you@example.com" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control" id="password" name="Password" required autocomplete="current-password" placeholder="••••••••" />
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="tenantSlugInput" class="form-label">Business Slug</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-building"></i></span>
+                        <input type="text" class="form-control" id="tenantSlugInput" name="TenantSlug" value="@tenantSlug" required placeholder="your-business-name" autocomplete="off" />
+                    </div>
+                    <div class="form-text">The URL slug for your business (e.g. <code>demo-barber</code>)</div>
+                </div>
+
+                <button type="submit" class="btn btn-brand w-100 py-2 mb-3" style="font-size:1rem;">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                </button>
+
+                <div class="divider-text my-4">or</div>
+
+                <a asp-controller="Home" asp-action="Setup" class="btn w-100 py-2" style="border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:.9375rem;">
+                    <i class="bi bi-plus-circle me-2 text-brand"></i>Create a new account
+                </a>
+
+                <p class="text-center mt-4 text-muted small">
+                    <strong>Demo credentials:</strong> admin@demo-barber.com / Admin123! / demo-barber
+                </p>
+            </form>
+        </div>
+    </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
