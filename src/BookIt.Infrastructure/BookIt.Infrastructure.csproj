@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BookIt.Core\BookIt.Core.csproj" />
+    <ProjectReference Include="..\BookIt.Payments.Stripe\BookIt.Payments.Stripe.csproj" />
+    <ProjectReference Include="..\BookIt.Payments.PayPal\BookIt.Payments.PayPal.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -13,7 +15,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
-    <PackageReference Include="Stripe.net" Version="50.3.0" />
   </ItemGroup>
 
   <PropertyGroup>

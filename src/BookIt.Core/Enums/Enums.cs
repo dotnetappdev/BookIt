@@ -123,3 +123,20 @@ public enum SessionStatus
     Cancelled = 4,
     Full = 5
 }
+
+public enum SubscriptionPlan
+{
+    Free = 0,
+    Starter = 1,
+    Pro = 2,
+    Enterprise = 3
+}
+
+public enum SubscriptionStatus
+{
+    Active = 1,
+    Trialing = 2,
+    PastDue = 3,
+    Cancelled = 4,
+    Expired = 5
+}

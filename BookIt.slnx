@@ -3,6 +3,8 @@
     <Project Path="src/BookIt.API/BookIt.API.csproj" />
     <Project Path="src/BookIt.Core/BookIt.Core.csproj" />
     <Project Path="src/BookIt.Infrastructure/BookIt.Infrastructure.csproj" />
+    <Project Path="src/BookIt.Payments.PayPal/BookIt.Payments.PayPal.csproj" />
+    <Project Path="src/BookIt.Payments.Stripe/BookIt.Payments.Stripe.csproj" />
     <Project Path="src/BookIt.Web/BookIt.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">

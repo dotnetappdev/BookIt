@@ -1,9 +1,7 @@
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
 using BookIt.Core.Enums;
 using BookIt.Core.Interfaces;
 using BookIt.Infrastructure.Data;
+using BookIt.Payments.PayPal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -13,15 +11,13 @@ public class PayPalService : IPayPalService
 {
     private readonly BookItDbContext _context;
     private readonly ILogger<PayPalService> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IPayPalProvider _payPalProvider;
 
-    private const string SandboxBaseUrl = "https://api-m.sandbox.paypal.com";
-
-    public PayPalService(BookItDbContext context, ILogger<PayPalService> logger, IHttpClientFactory httpClientFactory)
+    public PayPalService(BookItDbContext context, ILogger<PayPalService> logger, IPayPalProvider payPalProvider)
     {
         _context = context;
         _logger = logger;
-        _httpClientFactory = httpClientFactory;
+        _payPalProvider = payPalProvider;
     }
 
     public async Task<string> CreateOrderAsync(Guid tenantId, Guid appointmentId, decimal amount, string currency)
@@ -41,34 +37,14 @@ public class PayPalService : IPayPalService
 
         try
         {
-            var accessToken = await GetPayPalAccessTokenAsync(tenant.PayPalClientId, tenant.PayPalClientSecret, SandboxBaseUrl);
-
-            var client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(SandboxBaseUrl);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-            var orderPayload = new
-            {
-                intent = "CAPTURE",
-                purchase_units = new[]
-                {
-                    new
-                    {
-                        reference_id = appointmentId.ToString(),
-                        amount = new { currency_code = currency.ToUpper(), value = amount.ToString("F2") },
-                        description = $"BookIt Appointment - {appointment.CustomerName}"
-                    }
-                }
-            };
-
-            var json = JsonSerializer.Serialize(orderPayload);
-            var response = await client.PostAsync("/v2/checkout/orders",
-                new StringContent(json, Encoding.UTF8, "application/json"));
-
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<JsonElement>(content);
-            var orderId = result.GetProperty("id").GetString()!;
+            var orderId = await _payPalProvider.CreateOrderAsync(
+                tenant.PayPalClientId,
+                tenant.PayPalClientSecret,
+                amount,
+                currency,
+                appointmentId.ToString(),
+                $"BookIt Appointment - {appointment.CustomerName}",
+                useSandbox: true);
 
             var payment = new Core.Entities.Payment
             {
@@ -78,8 +54,7 @@ public class PayPalService : IPayPalService
                 Currency = currency,
                 Provider = PaymentProvider.PayPal,
                 Status = PaymentStatus.Pending,
-                ProviderPaymentIntentId = orderId,
-                Metadata = content
+                ProviderPaymentIntentId = orderId
             };
             _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
@@ -106,22 +81,13 @@ public class PayPalService : IPayPalService
 
         try
         {
-            var accessToken = await GetPayPalAccessTokenAsync(tenant.PayPalClientId, tenant.PayPalClientSecret!, SandboxBaseUrl);
+            var captured = await _payPalProvider.CaptureOrderAsync(
+                tenant.PayPalClientId,
+                tenant.PayPalClientSecret!,
+                orderId,
+                useSandbox: true);
 
-            var client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(SandboxBaseUrl);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-            var response = await client.PostAsync($"/v2/checkout/orders/{orderId}/capture",
-                new StringContent("{}", Encoding.UTF8, "application/json"));
-
-            if (!response.IsSuccessStatusCode) return false;
-
-            var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<JsonElement>(content);
-            var status = result.GetProperty("status").GetString();
-
-            if (status == "COMPLETED")
+            if (captured)
             {
                 payment.Status = PaymentStatus.Paid;
                 payment.PaidAt = DateTime.UtcNow;
@@ -139,20 +105,5 @@ public class PayPalService : IPayPalService
             _logger.LogError(ex, "Failed to capture PayPal order {OrderId}", orderId);
             return false;
         }
-    }
-
-    private static async Task<string> GetPayPalAccessTokenAsync(string clientId, string clientSecret, string baseUrl)
-    {
-        var client = new HttpClient { BaseAddress = new Uri(baseUrl) };
-        var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-
-        var response = await client.PostAsync("/v1/oauth2/token",
-            new StringContent("grant_type=client_credentials", Encoding.UTF8, "application/x-www-form-urlencoded"));
-
-        response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<JsonElement>(content);
-        return result.GetProperty("access_token").GetString()!;
     }
 }

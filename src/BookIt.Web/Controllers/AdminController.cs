@@ -194,4 +194,19 @@ public class AdminController : Controller
         TempData["Success"] = "Form deleted.";
         return RedirectToAction("Forms", new { tenantSlug });
     }
+
+    public async Task<IActionResult> Subscriptions(string tenantSlug)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        ViewBag.Tenant = tenant;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.CurrentPlan = BookIt.Core.Enums.SubscriptionPlan.Free;
+        ViewBag.SubscriptionStatus = BookIt.Core.Enums.SubscriptionStatus.Trialing;
+        ViewBag.TrialEndsAt = DateTime.UtcNow.AddDays(14);
+        return View();
+    }
 }
