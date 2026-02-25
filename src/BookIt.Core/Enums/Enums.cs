@@ -12,6 +12,7 @@ public enum BusinessType
     Tattoo = 8,
     Physiotherapy = 9,
     PersonalTrainer = 10,
+    Recruitment = 11,
     Other = 99
 }
 

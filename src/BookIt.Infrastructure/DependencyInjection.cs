@@ -52,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<IPaymentService, StripePaymentService>();
         services.AddScoped<IPayPalService, PayPalService>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IEmailService, ConsoleEmailService>();
 
         return services;
     }

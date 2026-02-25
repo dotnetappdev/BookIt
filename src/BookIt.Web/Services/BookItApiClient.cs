@@ -105,4 +105,69 @@ public class BookItApiClient
         var content = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<AuthResponse>(content, _jsonOptions);
     }
+
+    public async Task<InvitationDetailResponse?> GetInterviewInvitationAsync(string tenantSlug, string token)
+    {
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/interviewslots/invitations/{token}");
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<InvitationDetailResponse>(content, _jsonOptions);
+    }
+
+    public async Task<List<InterviewSlotResponse>> GetInterviewSlotsAsync(string tenantSlug, Guid? serviceId = null)
+    {
+        SetAuthHeader();
+        var url = $"/api/tenants/{tenantSlug}/interviewslots";
+        if (serviceId.HasValue) url += $"?serviceId={serviceId}";
+        var response = await _httpClient.GetAsync(url);
+        if (!response.IsSuccessStatusCode) return new();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<InterviewSlotResponse>>(content, _jsonOptions) ?? new();
+    }
+
+    public async Task<InterviewSlotResponse?> CreateInterviewSlotAsync(string tenantSlug, CreateInterviewSlotRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/interviewslots",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<InterviewSlotResponse>(content, _jsonOptions);
+    }
+
+    public async Task<bool> DeleteInterviewSlotAsync(string tenantSlug, Guid slotId)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.DeleteAsync($"/api/tenants/{tenantSlug}/interviewslots/{slotId}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<CandidateInvitationResponse?> SendInterviewInvitationAsync(string tenantSlug, SendInvitationRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/interviewslots/invitations",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<CandidateInvitationResponse>(content, _jsonOptions);
+    }
+
+    public async Task<List<CandidateInvitationResponse>> GetInterviewInvitationsAsync(string tenantSlug)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/interviewslots/invitations");
+        if (!response.IsSuccessStatusCode) return new();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<CandidateInvitationResponse>>(content, _jsonOptions) ?? new();
+    }
+
+    public async Task<bool> BookInterviewSlotAsync(string tenantSlug, string token, BookInterviewRequest request)
+    {
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/interviewslots/invitations/{token}/book",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
 }

@@ -103,4 +103,35 @@ public class BookingController : Controller
         ViewBag.TenantSlug = tenantSlug;
         return View("Widget");
     }
+
+    [Route("/{tenantSlug}/interview/{token}")]
+    public async Task<IActionResult> Interview(string tenantSlug, string token)
+    {
+        var invitation = await _apiClient.GetInterviewInvitationAsync(tenantSlug, token);
+        if (invitation == null) return NotFound();
+
+        ViewBag.Invitation = invitation;
+        ViewBag.TenantSlug = tenantSlug;
+        return View();
+    }
+
+    [HttpPost]
+    [Route("/{tenantSlug}/interview/{token}/book")]
+    public async Task<IActionResult> BookInterview(string tenantSlug, string token, BookInterviewRequest request)
+    {
+        var success = await _apiClient.BookInterviewSlotAsync(tenantSlug, token, request);
+        if (!success)
+        {
+            TempData["Error"] = "Unable to book the selected slot. It may have already been taken.";
+            return RedirectToAction("Interview", new { tenantSlug, token });
+        }
+        return RedirectToAction("InterviewConfirmation", new { tenantSlug });
+    }
+
+    [Route("/{tenantSlug}/interview/confirmed")]
+    public IActionResult InterviewConfirmation(string tenantSlug)
+    {
+        ViewBag.TenantSlug = tenantSlug;
+        return View();
+    }
 }

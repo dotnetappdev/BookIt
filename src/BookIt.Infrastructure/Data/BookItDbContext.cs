@@ -31,6 +31,8 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
     public DbSet<AppConfiguration> AppConfigurations => Set<AppConfiguration>();
     public DbSet<ClassSession> ClassSessions => Set<ClassSession>();
     public DbSet<ClassSessionBooking> ClassSessionBookings => Set<ClassSessionBooking>();
+    public DbSet<InterviewSlot> InterviewSlots => Set<InterviewSlot>();
+    public DbSet<CandidateInvitation> CandidateInvitations => Set<CandidateInvitation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -142,6 +144,20 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
             entity.Property(cs => cs.StartTime).HasConversion(
                 v => v.ToTimeSpan(), v => TimeOnly.FromTimeSpan(v));
             entity.Property(cs => cs.Price).HasColumnType("decimal(18,2)");
+        });
+
+        // InterviewSlot
+        modelBuilder.Entity<InterviewSlot>(entity =>
+        {
+            entity.HasIndex(s => new { s.TenantId, s.SlotStart });
+            entity.HasIndex(s => s.IsBooked);
+        });
+
+        // CandidateInvitation
+        modelBuilder.Entity<CandidateInvitation>(entity =>
+        {
+            entity.HasIndex(c => c.Token).IsUnique();
+            entity.HasIndex(c => new { c.TenantId, c.CandidateEmail });
         });
 
         // Seed data

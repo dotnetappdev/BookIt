@@ -96,4 +96,54 @@ public class AdminController : Controller
         TempData["Success"] = "Settings saved successfully!";
         return RedirectToAction(nameof(Settings), new { tenantSlug });
     }
+
+    public async Task<IActionResult> Interviews(string tenantSlug)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var services = await _apiClient.GetServicesAsync(tenantSlug);
+        var slots = await _apiClient.GetInterviewSlotsAsync(tenantSlug);
+        var invitations = await _apiClient.GetInterviewInvitationsAsync(tenantSlug);
+
+        ViewBag.Tenant = tenant;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.Services = services;
+        ViewBag.Slots = slots;
+        ViewBag.Invitations = invitations;
+
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateInterviewSlot(string tenantSlug, CreateInterviewSlotRequest request)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        await _apiClient.CreateInterviewSlotAsync(tenantSlug, request);
+        TempData["Success"] = "Interview slot created successfully.";
+        return RedirectToAction("Interviews", new { tenantSlug });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SendInterviewInvitation(string tenantSlug, SendInvitationRequest request)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        var result = await _apiClient.SendInterviewInvitationAsync(tenantSlug, request);
+        if (result != null)
+            TempData["Success"] = $"Invitation sent to {request.CandidateEmail}. Booking link: {result.BookingUrl}";
+        else
+            TempData["Error"] = "Failed to send invitation.";
+        return RedirectToAction("Interviews", new { tenantSlug });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteInterviewSlot(string tenantSlug, Guid slotId)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        await _apiClient.DeleteInterviewSlotAsync(tenantSlug, slotId);
+        TempData["Success"] = "Slot removed.";
+        return RedirectToAction("Interviews", new { tenantSlug });
+    }
 }
