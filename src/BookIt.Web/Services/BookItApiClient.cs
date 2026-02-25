@@ -70,6 +70,14 @@ public class BookItApiClient
         return JsonSerializer.Deserialize<AppointmentResponse>(content, _jsonOptions);
     }
 
+    public async Task<AppointmentResponse?> GetAppointmentByTokenAsync(string tenantSlug, string token)
+    {
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/appointments/confirm/{token}");
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<AppointmentResponse>(content, _jsonOptions);
+    }
+
     public async Task<List<AppointmentResponse>> GetAppointmentsAsync(string tenantSlug, DateTime? from = null, DateTime? to = null)
     {
         SetAuthHeader();

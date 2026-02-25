@@ -118,6 +118,9 @@ public class BookingController : Controller
         ViewBag.Tenant = tenant;
         ViewBag.Token = token;
         ViewBag.TenantSlug = tenantSlug;
+        // Fetch appointment to show PIN
+        var appointment = await _apiClient.GetAppointmentByTokenAsync(tenantSlug, token);
+        ViewBag.BookingPin = appointment?.BookingPin;
         return View();
     }
 

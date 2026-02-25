@@ -70,6 +70,11 @@ public class TenantsController : ControllerBase
         tenant.AllowedEmbedDomains = request.AllowedEmbedDomains;
         tenant.CustomCss = request.CustomCss;
         tenant.DefaultMeetingLink = request.DefaultMeetingLink;
+        tenant.OpenAiApiKey = request.OpenAiApiKey;
+        tenant.ElevenLabsApiKey = request.ElevenLabsApiKey;
+        tenant.ElevenLabsVoiceId = request.ElevenLabsVoiceId;
+        tenant.VapiPublicKey = request.VapiPublicKey;
+        tenant.EnableAiChat = request.EnableAiChat;
         tenant.UpdatedAt = DateTime.UtcNow;
 
         if (!string.IsNullOrEmpty(request.StripeSecretKey))
@@ -128,6 +133,21 @@ public class TenantsController : ControllerBase
 
         await _context.SaveChangesAsync();
         return NoContent();
+    }
+
+    [HttpGet("{slug}/ai-config")]
+    public async Task<ActionResult<object>> GetAiConfig(string slug)
+    {
+        var tenant = await _context.Tenants
+            .FirstOrDefaultAsync(t => t.Slug == slug && !t.IsDeleted && t.IsActive);
+        if (tenant == null) return NotFound();
+
+        return Ok(new
+        {
+            vapiPublicKey = tenant.VapiPublicKey,
+            elevenLabsVoiceId = tenant.ElevenLabsVoiceId,
+            enableAiChat = tenant.EnableAiChat
+        });
     }
 
     private static TenantResponse MapToResponse(Tenant t) => new()

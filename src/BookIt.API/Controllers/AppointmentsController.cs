@@ -76,6 +76,7 @@ public class AppointmentsController : ControllerBase
             CustomFormDataJson = request.CustomFormDataJson,
             Status = AppointmentStatus.Pending,
             PaymentStatus = PaymentStatus.Unpaid,
+            BookingPin = GeneratePin(),
             Services = services.Select(s => new Core.Entities.AppointmentService
             {
                 ServiceId = s.Id,
@@ -194,6 +195,7 @@ public class AppointmentsController : ControllerBase
             MeetingType = a.MeetingType,
             MeetingLink = a.MeetingLink,
             ConfirmationToken = a.ConfirmationToken,
+            BookingPin = a.BookingPin,
             StaffName = a.Staff?.FullName,
             Services = a.Services.Select(s => new ServiceSummary
             {
@@ -203,5 +205,14 @@ public class AppointmentsController : ControllerBase
                 DurationMinutes = s.DurationAtBooking
             }).ToList()
         };
+    }
+
+    private static string GeneratePin()
+    {
+        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I to avoid confusion
+        var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+        var bytes = new byte[6];
+        rng.GetBytes(bytes);
+        return new string(bytes.Select(b => chars[b % chars.Length]).ToArray());
     }
 }

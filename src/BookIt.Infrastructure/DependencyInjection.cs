@@ -1,8 +1,8 @@
 using BookIt.Core.Entities;
 using BookIt.Core.Interfaces;
+using BookIt.Infrastructure.Services;
 using BookIt.Infrastructure.Data;
 using BookIt.Infrastructure.Repositories;
-using BookIt.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -53,6 +53,7 @@ public static class DependencyInjection
         services.AddScoped<IPayPalService, PayPalService>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IEmailService, ConsoleEmailService>();
+        services.AddScoped<IChatService, BookingChatService>();
 
         return services;
     }

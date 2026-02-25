@@ -43,6 +43,13 @@ public class Tenant : BaseEntity
     public string? AllowedEmbedDomains { get; set; } // comma-separated
     public string? CustomCss { get; set; }
 
+    // AI chat & voice
+    public string? OpenAiApiKey { get; set; }
+    public string? ElevenLabsApiKey { get; set; }
+    public string? ElevenLabsVoiceId { get; set; }
+    public string? VapiPublicKey { get; set; }
+    public bool EnableAiChat { get; set; } = true;
+
     // Navigation properties
     public ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
     public ICollection<Service> Services { get; set; } = new List<Service>();

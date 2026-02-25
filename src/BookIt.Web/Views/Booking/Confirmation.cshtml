@@ -3,6 +3,7 @@
     var tenant = ViewBag.Tenant as BookIt.Core.DTOs.TenantResponse;
     var token = ViewBag.Token as string;
     var tenantSlug = ViewBag.TenantSlug as string;
+    var bookingPin = ViewBag.BookingPin as string;
 }
 
 <div class="container py-5">
@@ -23,6 +24,19 @@
                     <div class="alert alert-light border mb-4">
                         <div class="small text-muted mb-1">Confirmation Reference</div>
                         <div class="fw-bold fs-4 font-monospace text-brand">@token</div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(bookingPin))
+                {
+                    <div class="mt-4 p-4 rounded-3 text-center" style="background: linear-gradient(135deg, var(--primary-subtle, #f0eeff), white); border: 2px solid var(--primary, #6c5ce7);">
+                        <p class="small text-muted mb-1 fw-semibold text-uppercase" style="letter-spacing:.08em;">Your Booking PIN</p>
+                        <div style="font-size:2rem; font-weight:800; letter-spacing:.3em; color:var(--primary,#6c5ce7); font-family:monospace;">
+                            @bookingPin
+                        </div>
+                        <p class="small text-muted mt-2 mb-0">
+                            <i class="bi bi-shield-check me-1"></i>Use this PIN to look up or manage your booking via our chat assistant
+                        </p>
                     </div>
                 }
 

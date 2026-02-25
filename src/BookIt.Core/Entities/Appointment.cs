@@ -42,6 +42,7 @@ public class Appointment : BaseEntity
     // Confirmation
     public string? ConfirmationToken { get; set; }
     public bool ReminderSent { get; set; }
+    public string? BookingPin { get; set; }  // 6-char alphanumeric, e.g. "AB3X7K"
 
     public ICollection<AppointmentService> Services { get; set; } = new List<AppointmentService>();
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();

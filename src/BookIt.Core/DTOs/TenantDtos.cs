@@ -59,4 +59,9 @@ public class UpdateTenantRequest
     public string? AllowedEmbedDomains { get; set; }
     public string? CustomCss { get; set; }
     public string? DefaultMeetingLink { get; set; }
+    public string? OpenAiApiKey { get; set; }
+    public string? ElevenLabsApiKey { get; set; }
+    public string? ElevenLabsVoiceId { get; set; }
+    public string? VapiPublicKey { get; set; }
+    public bool EnableAiChat { get; set; } = true;
 }
