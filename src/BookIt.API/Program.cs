@@ -85,11 +85,12 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<BookItDbContext>();
     try
     {
-        db.Database.Migrate();
+        db.Database.EnsureCreated();
     }
-    catch
+    catch (Exception ex)
     {
-        // Database might not be available - ignore for now
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning("Database initialization failed: {Message}. The app will run without database support.", ex.Message);
     }
 }
 

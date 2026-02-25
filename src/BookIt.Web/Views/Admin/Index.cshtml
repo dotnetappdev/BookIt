@@ -6,6 +6,9 @@
     var upcomingAppts = ViewBag.UpcomingAppointments as List<AppointmentResponse> ?? new();
     var tenantSlug = ViewBag.TenantSlug as string ?? "";
     var userName = ViewBag.UserName as string ?? "";
+    var allAppts = todayAppts.Concat(upcomingAppts).ToList();
+    var totalRevenue = allAppts.Sum(a => a.TotalAmount);
+    var unpaidCount = allAppts.Count(a => a.PaymentStatus == BookIt.Core.Enums.PaymentStatus.Unpaid);
 }
 
 <div class="bg-brand text-white py-4">
@@ -42,7 +45,7 @@
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm text-center p-3">
                 <div class="fs-2 fw-bold text-info">
-                    £@((todayAppts.Concat(upcomingAppts)).Sum(a => a.TotalAmount).ToString("N0"))
+                    £@totalRevenue.ToString("N0")
                 </div>
                 <div class="text-muted small">Revenue (30 days)</div>
             </div>
@@ -50,7 +53,7 @@
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm text-center p-3">
                 <div class="fs-2 fw-bold text-warning">
-                    @(todayAppts.Concat(upcomingAppts)).Count(a => a.PaymentStatus == BookIt.Core.Enums.PaymentStatus.Unpaid)
+                    @unpaidCount
                 </div>
                 <div class="text-muted small">Unpaid</div>
             </div>
