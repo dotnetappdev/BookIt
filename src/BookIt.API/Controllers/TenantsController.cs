@@ -1,0 +1,159 @@
+using BookIt.Core.DTOs;
+using BookIt.Core.Entities;
+using BookIt.Core.Interfaces;
+using BookIt.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace BookIt.API.Controllers;
+
+[ApiController]
+[Route("api/tenants")]
+public class TenantsController : ControllerBase
+{
+    private readonly BookItDbContext _context;
+    private readonly ITenantService _tenantService;
+
+    public TenantsController(BookItDbContext context, ITenantService tenantService)
+    {
+        _context = context;
+        _tenantService = tenantService;
+    }
+
+    [HttpGet("{slug}")]
+    public async Task<ActionResult<TenantResponse>> GetTenant(string slug)
+    {
+        var tenant = await _context.Tenants
+            .FirstOrDefaultAsync(t => t.Slug == slug && !t.IsDeleted && t.IsActive);
+
+        if (tenant == null) return NotFound();
+
+        return Ok(MapToResponse(tenant));
+    }
+
+    [Authorize]
+    [HttpPut("{slug}")]
+    public async Task<ActionResult<TenantResponse>> UpdateTenant(string slug, [FromBody] UpdateTenantRequest request)
+    {
+        var tenant = await _context.Tenants
+            .FirstOrDefaultAsync(t => t.Slug == slug && !t.IsDeleted);
+
+        if (tenant == null) return NotFound();
+
+        if (!_tenantService.IsValidTenantAccess(tenant.Id))
+            return Forbid();
+
+        tenant.Name = request.Name;
+        tenant.BusinessType = request.BusinessType;
+        tenant.LogoUrl = request.LogoUrl;
+        tenant.PrimaryColor = request.PrimaryColor;
+        tenant.SecondaryColor = request.SecondaryColor;
+        tenant.ContactEmail = request.ContactEmail;
+        tenant.ContactPhone = request.ContactPhone;
+        tenant.Address = request.Address;
+        tenant.City = request.City;
+        tenant.PostCode = request.PostCode;
+        tenant.Country = request.Country;
+        tenant.Website = request.Website;
+        tenant.TimeZone = request.TimeZone;
+        tenant.Currency = request.Currency;
+        tenant.AllowOnlineBooking = request.AllowOnlineBooking;
+        tenant.RequirePaymentUpfront = request.RequirePaymentUpfront;
+        tenant.SendReminders = request.SendReminders;
+        tenant.ReminderHoursBefore = request.ReminderHoursBefore;
+        tenant.EnableStripe = request.EnableStripe;
+        tenant.EnablePayPal = request.EnablePayPal;
+        tenant.EnableApplePay = request.EnableApplePay;
+        tenant.StripePublishableKey = request.StripePublishableKey;
+        tenant.PayPalClientId = request.PayPalClientId;
+        tenant.AllowedEmbedDomains = request.AllowedEmbedDomains;
+        tenant.CustomCss = request.CustomCss;
+        tenant.DefaultMeetingLink = request.DefaultMeetingLink;
+        tenant.UpdatedAt = DateTime.UtcNow;
+
+        if (!string.IsNullOrEmpty(request.StripeSecretKey))
+            tenant.StripeSecretKey = request.StripeSecretKey;
+        if (!string.IsNullOrEmpty(request.PayPalClientSecret))
+            tenant.PayPalClientSecret = request.PayPalClientSecret;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(MapToResponse(tenant));
+    }
+
+    [Authorize]
+    [HttpGet("{slug}/business-hours")]
+    public async Task<ActionResult<IEnumerable<BusinessHours>>> GetBusinessHours(string slug)
+    {
+        var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Slug == slug && !t.IsDeleted);
+        if (tenant == null) return NotFound();
+
+        if (!_tenantService.IsValidTenantAccess(tenant.Id))
+            return Forbid();
+
+        var hours = await _context.BusinessHours
+            .Where(bh => bh.TenantId == tenant.Id && !bh.IsDeleted)
+            .OrderBy(bh => bh.DayOfWeek)
+            .ToListAsync();
+
+        return Ok(hours);
+    }
+
+    [Authorize]
+    [HttpPut("{slug}/business-hours")]
+    public async Task<IActionResult> UpdateBusinessHours(string slug, [FromBody] List<BusinessHours> hours)
+    {
+        var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Slug == slug && !t.IsDeleted);
+        if (tenant == null) return NotFound();
+
+        if (!_tenantService.IsValidTenantAccess(tenant.Id))
+            return Forbid();
+
+        foreach (var hour in hours)
+        {
+            if (hour.TenantId != tenant.Id)
+                return Forbid();
+
+            var existing = await _context.BusinessHours.FindAsync(hour.Id);
+            if (existing != null && existing.TenantId == tenant.Id)
+            {
+                existing.OpenTime = hour.OpenTime;
+                existing.CloseTime = hour.CloseTime;
+                existing.IsClosed = hour.IsClosed;
+                existing.SlotDurationMinutes = hour.SlotDurationMinutes;
+                existing.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    private static TenantResponse MapToResponse(Tenant t) => new()
+    {
+        Id = t.Id,
+        Name = t.Name,
+        Slug = t.Slug,
+        BusinessType = t.BusinessType,
+        LogoUrl = t.LogoUrl,
+        PrimaryColor = t.PrimaryColor,
+        SecondaryColor = t.SecondaryColor,
+        ContactEmail = t.ContactEmail,
+        ContactPhone = t.ContactPhone,
+        Address = t.Address,
+        City = t.City,
+        PostCode = t.PostCode,
+        Country = t.Country,
+        Website = t.Website,
+        TimeZone = t.TimeZone,
+        Currency = t.Currency,
+        AllowOnlineBooking = t.AllowOnlineBooking,
+        RequirePaymentUpfront = t.RequirePaymentUpfront,
+        EnableStripe = t.EnableStripe,
+        EnablePayPal = t.EnablePayPal,
+        EnableApplePay = t.EnableApplePay,
+        StripePublishableKey = t.StripePublishableKey,
+        PayPalClientId = t.PayPalClientId
+    };
+}

@@ -1,0 +1,12 @@
+/home/runner/work/BookIt/BookIt/src/BookIt.Core/bin/Debug/net10.0/BookIt.Core.deps.json
+/home/runner/work/BookIt/BookIt/src/BookIt.Core/bin/Debug/net10.0/BookIt.Core.dll
+/home/runner/work/BookIt/BookIt/src/BookIt.Core/bin/Debug/net10.0/BookIt.Core.pdb
+/home/runner/work/BookIt/BookIt/src/BookIt.Core/obj/Debug/net10.0/BookIt.Core.GeneratedMSBuildEditorConfig.editorconfig
+/home/runner/work/BookIt/BookIt/src/BookIt.Core/obj/Debug/net10.0/BookIt.Core.AssemblyInfoInputs.cache
+/home/runner/work/BookIt/BookIt/src/BookIt.Core/obj/Debug/net10.0/BookIt.Core.AssemblyInfo.cs
+/home/runner/work/BookIt/BookIt/src/BookIt.Core/obj/Debug/net10.0/BookIt.Core.csproj.CoreCompileInputs.cache
+/home/runner/work/BookIt/BookIt/src/BookIt.Core/obj/Debug/net10.0/BookIt.Core.sourcelink.json
+/home/runner/work/BookIt/BookIt/src/BookIt.Core/obj/Debug/net10.0/BookIt.Core.dll
+/home/runner/work/BookIt/BookIt/src/BookIt.Core/obj/Debug/net10.0/refint/BookIt.Core.dll
+/home/runner/work/BookIt/BookIt/src/BookIt.Core/obj/Debug/net10.0/BookIt.Core.pdb
+/home/runner/work/BookIt/BookIt/src/BookIt.Core/obj/Debug/net10.0/ref/BookIt.Core.dll
