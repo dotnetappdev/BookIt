@@ -1,54 +1,86 @@
 @{
-    ViewData["Title"] = "BookIt — Smart Booking CRM";
+    ViewData["Title"] = "BookIt — Smart Booking Software for Service Businesses";
 }
 
 <!-- Hero -->
-<section class="hero-section py-5">
-    <div class="container py-4" style="position:relative;z-index:1;">
-        <div class="row align-items-center g-5">
+<section class="hero-section">
+    <div class="hero-grid"></div>
+    <div class="container py-5" style="position:relative;z-index:1;">
+        <div class="row align-items-center g-5 py-4">
             <div class="col-lg-6">
-                <div class="hero-badge">
-                    <i class="bi bi-stars"></i>Online Bookings, Made Simple
+                <div class="hero-badge mb-3">
+                    <span class="hero-badge-dot"></span>
+                    <span>Trusted by service businesses everywhere</span>
                 </div>
                 <h1 class="hero-title">
-                    Your business,<br><span>fully booked.</span>
+                    Your business,<br><span>always booked.</span>
                 </h1>
-                <p class="hero-subtitle">The smart booking CRM for barbers, salons, spas, gyms and more. Accept appointments 24/7, manage your calendar, and get paid online.</p>
-                <div class="d-flex gap-3 flex-wrap">
-                    <a asp-controller="Home" asp-action="Setup" class="btn btn-brand btn-lg px-4 py-3" style="font-size:1rem;">
-                        <i class="bi bi-rocket-takeoff me-2"></i>Get Started Free
+                <p class="hero-subtitle">The all-in-one booking CRM for barbers, salons, spas, gyms and recruitment agencies. Accept appointments 24/7, manage your team, and get paid online.</p>
+                <div class="hero-cta-group">
+                    <a asp-controller="Home" asp-action="Setup" class="btn btn-brand btn-lg px-5 py-3" style="font-size:1rem;border-radius:10px;">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Start for Free
                     </a>
-                    <a href="#features" class="btn btn-lg px-4 py-3" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;font-size:1rem;">
-                        <i class="bi bi-play-circle me-2"></i>See How It Works
+                    <a href="/demo-barber/book" target="_blank" class="btn btn-lg px-4 py-3" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.9);font-size:1rem;border-radius:10px;">
+                        <i class="bi bi-play-circle me-2"></i>Live Demo
                     </a>
                 </div>
-                <div class="d-flex gap-4 mt-4">
-                    @foreach (var item in new[] { "No credit card", "Free setup", "Cancel anytime" })
+                <div class="hero-trust">
+                    @foreach (var item in new[] { "Free 14-day trial", "No credit card needed", "Cancel anytime" })
                     {
-                        <div class="d-flex align-items-center gap-1" style="color:rgba(255,255,255,.6);font-size:.875rem;">
-                            <i class="bi bi-check2 text-success"></i>@item
+                        <div class="hero-trust-item">
+                            <i class="bi bi-check-circle-fill"></i>@item
                         </div>
                     }
                 </div>
             </div>
             <div class="col-lg-6">
+                <!-- Dashboard preview card -->
                 <div class="hero-card">
                     <div class="hero-card-header">
                         <div class="hero-card-dot" style="background:#ff5f57;"></div>
                         <div class="hero-card-dot" style="background:#febc2e;"></div>
                         <div class="hero-card-dot" style="background:#28c840;"></div>
-                        <span style="color:rgba(255,255,255,.5);font-size:.8rem;margin-left:.5rem;">Demo Barber Shop — Booking</span>
+                        <span style="color:rgba(255,255,255,.45);font-size:.75rem;margin-left:.5rem;font-weight:500;">BookIt — Admin Dashboard</span>
                     </div>
                     <div class="hero-card-inner">
-                        <p style="color:rgba(255,255,255,.5);font-size:.8125rem;margin-bottom:1rem;">Try the live demo with <strong style="color:white;">demo-barber</strong> slug</p>
-                        <a href="/demo-barber/book" class="btn btn-brand w-100 mb-2 py-2">
-                            <i class="bi bi-calendar-plus me-2"></i>Book a Demo Appointment
-                        </a>
-                        <a href="/demo-barber/admin" class="btn w-100 py-2" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);">
-                            <i class="bi bi-speedometer2 me-2"></i>View Admin Dashboard
-                        </a>
-                        <div class="mt-3 p-2 rounded-2 text-center" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);">
-                            <span style="color:rgba(255,255,255,.5);font-size:.75rem;">Admin: admin@demo-barber.com / Admin123!</span>
+                        <!-- Mock stat cards -->
+                        <div class="row g-2 mb-3">
+                            @foreach (var s in new[] {
+                                new { Label="Today", Val="8", Color="#6c5ce7", Bg="rgba(108,92,231,.15)" },
+                                new { Label="This Week", Val="34", Color="#10b981", Bg="rgba(16,185,129,.15)" },
+                                new { Label="Revenue", Val="£840", Color="#3b82f6", Bg="rgba(59,130,246,.15)" },
+                                new { Label="Pending", Val="3", Color="#f59e0b", Bg="rgba(245,158,11,.15)" }
+                            })
+                            {
+                                <div class="col-6">
+                                    <div style="background:@s.Bg;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.75rem;">
+                                        <div style="color:@s.Color;font-size:1.3rem;font-weight:800;line-height:1;">@s.Val</div>
+                                        <div style="color:rgba(255,255,255,.45);font-size:.7rem;margin-top:.2rem;">@s.Label</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <!-- Mock appointment row -->
+                        <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:.75rem 1rem;margin-bottom:.5rem;display:flex;align-items:center;gap:.75rem;">
+                            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:white;flex-shrink:0;">JD</div>
+                            <div style="flex:1;">
+                                <div style="color:rgba(255,255,255,.85);font-size:.8125rem;font-weight:600;">James D. — Mens Haircut</div>
+                                <div style="color:rgba(255,255,255,.4);font-size:.7rem;">09:30 AM · 30 min</div>
+                            </div>
+                            <span style="background:rgba(16,185,129,.2);color:#10b981;font-size:.65rem;font-weight:600;padding:.2rem .5rem;border-radius:99px;">Confirmed</span>
+                        </div>
+                        <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;">
+                            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#e17055,#fd79a8);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:white;flex-shrink:0;">SM</div>
+                            <div style="flex:1;">
+                                <div style="color:rgba(255,255,255,.85);font-size:.8125rem;font-weight:600;">Sarah M. — Beard Trim</div>
+                                <div style="color:rgba(255,255,255,.4);font-size:.7rem;">11:00 AM · 20 min</div>
+                            </div>
+                            <span style="background:rgba(245,158,11,.2);color:#f59e0b;font-size:.65rem;font-weight:600;padding:.2rem .5rem;border-radius:99px;">Pending</span>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="/demo-barber/admin" class="btn btn-sm w-100 py-2" style="background:rgba(108,92,231,.3);border:1px solid rgba(108,92,231,.5);color:#a29bfe;border-radius:8px;font-size:.8125rem;font-weight:600;">
+                                <i class="bi bi-speedometer2 me-1"></i>Open Admin Dashboard
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -57,12 +89,35 @@
     </div>
 </section>
 
+<!-- Stats bar -->
+<div class="stats-bar">
+    <div class="container">
+        <div class="row g-0 text-center">
+            @foreach (var s in new[] {
+                new { Val = "500+", Label = "Businesses" },
+                new { Val = "24/7", Label = "Online Booking" },
+                new { Val = "3", Label = "Payment Options" },
+                new { Val = "99.9%", Label = "Uptime SLA" }
+            })
+            {
+                <div class="col-6 col-md-3">
+                    <div class="stat-pill">
+                        <div class="stat-pill-value">@s.Val</div>
+                        <div class="stat-pill-label">@s.Label</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
 <!-- Industries -->
-<section class="py-5" style="background:var(--surface);">
+<section class="py-5" style="background:var(--surface-2);">
     <div class="container">
         <div class="text-center mb-5">
             <div class="section-eyebrow">Who It's For</div>
             <h2 class="section-title">Built for every service business</h2>
+            <p class="text-muted mt-3 mx-auto" style="max-width:480px;font-size:.9375rem;">From solo barbers to multi-location gyms — BookIt adapts to your business type.</p>
         </div>
         <div class="row g-3">
             @foreach (var ind in new[] {
@@ -71,15 +126,45 @@
                 new { Icon = "bi-heart-pulse", Name = "Spas & Massage", Color = "#00b894", Bg = "#edfff8" },
                 new { Icon = "bi-trophy", Name = "Gyms & PT", Color = "#0984e3", Bg = "#edf5ff" },
                 new { Icon = "bi-gem", Name = "Nail Salons", Color = "#e84393", Bg = "#fff0f7" },
-                new { Icon = "bi-person-badge", Name = "Tattoo Studios", Color = "#2d3436", Bg = "#f4f4f4" }
+                new { Icon = "bi-person-badge", Name = "Recruitment", Color = "#2d3436", Bg = "#f4f4f4" }
             })
             {
                 <div class="col-6 col-md-4 col-lg-2">
-                    <div class="industry-chip" style="text-decoration:none;">
-                        <div style="width:52px;height:52px;border-radius:12px;background:@ind.Bg;display:flex;align-items:center;justify-content:center;">
-                            <i class="bi @ind.Icon" style="font-size:1.5rem;color:@ind.Color;"></i>
+                    <div class="industry-chip">
+                        <div style="width:56px;height:56px;border-radius:14px;background:@ind.Bg;display:flex;align-items:center;justify-content:center;">
+                            <i class="bi @ind.Icon" style="font-size:1.6rem;color:@ind.Color;"></i>
                         </div>
-                        <span class="fw-semibold" style="font-size:.875rem;">@ind.Name</span>
+                        <span>@ind.Name</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- How it works -->
+<section id="how-it-works" class="py-5" style="background:var(--surface);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-eyebrow">How It Works</div>
+            <h2 class="section-title">Up and running in minutes</h2>
+            <p class="text-muted mt-3 mx-auto" style="max-width:450px;font-size:.9375rem;">No technical knowledge required. Set up your booking page and start taking appointments today.</p>
+        </div>
+        <div class="row g-4 justify-content-center">
+            @foreach (var step in new[] {
+                new { Num="1", Icon="bi-building", Title="Create your profile", Desc="Enter your business name, type, services and opening hours. Takes less than 2 minutes." },
+                new { Num="2", Icon="bi-link-45deg", Title="Share your booking link", Desc="Get a branded booking page at bookit.app/your-business or embed it on your website." },
+                new { Num="3", Icon="bi-calendar-check", Title="Take bookings 24/7", Desc="Customers book online, get confirmations, and you manage everything from your dashboard." }
+            })
+            {
+                <div class="col-md-4">
+                    <div class="how-step">
+                        <div class="how-step-num">@step.Num</div>
+                        <div style="width:52px;height:52px;border-radius:14px;background:var(--primary-subtle);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto 1rem;">
+                            <i class="bi @step.Icon"></i>
+                        </div>
+                        <h5 class="fw-700 mb-2" style="font-weight:700;letter-spacing:-.02em;">@step.Title</h5>
+                        <p class="text-muted mb-0" style="font-size:.9rem;line-height:1.6;">@step.Desc</p>
                     </div>
                 </div>
             }
@@ -93,23 +178,26 @@
         <div class="text-center mb-5">
             <div class="section-eyebrow">Features</div>
             <h2 class="section-title">Everything you need to grow</h2>
-            <p class="text-muted mt-2 mx-auto" style="max-width:500px;">Powerful tools to manage bookings, staff and payments without the complexity.</p>
+            <p class="text-muted mt-3 mx-auto" style="max-width:500px;font-size:.9375rem;">Powerful tools built for service businesses. No extra plugins, no per-feature paywalls.</p>
         </div>
         <div class="row g-4">
-            @foreach (var f in new[] {
-                new { Icon = "bi-calendar3", Title = "Smart Calendar", Desc = "Full week and month view with FullCalendar.js. Drag-and-drop appointments and availability management." },
-                new { Icon = "bi-credit-card", Title = "Stripe & PayPal", Desc = "Accept Stripe, PayPal and Apple Pay. Require upfront payment or pay at the appointment." },
-                new { Icon = "bi-people", Title = "Staff Management", Desc = "Multiple staff with individual schedules, services and availability windows." },
-                new { Icon = "bi-phone", Title = "Embeddable Widget", Desc = "Add a booking widget to any website. Fully customisable with your brand colours." },
-                new { Icon = "bi-building", Title = "Multi-Tenant", Desc = "One platform, unlimited businesses. Each tenant has fully isolated data." },
-                new { Icon = "bi-shield-check", Title = "Secure by Default", Desc = "ASP.NET Identity, JWT tokens with role claims, and per-tenant IDOR protection." }
-            })
+            @{
+                var features = new[] {
+                    new { Icon = "bi-calendar3", Title = "Smart Calendar", Desc = "Full week and month view with FullCalendar.js. Drag-and-drop appointments and complete availability management.", Class = "fi-purple" },
+                    new { Icon = "bi-credit-card-2-front", Title = "Stripe & PayPal", Desc = "Accept Stripe, PayPal and Apple Pay. Require upfront deposits or pay-at-appointment — your choice.", Class = "fi-green" },
+                    new { Icon = "bi-people-fill", Title = "Staff Management", Desc = "Multiple staff with individual schedules, services, working hours and colour-coded calendar views.", Class = "fi-blue" },
+                    new { Icon = "bi-layout-sidebar", Title = "Custom Form Builder", Desc = "Drag-and-drop form builder with 9 field types. Add custom pre-booking questions to any service.", Class = "fi-orange" },
+                    new { Icon = "bi-robot", Title = "AI Chat Assistant", Desc = "Embedded chat widget with PIN-based booking lookup. Upgrade to GPT-3.5 with your OpenAI key.", Class = "fi-purple" },
+                    new { Icon = "bi-building-check", Title = "Multi-Tenant Ready", Desc = "One platform, unlimited businesses. Each tenant has fully isolated data with JWT IDOR protection.", Class = "fi-dark" }
+                };
+            }
+            @foreach (var f in features)
             {
                 <div class="col-md-6 col-lg-4">
                     <div class="feature-card">
-                        <div class="feature-icon"><i class="bi @f.Icon"></i></div>
-                        <h5 class="fw-semibold mb-2" style="letter-spacing:-.02em;">@f.Title</h5>
-                        <p class="text-muted mb-0" style="font-size:.9rem;line-height:1.6;">@f.Desc</p>
+                        <div class="feature-icon @f.Class"><i class="bi @f.Icon"></i></div>
+                        <h5 class="fw-700 mb-2" style="font-weight:700;letter-spacing:-.025em;">@f.Title</h5>
+                        <p class="text-muted mb-0" style="font-size:.9rem;line-height:1.65;">@f.Desc</p>
                     </div>
                 </div>
             }
@@ -118,12 +206,29 @@
 </section>
 
 <!-- CTA -->
-<section class="py-5" style="background:linear-gradient(135deg,#1a1a2e 0%,var(--primary-dark) 100%);">
-    <div class="container py-3 text-center" style="position:relative;z-index:1;">
-        <h2 style="font-size:2rem;font-weight:700;color:white;letter-spacing:-.03em;margin-bottom:.75rem;">Ready to take bookings online?</h2>
-        <p style="color:rgba(255,255,255,.65);margin-bottom:2rem;">Set up your booking page in minutes. No credit card required.</p>
-        <a asp-controller="Home" asp-action="Setup" class="btn btn-brand btn-lg px-5 py-3" style="font-size:1rem;">
-            <i class="bi bi-rocket-takeoff me-2"></i>Start for Free
-        </a>
+<section class="py-5" style="background:linear-gradient(135deg,#0f0f23 0%,#1a1a3e 50%,#2d1b69 100%);position:relative;overflow:hidden;">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(108,92,231,.25) 0%,transparent 70%);pointer-events:none;"></div>
+    <div class="container py-4 text-center" style="position:relative;z-index:1;">
+        <div class="hero-badge mb-4" style="display:inline-flex;">
+            <span class="hero-badge-dot"></span>
+            <span>Start for free · No credit card required</span>
+        </div>
+        <h2 style="font-size:clamp(1.8rem,4vw,2.75rem);font-weight:800;color:white;letter-spacing:-.04em;line-height:1.1;margin-bottom:1rem;">
+            Ready to fill your schedule?
+        </h2>
+        <p style="color:rgba(255,255,255,.6);margin-bottom:2.5rem;font-size:1.05rem;max-width:420px;margin-left:auto;margin-right:auto;">
+            Join hundreds of service businesses already using BookIt to manage bookings and grow revenue.
+        </p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a asp-controller="Home" asp-action="Setup" class="btn btn-brand btn-lg px-5 py-3" style="font-size:1rem;border-radius:10px;">
+                <i class="bi bi-rocket-takeoff me-2"></i>Get Started Free
+            </a>
+            <a href="/demo-barber/book" target="_blank" class="btn btn-lg px-4 py-3" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);font-size:1rem;border-radius:10px;">
+                <i class="bi bi-eye me-2"></i>View Live Demo
+            </a>
+        </div>
+        <p style="color:rgba(255,255,255,.35);font-size:.8125rem;margin-top:1.5rem;">
+            Demo: admin@demo-barber.com / Admin123! / slug: demo-barber
+        </p>
     </div>
 </section>

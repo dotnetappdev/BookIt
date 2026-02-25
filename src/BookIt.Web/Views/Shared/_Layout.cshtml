@@ -24,8 +24,8 @@
         <nav class="navbar navbar-expand-lg navbar-public shadow-none px-0">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center gap-2" asp-controller="Home" asp-action="Index">
-                    <div style="width:32px;height:32px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;">
-                        <i class="bi bi-calendar-check text-white" style="font-size:.95rem;"></i>
+                    <div class="brand-icon">
+                        <i class="bi bi-calendar-check text-white" style="font-size:.9rem;"></i>
                     </div>
                     BookIt
                 </a>
@@ -33,7 +33,7 @@
                     <i class="bi bi-list fs-4 text-brand"></i>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarMain">
-                    <ul class="navbar-nav ms-auto align-items-center gap-2">
+                    <ul class="navbar-nav ms-auto align-items-center gap-1">
                         @if (Context.Session.GetString("AccessToken") != null)
                         {
                             var slug = Context.Session.GetString("TenantSlug");
@@ -72,11 +72,20 @@
                         }
                         else
                         {
+                            <li class="nav-item d-none d-lg-flex">
+                                <a class="nav-link" href="/#features">Features</a>
+                            </li>
+                            <li class="nav-item d-none d-lg-flex">
+                                <a class="nav-link" href="/#how-it-works">How it works</a>
+                            </li>
+                            <li class="nav-item">
+                                <div class="navbar-divider d-none d-lg-flex"></div>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Account" asp-action="Login">Sign In</a>
                             </li>
                             <li class="nav-item ms-1">
-                                <a class="btn btn-brand px-4 py-2" asp-controller="Home" asp-action="Setup">Get Started</a>
+                                <a class="btn btn-brand px-4 py-2" style="border-radius:8px;" asp-controller="Home" asp-action="Setup">Get Started</a>
                             </li>
                         }
                     </ul>
@@ -103,25 +112,47 @@
         @RenderBody()
     </main>
 
-    <footer class="py-5 mt-5 border-top" style="background:var(--surface);">
+    <footer class="py-5 mt-0" style="background:#0f0f1a;color:rgba(255,255,255,.6);">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                        <div style="width:28px;height:28px;background:var(--primary);border-radius:7px;display:flex;align-items:center;justify-content:center;">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div style="width:30px;height:30px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:8px;display:flex;align-items:center;justify-content:center;">
                             <i class="bi bi-calendar-check text-white" style="font-size:.8rem;"></i>
                         </div>
-                        <span class="fw-700 text-brand" style="font-weight:700;font-size:1rem;">BookIt</span>
+                        <span style="font-weight:800;font-size:1.05rem;color:white;letter-spacing:-.03em;">BookIt</span>
                     </div>
-                    <p class="text-muted small mb-0">Booking CRM for modern service businesses.</p>
+                    <p style="font-size:.875rem;line-height:1.65;color:rgba(255,255,255,.45);max-width:220px;">The smart booking CRM for modern service businesses.</p>
                 </div>
-                <div class="col-md-4 text-md-center mb-3 mb-md-0">
-                    <p class="text-muted small mb-0">&copy; @DateTime.Now.Year BookIt. All rights reserved.</p>
+                <div class="col-6 col-md-2">
+                    <div style="font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.875rem;">Product</div>
+                    <div style="display:flex;flex-direction:column;gap:.5rem;">
+                        <a href="/#features" style="color:rgba(255,255,255,.5);font-size:.875rem;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Features</a>
+                        <a href="/#how-it-works" style="color:rgba(255,255,255,.5);font-size:.875rem;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.5)'">How it works</a>
+                        <a href="/demo-barber/book" target="_blank" style="color:rgba(255,255,255,.5);font-size:.875rem;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Live Demo</a>
+                    </div>
                 </div>
-                <div class="col-md-4 text-md-end">
-                    <a href="#" class="text-muted small me-3 text-decoration-none">Privacy</a>
-                    <a href="#" class="text-muted small me-3 text-decoration-none">Terms</a>
-                    <a href="#" class="text-muted small text-decoration-none">Accessibility</a>
+                <div class="col-6 col-md-2">
+                    <div style="font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.875rem;">Business</div>
+                    <div style="display:flex;flex-direction:column;gap:.5rem;">
+                        <a asp-controller="Home" asp-action="Setup" style="color:rgba(255,255,255,.5);font-size:.875rem;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Get Started</a>
+                        <a asp-controller="Account" asp-action="Login" style="color:rgba(255,255,255,.5);font-size:.875rem;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Sign In</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div style="font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.875rem;">Docs</div>
+                    <div style="display:flex;flex-direction:column;gap:.5rem;">
+                        <a href="/docs/EF-Migrations.md" style="color:rgba(255,255,255,.5);font-size:.875rem;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Migrations Guide</a>
+                        <a href="#" style="color:rgba(255,255,255,.5);font-size:.875rem;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.5)'">API Reference</a>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
+                <p style="margin:0;font-size:.8125rem;color:rgba(255,255,255,.3);">&copy; @DateTime.Now.Year BookIt. All rights reserved.</p>
+                <div class="d-flex gap-3">
+                    <a href="#" style="color:rgba(255,255,255,.35);font-size:.8125rem;text-decoration:none;">Privacy</a>
+                    <a href="#" style="color:rgba(255,255,255,.35);font-size:.8125rem;text-decoration:none;">Terms</a>
+                    <a href="#" style="color:rgba(255,255,255,.35);font-size:.8125rem;text-decoration:none;">Accessibility</a>
                 </div>
             </div>
         </div>
@@ -129,6 +160,17 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Sticky navbar scroll shadow
+        (function() {
+            var nav = document.querySelector('.navbar-public');
+            if (nav) {
+                window.addEventListener('scroll', function() {
+                    nav.classList.toggle('scrolled', window.scrollY > 10);
+                }, { passive: true });
+            }
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
     @await Html.PartialAsync("_ChatWidget")
 </body>
