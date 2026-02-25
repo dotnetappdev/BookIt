@@ -1,17 +1,25 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using BookIt.Web.Models;
+using BookIt.Web.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BookIt.Web.Controllers;
 
 public class HomeController : Controller
 {
+    private readonly BookItApiClient _apiClient;
+
+    public HomeController(BookItApiClient apiClient)
+    {
+        _apiClient = apiClient;
+    }
+
     public IActionResult Index()
     {
         return View();
     }
 
-    public IActionResult Privacy()
+    public IActionResult Setup()
     {
         return View();
     }

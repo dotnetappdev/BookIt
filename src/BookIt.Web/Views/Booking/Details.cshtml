@@ -1,0 +1,118 @@
+@using BookIt.Core.Enums
+@{
+    ViewData["Title"] = "Your Details";
+    var tenant = ViewBag.Tenant as BookIt.Core.DTOs.TenantResponse;
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+    var startTime = (DateTime)ViewBag.StartTime;
+    var serviceIds = ViewBag.ServiceIds as Guid[] ?? Array.Empty<Guid>();
+}
+
+<div class="bg-brand text-white py-3">
+    <div class="container">
+        <h4 class="mb-0"><i class="bi bi-person me-2"></i>Your Booking Details</h4>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-2 px-4 bg-light rounded">
+                    <div class="d-flex align-items-center gap-3 py-2">
+                        <i class="bi bi-calendar-event fs-4 text-brand"></i>
+                        <div>
+                            <strong>@startTime.ToString("dddd, d MMMM yyyy")</strong>
+                            <span class="ms-2 text-muted">at @startTime.ToString("h:mm tt")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" asp-controller="Booking" asp-action="Create" asp-route-tenantSlug="@tenantSlug" novalidate>
+                <input type="hidden" name="TenantId" value="@tenant?.Id" />
+                <input type="hidden" name="StartTime" value="@startTime.ToString("yyyy-MM-ddTHH:mm:ss")" />
+                @foreach (var svcId in serviceIds)
+                {
+                    <input type="hidden" name="ServiceIds" value="@svcId" />
+                }
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h5 class="fw-semibold mb-4"><i class="bi bi-person-circle me-2"></i>Your Information</h5>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="customerName" class="form-label fw-semibold">Full Name <span class="text-danger" aria-hidden="true">*</span></label>
+                                <input type="text" class="form-control" id="customerName" name="CustomerName" required aria-required="true" autocomplete="name" />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="customerEmail" class="form-label fw-semibold">Email Address <span class="text-danger" aria-hidden="true">*</span></label>
+                                <input type="email" class="form-control" id="customerEmail" name="CustomerEmail" required aria-required="true" autocomplete="email" />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="customerPhone" class="form-label fw-semibold">Phone Number</label>
+                                <input type="tel" class="form-control" id="customerPhone" name="CustomerPhone" autocomplete="tel" />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="meetingType" class="form-label fw-semibold">Meeting Type</label>
+                                <select class="form-select" id="meetingType" name="MeetingType">
+                                    @foreach (MeetingType mt in Enum.GetValues<MeetingType>())
+                                    {
+                                        <option value="@((int)mt)">@(mt == MeetingType.InPerson ? "In Person" : mt.ToString())</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="customerNotes" class="form-label fw-semibold">Notes <span class="text-muted fw-normal">(optional)</span></label>
+                                <textarea class="form-control" id="customerNotes" name="CustomerNotes" rows="3" placeholder="Any special requests or information for the stylist..."></textarea>
+                            </div>
+                        </div>
+
+                        @if (tenant?.RequirePaymentUpfront == true)
+                        {
+                            <hr class="my-4" />
+                            <h5 class="fw-semibold mb-4"><i class="bi bi-credit-card me-2"></i>Payment</h5>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="PaymentProvider" id="payStripe" value="1" checked />
+                                        <label class="form-check-label" for="payStripe">
+                                            <i class="bi bi-stripe me-1"></i>Credit/Debit Card (Stripe)
+                                        </label>
+                                    </div>
+                                    @if (tenant.EnablePayPal)
+                                    {
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="radio" name="PaymentProvider" id="payPayPal" value="2" />
+                                            <label class="form-check-label" for="payPayPal">
+                                                <i class="bi bi-paypal me-1"></i>PayPal
+                                            </label>
+                                        </div>
+                                    }
+                                    @if (tenant.EnableApplePay)
+                                    {
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="radio" name="PaymentProvider" id="payApple" value="3" />
+                                            <label class="form-check-label" for="payApple">
+                                                <i class="bi bi-apple me-1"></i>Apple Pay
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <div class="mt-4 d-flex gap-3">
+                            <button type="submit" class="btn btn-brand btn-lg flex-grow-1">
+                                <i class="bi bi-check-circle me-2"></i>Confirm Booking
+                            </button>
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

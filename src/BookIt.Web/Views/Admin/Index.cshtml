@@ -1,0 +1,149 @@
+@using BookIt.Core.DTOs
+@{
+    ViewData["Title"] = "Dashboard";
+    var tenant = ViewBag.Tenant as TenantResponse;
+    var todayAppts = ViewBag.TodayAppointments as List<AppointmentResponse> ?? new();
+    var upcomingAppts = ViewBag.UpcomingAppointments as List<AppointmentResponse> ?? new();
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+    var userName = ViewBag.UserName as string ?? "";
+}
+
+<div class="bg-brand text-white py-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-0 fw-bold"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h2>
+                <p class="mb-0 opacity-75 small">Welcome back, @userName</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/@tenantSlug/book" target="_blank" class="btn btn-outline-light">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>View Booking Page
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-4">
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold text-brand">@todayAppts.Count</div>
+                <div class="text-muted small">Today's Appointments</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold text-success">@upcomingAppts.Count</div>
+                <div class="text-muted small">Upcoming (30 days)</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold text-info">
+                    £@((todayAppts.Concat(upcomingAppts)).Sum(a => a.TotalAmount).ToString("N0"))
+                </div>
+                <div class="text-muted small">Revenue (30 days)</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold text-warning">
+                    @(todayAppts.Concat(upcomingAppts)).Count(a => a.PaymentStatus == BookIt.Core.Enums.PaymentStatus.Unpaid)
+                </div>
+                <div class="text-muted small">Unpaid</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Today's Schedule -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-semibold mb-0">
+                        <i class="bi bi-calendar-day me-2 text-brand"></i>Today - @DateTime.Today.ToString("dddd, d MMMM")
+                    </h5>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    @if (!todayAppts.Any())
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-calendar2-x fs-1 d-block mb-2"></i>No appointments today
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var apt in todayAppts.OrderBy(a => a.StartTime))
+                        {
+                            <div class="d-flex align-items-center gap-3 py-3 border-bottom">
+                                <div class="text-center" style="min-width: 60px;">
+                                    <div class="fw-bold">@apt.StartTime.ToString("h:mm")</div>
+                                    <div class="small text-muted">@apt.StartTime.ToString("tt")</div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">@apt.CustomerName</div>
+                                    <div class="small text-muted">@string.Join(", ", apt.Services.Select(s => s.Name))</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge @(apt.Status == BookIt.Core.Enums.AppointmentStatus.Confirmed ? "bg-success" : apt.Status == BookIt.Core.Enums.AppointmentStatus.Pending ? "bg-warning text-dark" : "bg-secondary")">
+                                        @apt.Status
+                                    </span>
+                                    <div class="small fw-bold mt-1">£@apt.TotalAmount.ToString("0.00")</div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body p-4">
+                    <h6 class="fw-semibold mb-3">Quick Actions</h6>
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Admin" asp-action="Calendar" asp-route-tenantSlug="@tenantSlug" class="btn btn-outline-primary text-start">
+                            <i class="bi bi-calendar3 me-2"></i>View Full Calendar
+                        </a>
+                        <a asp-controller="Admin" asp-action="Services" asp-route-tenantSlug="@tenantSlug" class="btn btn-outline-secondary text-start">
+                            <i class="bi bi-grid me-2"></i>Manage Services
+                        </a>
+                        <a asp-controller="Admin" asp-action="Settings" asp-route-tenantSlug="@tenantSlug" class="btn btn-outline-secondary text-start">
+                            <i class="bi bi-gear me-2"></i>Business Settings
+                        </a>
+                        <a href="/@tenantSlug/book" target="_blank" class="btn btn-brand text-start">
+                            <i class="bi bi-link-45deg me-2"></i>Booking Page Link
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="fw-semibold mb-3">Embed Booking Widget</h6>
+                    <p class="small text-muted">Add this code to your website to embed the booking widget:</p>
+                    <div class="bg-dark text-light p-3 rounded small font-monospace" id="embedCode" style="font-size: 0.75rem; word-break: break-all;">
+                        &lt;iframe src="@(Context.Request.Scheme)://@(Context.Request.Host)/@tenantSlug/book/widget" width="100%" height="600" frameborder="0" allow="payment"&gt;&lt;/iframe&gt;
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary mt-2" onclick="copyEmbedCode()" aria-label="Copy embed code">
+                        <i class="bi bi-clipboard me-1"></i>Copy Code
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function copyEmbedCode() {
+    const code = document.getElementById('embedCode').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+        alert('Embed code copied to clipboard!');
+    });
+}
+</script>
+}

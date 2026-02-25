@@ -1,8 +1,112 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "BookIt - Smart Booking CRM";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- Hero Section -->
+<section class="bg-brand text-white py-5">
+    <div class="container py-4">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="bi bi-calendar-check me-3"></i>BookIt
+                </h1>
+                <p class="lead mb-4">The smart booking CRM for barbers, salons, spas, gyms and more. Accept bookings 24/7, manage your calendar, and get paid online.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a asp-controller="Home" asp-action="Setup" class="btn btn-light btn-lg px-4">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Get Started Free
+                    </a>
+                    <a href="#features" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-play-circle me-2"></i>See How It Works
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center mt-4 mt-lg-0">
+                <div class="card shadow-lg border-0 p-4" style="border-radius: 16px;">
+                    <h5 class="text-dark mb-3">Demo Booking Widget</h5>
+                    <p class="text-muted small">Try the demo at <strong>demo-barber</strong> slug</p>
+                    <a href="/demo-barber/book" class="btn btn-brand btn-lg w-100">
+                        <i class="bi bi-calendar-plus me-2"></i>Book a Demo Appointment
+                    </a>
+                    <a href="/demo-barber/admin" class="btn btn-outline-secondary mt-2 w-100">
+                        <i class="bi bi-grid me-2"></i>View Admin Panel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Industries Section -->
+<section id="industries" class="py-5">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-2">Built for Your Business</h2>
+        <p class="text-center text-muted mb-5">BookIt works for a wide range of service businesses</p>
+        <div class="row g-4">
+            @foreach (var industry in new[] {
+                new { Icon = "bi-scissors", Name = "Barbers", Color = "#6c5ce7" },
+                new { Icon = "bi-stars", Name = "Hair Salons", Color = "#e17055" },
+                new { Icon = "bi-heart-pulse", Name = "Spas & Massage", Color = "#00b894" },
+                new { Icon = "bi-trophy", Name = "Gyms & PT", Color = "#0984e3" },
+                new { Icon = "bi-gem", Name = "Nail Salons", Color = "#fd79a8" },
+                new { Icon = "bi-person-badge", Name = "Tattoo Studios", Color = "#2d3436" }
+            })
+            {
+                <div class="col-6 col-md-4 col-lg-2">
+                    <div class="card border-0 text-center p-3 h-100 shadow-sm hover-card">
+                        <i class="bi @industry.Icon fs-2 mb-2" style="color: @industry.Color"></i>
+                        <p class="fw-semibold mb-0 small">@industry.Name</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-2">Everything You Need</h2>
+        <p class="text-center text-muted mb-5">Powerful features to grow your booking business</p>
+        <div class="row g-4">
+            @foreach (var feature in new[] {
+                new { Icon = "bi-calendar3", Title = "Smart Calendar", Desc = "Full calendar view with drag-and-drop appointments, availability management and reminders." },
+                new { Icon = "bi-credit-card", Title = "Online Payments", Desc = "Accept Stripe, PayPal and Apple Pay. Require upfront payment or pay at the appointment." },
+                new { Icon = "bi-people", Title = "Staff Management", Desc = "Manage multiple staff members with individual schedules, services and availability." },
+                new { Icon = "bi-phone", Title = "Embeddable Widget", Desc = "Add a booking button or widget to any website. Fully customisable with your brand colours." },
+                new { Icon = "bi-camera-video", Title = "Virtual Meetings", Desc = "Support for Zoom, Microsoft Teams, Google Meet and phone calls for remote services." },
+                new { Icon = "bi-building", Title = "Multi-Tenant", Desc = "One platform, unlimited businesses. Each tenant has fully isolated data and settings." }
+            })
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 h-100 shadow-sm p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-brand bg-opacity-10 p-3 me-3">
+                                <i class="bi @feature.Icon fs-5 text-brand"></i>
+                            </div>
+                            <h5 class="mb-0 fw-semibold">@feature.Title</h5>
+                        </div>
+                        <p class="text-muted mb-0">@feature.Desc</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-brand text-white text-center">
+    <div class="container py-3">
+        <h2 class="fw-bold mb-3">Ready to Take Bookings Online?</h2>
+        <p class="lead mb-4">Set up your booking page in minutes. No credit card required.</p>
+        <a asp-controller="Home" asp-action="Setup" class="btn btn-light btn-lg px-5">
+            <i class="bi bi-rocket-takeoff me-2"></i>Start For Free
+        </a>
+    </div>
+</section>
+
+<style>
+    .hover-card { transition: transform 0.2s; cursor: pointer; }
+    .hover-card:hover { transform: translateY(-4px); }
+    .bg-brand { background-color: var(--primary) !important; }
+    .text-brand { color: var(--primary) !important; }
+</style>

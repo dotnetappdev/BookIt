@@ -1,31 +1,56 @@
-html {
-  font-size: 14px;
+/* BookIt - Global Styles */
+:root {
+    --primary: #6c5ce7;
+    --secondary: #a29bfe;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+html { font-size: 14px; }
+
+@media (min-width: 768px) { html { font-size: 16px; } }
+
+/* Focus styles for accessibility */
+*:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* Brand colours */
+.bg-brand { background-color: var(--primary) !important; }
+.text-brand { color: var(--primary) !important; }
+.btn-brand { background-color: var(--primary); color: #fff; border: none; }
+.btn-brand:hover, .btn-brand:focus { background-color: var(--secondary); color: #fff; }
+
+/* Card hover effects */
+.hover-card { transition: transform 0.2s, box-shadow 0.2s; }
+.hover-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,.12) !important; }
+
+/* Navbar */
+.navbar { backdrop-filter: blur(10px); }
+
+/* Form improvements */
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.25);
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+/* Skip to content for accessibility */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    padding: 8px 16px;
+    background: var(--primary);
+    color: white;
+    z-index: 9999;
+    border-radius: 0 0 4px 0;
+}
+.skip-link:focus { top: 0; }
+
+/* Service cards */
+.service-card {
+    transition: all 0.2s;
+    border-radius: 12px;
 }
 
-body {
-  margin-bottom: 60px;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
+/* Calendar */
+.fc-event { cursor: pointer; border-radius: 6px; }

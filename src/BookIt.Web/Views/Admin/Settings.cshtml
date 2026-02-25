@@ -1,0 +1,253 @@
+@using BookIt.Core.DTOs
+@using BookIt.Core.Enums
+@model TenantResponse
+@{
+    ViewData["Title"] = "Business Settings";
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+}
+
+<div class="bg-brand text-white py-3">
+    <div class="container">
+        <h4 class="mb-0"><i class="bi bi-gear me-2"></i>Business Settings</h4>
+    </div>
+</div>
+
+<div class="container py-4">
+    <form method="post" asp-controller="Admin" asp-action="Settings" asp-route-tenantSlug="@tenantSlug" enctype="multipart/form-data">
+        <div class="row g-4">
+            <!-- Business Profile -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+                        <h5 class="fw-semibold mb-0"><i class="bi bi-building me-2 text-brand"></i>Business Profile</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="settingsName" class="form-label fw-semibold">Business Name</label>
+                                <input type="text" class="form-control" id="settingsName" name="Name" value="@Model.Name" required aria-required="true" />
+                            </div>
+                            <div class="col-md-4">
+                                <label for="settingsType" class="form-label fw-semibold">Business Type</label>
+                                @{
+                                    var btOptions = string.Join("", Enum.GetValues<BusinessType>().Select(t =>
+                                        $"<option value=\"{(int)t}\"{(Model.BusinessType == t ? " selected" : "")}>{t}</option>"));
+                                }
+                                <select class="form-select" id="settingsType" name="BusinessType">
+                                    @Html.Raw(btOptions)
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="settingsEmail" class="form-label fw-semibold">Contact Email</label>
+                                <input type="email" class="form-control" id="settingsEmail" name="ContactEmail" value="@Model.ContactEmail" />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="settingsPhone" class="form-label fw-semibold">Contact Phone</label>
+                                <input type="tel" class="form-control" id="settingsPhone" name="ContactPhone" value="@Model.ContactPhone" />
+                            </div>
+                            <div class="col-12">
+                                <label for="settingsAddress" class="form-label fw-semibold">Address</label>
+                                <input type="text" class="form-control" id="settingsAddress" name="Address" value="@Model.Address" />
+                            </div>
+                            <div class="col-md-4">
+                                <label for="settingsCity" class="form-label fw-semibold">City</label>
+                                <input type="text" class="form-control" id="settingsCity" name="City" value="@Model.City" />
+                            </div>
+                            <div class="col-md-4">
+                                <label for="settingsPostCode" class="form-label fw-semibold">Post Code</label>
+                                <input type="text" class="form-control" id="settingsPostCode" name="PostCode" value="@Model.PostCode" />
+                            </div>
+                            <div class="col-md-4">
+                                <label for="settingsCountry" class="form-label fw-semibold">Country</label>
+                                <input type="text" class="form-control" id="settingsCountry" name="Country" value="@Model.Country" />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="settingsWebsite" class="form-label fw-semibold">Website</label>
+                                <input type="url" class="form-control" id="settingsWebsite" name="Website" value="@Model.Website" placeholder="https://..." />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="settingsCurrency" class="form-label fw-semibold">Currency</label>
+                                @{
+                                    var currencies = new[] { ("GBP","GBP (£)"),("USD","USD ($)"),("EUR","EUR (€)"),("AUD","AUD (A$)"),("CAD","CAD (C$)") };
+                                    var currOpts = string.Join("", currencies.Select(c =>
+                                        $"<option value=\"{c.Item1}\"{(Model.Currency == c.Item1 ? " selected" : "")}>{c.Item2}</option>"));
+                                }
+                                <select class="form-select" id="settingsCurrency" name="Currency">
+                                    @Html.Raw(currOpts)
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="settingsLogoUrl" class="form-label fw-semibold">Logo URL</label>
+                                <input type="url" class="form-control" id="settingsLogoUrl" name="LogoUrl" value="@Model.LogoUrl" placeholder="https://..." />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branding -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+                        <h5 class="fw-semibold mb-0"><i class="bi bi-palette me-2 text-brand"></i>Branding & Appearance</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="primaryColor" class="form-label fw-semibold">Primary Colour</label>
+                                <div class="input-group">
+                                    <input type="color" class="form-control form-control-color" id="primaryColorPicker" value="@(Model.PrimaryColor ?? "#6c5ce7")" aria-label="Pick primary colour" />
+                                    <input type="text" class="form-control" id="primaryColor" name="PrimaryColor" value="@(Model.PrimaryColor ?? "#6c5ce7")" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="secondaryColor" class="form-label fw-semibold">Secondary Colour</label>
+                                <div class="input-group">
+                                    <input type="color" class="form-control form-control-color" id="secondaryColorPicker" value="@(Model.SecondaryColor ?? "#a29bfe")" aria-label="Pick secondary colour" />
+                                    <input type="text" class="form-control" id="secondaryColor" name="SecondaryColor" value="@(Model.SecondaryColor ?? "#a29bfe")" />
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label for="allowedDomains" class="form-label fw-semibold">Allowed Embed Domains</label>
+                                <input type="text" class="form-control" id="allowedDomains" name="AllowedEmbedDomains" placeholder="example.com, another-site.co.uk" />
+                                <div class="form-text">Comma-separated list of domains allowed to embed your booking widget</div>
+                            </div>
+                            <div class="col-12">
+                                <label for="defaultMeetingLink" class="form-label fw-semibold">Default Virtual Meeting Link</label>
+                                <input type="url" class="form-control" id="defaultMeetingLink" name="DefaultMeetingLink" value="@Model.Website" placeholder="https://zoom.us/j/..." />
+                                <div class="form-text">Used for Zoom, Teams or other virtual meeting appointments</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Settings -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+                        <h5 class="fw-semibold mb-0"><i class="bi bi-credit-card me-2 text-brand"></i>Payment Settings</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="requirePayment" name="RequirePaymentUpfront" @(Model.RequirePaymentUpfront ? "checked" : "") />
+                                    <label class="form-check-label fw-semibold" for="requirePayment">Require Payment at Booking</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="enableStripe" name="EnableStripe" @(Model.EnableStripe ? "checked" : "") onchange="toggleStripe(this)" />
+                                    <label class="form-check-label fw-semibold" for="enableStripe"><i class="bi bi-stripe me-1"></i>Enable Stripe</label>
+                                </div>
+                            </div>
+                            <div id="stripeFields" class="col-12 @(Model.EnableStripe ? "" : "d-none")">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label for="stripePublishable" class="form-label small">Publishable Key</label>
+                                        <input type="text" class="form-control form-control-sm" id="stripePublishable" name="StripePublishableKey" value="@Model.StripePublishableKey" placeholder="pk_live_..." />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="stripeSecret" class="form-label small">Secret Key</label>
+                                        <input type="password" class="form-control form-control-sm" id="stripeSecret" name="StripeSecretKey" placeholder="sk_live_... (leave blank to keep current)" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="enablePayPal" name="EnablePayPal" @(Model.EnablePayPal ? "checked" : "") onchange="togglePayPal(this)" />
+                                    <label class="form-check-label fw-semibold" for="enablePayPal"><i class="bi bi-paypal me-1"></i>Enable PayPal</label>
+                                </div>
+                            </div>
+                            <div id="paypalFields" class="col-12 @(Model.EnablePayPal ? "" : "d-none")">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label for="paypalClientId" class="form-label small">Client ID</label>
+                                        <input type="text" class="form-control form-control-sm" id="paypalClientId" name="PayPalClientId" value="@Model.PayPalClientId" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="paypalSecret" class="form-label small">Client Secret</label>
+                                        <input type="password" class="form-control form-control-sm" id="paypalSecret" name="PayPalClientSecret" placeholder="Leave blank to keep current" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="enableApplePay" name="EnableApplePay" @(Model.EnableApplePay ? "checked" : "") />
+                                    <label class="form-check-label fw-semibold" for="enableApplePay"><i class="bi bi-apple me-1"></i>Enable Apple Pay</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Settings -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+                        <h5 class="fw-semibold mb-0"><i class="bi bi-calendar-check me-2 text-brand"></i>Booking Settings</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="allowOnlineBooking" name="AllowOnlineBooking" @(Model.AllowOnlineBooking ? "checked" : "") />
+                                    <label class="form-check-label fw-semibold" for="allowOnlineBooking">Allow Online Booking</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sendReminders" name="SendReminders" />
+                                    <label class="form-check-label fw-semibold" for="sendReminders">Send Appointment Reminders</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-brand btn-lg px-5">
+                        <i class="bi bi-check-circle me-2"></i>Save Settings
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-semibold mb-3"><i class="bi bi-info-circle me-2 text-brand"></i>Your Booking Page</h6>
+                        <p class="small text-muted">Share your booking page URL:</p>
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-sm" id="bookingUrl" value="@(Context.Request.Scheme + "://" + Context.Request.Host + "/" + tenantSlug + "/book")" readonly aria-label="Booking page URL" />
+                            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="copyUrl()" aria-label="Copy booking page URL">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+function toggleStripe(el) {
+    document.getElementById('stripeFields').classList.toggle('d-none', !el.checked);
+}
+function togglePayPal(el) {
+    document.getElementById('paypalFields').classList.toggle('d-none', !el.checked);
+}
+function copyUrl() {
+    const url = document.getElementById('bookingUrl').value;
+    navigator.clipboard.writeText(url).then(() => alert('URL copied!'));
+}
+
+document.getElementById('primaryColorPicker').addEventListener('input', function() {
+    document.getElementById('primaryColor').value = this.value;
+});
+document.getElementById('secondaryColorPicker').addEventListener('input', function() {
+    document.getElementById('secondaryColor').value = this.value;
+});
+</script>
+}

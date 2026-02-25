@@ -1,0 +1,64 @@
+@using BookIt.Core.DTOs
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Calendar";
+    var tenant = ViewBag.Tenant as TenantResponse;
+    var appointments = ViewBag.Appointments as List<AppointmentResponse> ?? new();
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+
+    var calendarEvents = appointments.Select(a => new {
+        id = a.Id.ToString(),
+        title = a.CustomerName + (a.Services.Any() ? " - " + a.Services.First().Name : ""),
+        start = a.StartTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+        end = a.EndTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+        color = a.Status == BookIt.Core.Enums.AppointmentStatus.Confirmed ? "#00b894" :
+                a.Status == BookIt.Core.Enums.AppointmentStatus.Cancelled ? "#d63031" : "#6c5ce7",
+        extendedProps = new { status = a.Status.ToString(), amount = a.TotalAmount }
+    });
+    var eventsJson = JsonSerializer.Serialize(calendarEvents);
+}
+
+<div class="bg-brand text-white py-3">
+    <div class="container">
+        <h4 class="mb-0"><i class="bi bi-calendar3 me-2"></i>Appointment Calendar</h4>
+    </div>
+</div>
+
+<div class="container-fluid py-4">
+    <div id="calendar"></div>
+</div>
+
+@section Styles {
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet" />
+}
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'timeGridWeek',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        height: 'calc(100vh - 150px)',
+        events: @Html.Raw(eventsJson),
+        eventClick: function(info) {
+            const props = info.event.extendedProps;
+            alert(`Customer: ${info.event.title}\nTime: ${info.event.start.toLocaleTimeString()}\nStatus: ${props.status}\nAmount: £${props.amount}`);
+        },
+        slotMinTime: '07:00:00',
+        slotMaxTime: '21:00:00',
+        businessHours: {
+            daysOfWeek: [1, 2, 3, 4, 5, 6],
+            startTime: '09:00',
+            endTime: '18:00'
+        }
+    });
+    calendar.render();
+});
+</script>
+}
