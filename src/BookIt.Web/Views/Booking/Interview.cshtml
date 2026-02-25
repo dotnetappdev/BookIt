@@ -1,0 +1,309 @@
+@using BookIt.Core.DTOs
+@{
+    ViewData["Title"] = "Schedule Interview";
+    Layout = null; // Full-page standalone, like Greenhouse
+    var invitation = ViewBag.Invitation as InvitationDetailResponse;
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schedule Your Interview — @invitation?.TenantName</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        body { background: #f8f9fc; }
+        .gh-header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.25rem 0;
+        }
+        .gh-company-logo {
+            width: 48px; height: 48px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+        .gh-company-initial {
+            width: 48px; height: 48px;
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; font-weight: 700;
+        }
+        .slot-card {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            transition: all .15s;
+            background: white;
+        }
+        .slot-card:hover { border-color: var(--primary); background: var(--primary-subtle, #f0eeff); }
+        .slot-card.selected { border-color: var(--primary); background: var(--primary-subtle, #f0eeff); box-shadow: 0 0 0 2px var(--primary); }
+        .slot-card .slot-date { font-weight: 600; font-size: .9375rem; color: #1e293b; }
+        .slot-card .slot-time { font-size: .875rem; color: #475569; }
+        .slot-card .slot-meta { font-size: .8125rem; color: #94a3b8; margin-top: .25rem; }
+        .step-badge {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--primary); color: white;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: .8rem; font-weight: 700; flex-shrink: 0;
+        }
+        .step-badge.inactive { background: #e2e8f0; color: #94a3b8; }
+        .gh-footer { border-top: 1px solid #e2e8f0; padding: 1.5rem 0; margin-top: 3rem; }
+    </style>
+</head>
+<body>
+@if (invitation == null || invitation.IsExpired || invitation.IsUsed)
+{
+    <!-- Error state -->
+    <div class="gh-header">
+        <div class="container"><span class="fw-bold text-brand fs-5">BookIt</span></div>
+    </div>
+    <div class="container py-5 text-center">
+        <div style="max-width:480px;margin:auto;">
+            <div style="width:72px;height:72px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+                <i class="bi bi-exclamation-circle-fill text-danger" style="font-size:2rem;"></i>
+            </div>
+            @if (invitation?.IsUsed == true)
+            {
+                <h2 class="fw-bold mb-2">Already Scheduled</h2>
+                <p class="text-muted">This invitation has already been used to book an interview.</p>
+            }
+            else
+            {
+                <h2 class="fw-bold mb-2">Link Expired</h2>
+                <p class="text-muted">This interview invitation has expired or is no longer valid. Please contact the recruiter for a new link.</p>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <!-- Header -->
+    <header class="gh-header">
+        <div class="container">
+            <div class="d-flex align-items-center gap-3">
+                @if (!string.IsNullOrEmpty(invitation.TenantLogoUrl))
+                {
+                    <img src="@invitation.TenantLogoUrl" alt="@invitation.TenantName" class="gh-company-logo" />
+                }
+                else
+                {
+                    <div class="gh-company-initial">@(invitation.TenantName.Length > 0 ? invitation.TenantName[0].ToString() : "?")</div>
+                }
+                <div>
+                    <div class="fw-bold" style="font-size:1.1rem;color:#1e293b;">@invitation.TenantName</div>
+                    @if (!string.IsNullOrEmpty(invitation.TenantAddress))
+                    {
+                        <div class="small text-muted"><i class="bi bi-geo-alt me-1"></i>@invitation.TenantAddress</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <!-- Position heading -->
+                <div class="mb-4">
+                    <div class="small fw-semibold text-muted text-uppercase mb-1" style="letter-spacing:.08em;">Interview Invitation</div>
+                    <h1 style="font-size:1.75rem;font-weight:700;color:#1e293b;letter-spacing:-.03em;margin-bottom:.5rem;">@invitation.PositionName</h1>
+                    @if (!string.IsNullOrEmpty(invitation.PositionDescription))
+                    {
+                        <p class="text-muted" style="font-size:.9375rem;line-height:1.6;">@invitation.PositionDescription</p>
+                    }
+                    <div class="d-flex align-items-center gap-2 mt-2">
+                        <div class="sidebar-avatar" style="width:30px;height:30px;font-size:.75rem;background:var(--primary);">
+                            @(invitation.CandidateName.Length > 0 ? invitation.CandidateName[0].ToString().ToUpper() : "?")
+                        </div>
+                        <span class="small text-muted">Invitation for <strong class="text-dark">@invitation.CandidateName</strong></span>
+                    </div>
+                </div>
+
+                <!-- Steps -->
+                <div class="d-flex align-items-center gap-3 mb-5">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="step-badge" id="step1badge">1</span>
+                        <span class="fw-semibold" style="font-size:.875rem;" id="step1label">Choose a Time</span>
+                    </div>
+                    <div style="flex:1;height:1px;background:#e2e8f0;"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="step-badge inactive" id="step2badge">2</span>
+                        <span style="font-size:.875rem;color:#94a3b8;" id="step2label">Your Details</span>
+                    </div>
+                </div>
+
+                <!-- Step 1: Slot picker -->
+                <div id="step1">
+                    <h5 class="fw-semibold mb-3" style="color:#1e293b;">Select a date and time</h5>
+                    @if (!invitation.AvailableSlots.Any())
+                    {
+                        <div class="text-center py-5" style="background:white;border-radius:12px;border:1.5px solid #e2e8f0;">
+                            <i class="bi bi-calendar-x fs-1 text-muted opacity-25 d-block mb-3"></i>
+                            <p class="fw-medium text-muted mb-1">No available slots at this time</p>
+                            <p class="small text-muted">Please contact the recruiter to arrange a suitable time.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column gap-2 mb-4" id="slotList">
+                            @foreach (var slot in invitation.AvailableSlots)
+                            {
+                                <div class="slot-card" onclick="selectSlot('@slot.Id', this)" data-slot-id="@slot.Id" role="button" tabindex="0">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div style="width:42px;height:42px;border-radius:8px;background:#f1f5f9;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+                                            <div style="font-size:.6rem;font-weight:600;text-transform:uppercase;color:#64748b;">@slot.SlotStart.ToString("MMM")</div>
+                                            <div style="font-size:1rem;font-weight:700;color:#1e293b;line-height:1;">@slot.SlotStart.Day</div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="slot-date">@slot.SlotStart.ToString("dddd, d MMMM yyyy")</div>
+                                            <div class="slot-time"><i class="bi bi-clock me-1"></i>@slot.SlotStart.ToString("h:mm tt") – @slot.SlotEnd.ToString("h:mm tt")</div>
+                                            @if (!string.IsNullOrEmpty(slot.InterviewerName) || !string.IsNullOrEmpty(slot.Location))
+                                            {
+                                                <div class="slot-meta d-flex gap-3">
+                                                    @if (!string.IsNullOrEmpty(slot.InterviewerName))
+                                                    {
+                                                        <span><i class="bi bi-person me-1"></i>@slot.InterviewerName</span>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(slot.Location))
+                                                    {
+                                                        <span><i class="bi bi-geo-alt me-1"></i>@slot.Location</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <div style="width:20px;height:20px;border-radius:50%;border:2px solid #cbd5e1;" id="check-@slot.Id"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <button class="btn btn-brand w-100 py-3 disabled" id="continueBtn" style="font-size:1rem;" disabled onclick="goToStep2()">
+                            <i class="bi bi-arrow-right me-2"></i>Continue
+                        </button>
+                    }
+                </div>
+
+                <!-- Step 2: Candidate details -->
+                <div id="step2" style="display:none;">
+                    <div class="card mb-4" style="border-radius:12px;">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-3 mb-1">
+                                <div style="width:42px;height:42px;border-radius:8px;background:var(--primary-subtle,#f0eeff);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <div style="font-size:.6rem;font-weight:600;text-transform:uppercase;color:var(--primary);" id="summaryMonth"></div>
+                                    <div style="font-size:1rem;font-weight:700;color:var(--primary);line-height:1;" id="summaryDay"></div>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold" id="summaryDate"></div>
+                                    <div class="small text-muted" id="summaryTime"></div>
+                                </div>
+                                <button class="btn btn-sm btn-link text-muted ms-auto" onclick="goToStep1()"><i class="bi bi-pencil"></i> Change</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-semibold mb-3" style="color:#1e293b;">Your details</h5>
+                    <form method="post" asp-controller="Booking" asp-action="BookInterview" asp-route-tenantSlug="@tenantSlug" asp-route-token="@invitation.Token" novalidate>
+                        <input type="hidden" name="SlotId" id="selectedSlotId" />
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="CandidateName" value="@invitation.CandidateName" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" name="CandidateEmail" value="@invitation.CandidateEmail" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" class="form-control" name="CandidatePhone" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">LinkedIn Profile</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-linkedin"></i></span>
+                                    <input type="url" class="form-control" name="LinkedInUrl" placeholder="https://linkedin.com/in/..." />
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Message / Notes <span class="text-muted fw-normal">(optional)</span></label>
+                                <textarea class="form-control" name="Notes" rows="3" placeholder="Any information you'd like to share ahead of the interview..."></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-brand w-100 py-3" style="font-size:1rem;">
+                            <i class="bi bi-calendar-check me-2"></i>Confirm Interview
+                        </button>
+                        <p class="text-center small text-muted mt-3">
+                            By confirming you agree to a calendar invite being sent to your email address.
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="gh-footer">
+        <div class="container text-center">
+            <p class="text-muted small mb-0">Powered by <strong class="text-brand">BookIt</strong> · Interview Scheduling</p>
+        </div>
+    </footer>
+}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let selectedSlotId = null;
+const slotsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(invitation?.AvailableSlots?.Select(s => new { id = s.Id, date = s.SlotStart.ToString("dddd, d MMMM yyyy"), month = s.SlotStart.ToString("MMM"), day = s.SlotStart.Day, time = s.SlotStart.ToString("h:mm tt") + " \u2013 " + s.SlotEnd.ToString("h:mm tt") }) ?? Enumerable.Empty<object>()));
+
+function selectSlot(id, card) {
+    selectedSlotId = id;
+    document.querySelectorAll('.slot-card').forEach(c => {
+        c.classList.remove('selected');
+        const check = c.querySelector('[id^="check-"]');
+        if (check) { check.style.background = ''; check.style.borderColor = '#cbd5e1'; }
+    });
+    card.classList.add('selected');
+    const check = document.getElementById('check-' + id);
+    if (check) { check.style.background = 'var(--primary)'; check.style.borderColor = 'var(--primary)'; }
+    const btn = document.getElementById('continueBtn');
+    btn.classList.remove('disabled');
+    btn.disabled = false;
+}
+
+function goToStep2() {
+    if (!selectedSlotId) return;
+    document.getElementById('selectedSlotId').value = selectedSlotId;
+    const slot = slotsData.find(s => s.id === selectedSlotId);
+    if (slot) {
+        document.getElementById('summaryDate').textContent = slot.date;
+        document.getElementById('summaryTime').textContent = slot.time;
+        document.getElementById('summaryMonth').textContent = slot.month;
+        document.getElementById('summaryDay').textContent = slot.day;
+    }
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+    document.getElementById('step1badge').classList.add('inactive');
+    document.getElementById('step2badge').classList.remove('inactive');
+    document.getElementById('step1label').style.color = '#94a3b8';
+    document.getElementById('step2label').style.color = '#1e293b';
+    document.getElementById('step2label').style.fontWeight = '600';
+}
+
+function goToStep1() {
+    document.getElementById('step1').style.display = 'block';
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step1badge').classList.remove('inactive');
+    document.getElementById('step2badge').classList.add('inactive');
+    document.getElementById('step1label').style.color = '#1e293b';
+    document.getElementById('step2label').style.color = '#94a3b8';
+    document.getElementById('step2label').style.fontWeight = '400';
+}
+</script>
+</body>
+</html>

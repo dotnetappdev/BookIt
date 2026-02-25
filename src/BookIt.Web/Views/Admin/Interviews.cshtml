@@ -1,0 +1,261 @@
+@using BookIt.Core.DTOs
+@{
+    ViewData["Title"] = "Interviews";
+    Layout = "_AdminLayout";
+    var tenant = ViewBag.Tenant as TenantResponse;
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+    var services = ViewBag.Services as List<ServiceResponse> ?? new();
+    var slots = ViewBag.Slots as List<InterviewSlotResponse> ?? new();
+    var invitations = ViewBag.Invitations as List<CandidateInvitationResponse> ?? new();
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Interviews</h1>
+        <p class="page-subtitle">Manage interview slots and candidate invitations</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addSlotModal">
+            <i class="bi bi-clock-history me-2"></i>Add Slot
+        </button>
+        <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#inviteModal">
+            <i class="bi bi-envelope-plus me-2"></i>Invite Candidate
+        </button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Available Slots -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header px-4 py-3 d-flex align-items-center gap-2">
+                <i class="bi bi-calendar-check text-brand"></i>
+                <span class="fw-semibold">Available Interview Slots</span>
+                <span class="badge ms-auto" style="background:var(--primary-subtle);color:var(--primary);">@slots.Count(s => !s.IsBooked) available</span>
+            </div>
+            <div class="card-body p-0">
+                @if (!slots.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-calendar-x fs-1 d-block mb-3 opacity-25"></i>
+                        <p class="fw-medium mb-1">No interview slots yet</p>
+                        <p class="small">Add slots so candidates can schedule their interviews</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var slot in slots.OrderBy(s => s.SlotStart))
+                    {
+                        <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom @(slot.IsBooked ? "opacity-50" : "")">
+                            <div class="flex-shrink-0 text-center" style="min-width:52px;">
+                                <div class="fw-bold" style="font-size:.9rem;">@slot.SlotStart.ToString("h:mm")</div>
+                                <div class="small text-muted">@slot.SlotStart.ToString("tt")</div>
+                            </div>
+                            <div class="flex-grow-1 min-width-0">
+                                <div class="fw-semibold" style="font-size:.875rem;">@slot.SlotStart.ToString("ddd, d MMM yyyy")</div>
+                                <div class="small text-muted d-flex gap-2 flex-wrap">
+                                    <span><i class="bi bi-briefcase me-1"></i>@slot.PositionName</span>
+                                    @if (!string.IsNullOrEmpty(slot.InterviewerName))
+                                    {
+                                        <span><i class="bi bi-person me-1"></i>@slot.InterviewerName</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(slot.Location))
+                                    {
+                                        <span><i class="bi bi-geo-alt me-1"></i>@slot.Location</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 d-flex align-items-center gap-2">
+                                @if (slot.IsBooked)
+                                {
+                                    <span class="badge bg-success">Booked</span>
+                                }
+                                else
+                                {
+                                    <span class="badge" style="background:var(--primary-subtle);color:var(--primary);">Open</span>
+                                    <form method="post" asp-controller="Admin" asp-action="DeleteInterviewSlot" asp-route-tenantSlug="@tenantSlug" class="d-inline">
+                                        <input type="hidden" name="slotId" value="@slot.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Remove this slot?')" aria-label="Remove slot">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Invitations -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header px-4 py-3 d-flex align-items-center gap-2">
+                <i class="bi bi-envelope text-brand"></i>
+                <span class="fw-semibold">Candidate Invitations</span>
+                <span class="badge ms-auto" style="background:var(--primary-subtle);color:var(--primary);">@invitations.Count total</span>
+            </div>
+            <div class="card-body p-0">
+                @if (!invitations.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-person-x fs-1 d-block mb-3 opacity-25"></i>
+                        <p class="fw-medium mb-1">No invitations sent yet</p>
+                        <p class="small">Invite candidates to book their interview slot</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var inv in invitations)
+                    {
+                        <div class="d-flex align-items-start gap-3 px-4 py-3 border-bottom">
+                            <div class="sidebar-avatar flex-shrink-0" style="width:36px;height:36px;font-size:.8rem;">
+                                @(inv.CandidateName.Length > 0 ? inv.CandidateName[0].ToString().ToUpper() : "?")
+                            </div>
+                            <div class="flex-grow-1 min-width-0">
+                                <div class="fw-semibold" style="font-size:.875rem;">@inv.CandidateName</div>
+                                <div class="small text-muted">@inv.CandidateEmail</div>
+                                <div class="small text-muted"><i class="bi bi-briefcase me-1"></i>@inv.PositionName</div>
+                            </div>
+                            <div class="text-end flex-shrink-0">
+                                @if (inv.IsUsed)
+                                {
+                                    <span class="badge bg-success d-block mb-1">Scheduled</span>
+                                }
+                                else if (inv.ExpiresAt < DateTime.UtcNow)
+                                {
+                                    <span class="badge bg-danger d-block mb-1">Expired</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark d-block mb-1">Pending</span>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyLink('@inv.BookingUrl')" title="Copy booking link">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                }
+                                <div class="small text-muted mt-1">Exp: @inv.ExpiresAt.ToString("d MMM")</div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Slot Modal -->
+<div class="modal fade" id="addSlotModal" tabindex="-1" aria-labelledby="addSlotModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:var(--radius-lg);">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-semibold" id="addSlotModalLabel"><i class="bi bi-clock-history me-2 text-brand"></i>Add Interview Slot</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post" asp-controller="Admin" asp-action="CreateInterviewSlot" asp-route-tenantSlug="@tenantSlug" id="addSlotForm">
+                    <div class="mb-3">
+                        <label class="form-label">Job Position <span class="text-danger">*</span></label>
+                        <select class="form-select" name="ServiceId" required>
+                            <option value="">Select position...</option>
+                            @foreach (var svc in services)
+                            {
+                                <option value="@svc.Id">@svc.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Interviewer Name</label>
+                        <input type="text" class="form-control" name="InterviewerName" placeholder="e.g. Sarah Johnson" />
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-7">
+                            <label class="form-label">Date & Time <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" name="SlotStart" required />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Duration</label>
+                            <select class="form-select" name="DurationMinutes">
+                                <option value="30">30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60" selected>1 hour</option>
+                                <option value="90">1.5 hours</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-control" name="Location" placeholder="e.g. Video Call, Room 3A, Google Meet" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Meeting Link</label>
+                        <input type="url" class="form-control" name="MeetingLink" placeholder="https://meet.google.com/..." />
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-brand"><i class="bi bi-plus-circle me-2"></i>Add Slot</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invite Candidate Modal -->
+<div class="modal fade" id="inviteModal" tabindex="-1" aria-labelledby="inviteModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:var(--radius-lg);">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-semibold" id="inviteModalLabel"><i class="bi bi-envelope-plus me-2 text-brand"></i>Invite Candidate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-4">The candidate will receive an email with a private link to choose their interview slot.</p>
+                <form method="post" asp-controller="Admin" asp-action="SendInterviewInvitation" asp-route-tenantSlug="@tenantSlug">
+                    <div class="mb-3">
+                        <label class="form-label">Job Position <span class="text-danger">*</span></label>
+                        <select class="form-select" name="ServiceId" required>
+                            <option value="">Select position...</option>
+                            @foreach (var svc in services)
+                            {
+                                <option value="@svc.Id">@svc.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Candidate Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="CandidateName" required placeholder="Full name" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" class="form-control" name="CandidatePhone" placeholder="+44 7700..." />
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Candidate Email <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" name="CandidateEmail" required placeholder="candidate@example.com" />
+                        </div>
+                        <div class="form-text">The booking link will be sent to this address (logged to console in demo mode)</div>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-brand"><i class="bi bi-send me-2"></i>Send Invitation</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function copyLink(url) {
+    navigator.clipboard.writeText(url).then(() => {
+        alert('Booking link copied to clipboard!\n\n' + url);
+    });
+}
+</script>
+}

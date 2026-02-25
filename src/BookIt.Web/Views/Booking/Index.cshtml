@@ -1,0 +1,183 @@
+@using BookIt.Core.DTOs
+@{
+    ViewData["Title"] = "Book an Appointment";
+    var tenant = ViewBag.Tenant as BookIt.Core.DTOs.TenantResponse;
+    var services = ViewBag.Services as List<ServiceResponse> ?? new();
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+}
+
+@if (tenant != null)
+{
+    <style>
+        :root { --primary: @(tenant.PrimaryColor ?? "#6c5ce7"); }
+        .service-card { cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+        .service-card:hover, .service-card.selected { border-color: var(--primary); transform: translateY(-2px); }
+        .service-card.selected { background-color: rgba(108, 92, 231, 0.05); }
+        .btn-brand { background-color: var(--primary); color: #fff; }
+        .btn-brand:hover { opacity: 0.9; color: #fff; }
+    </style>
+
+    <!-- Business Header -->
+    <div style="background:linear-gradient(135deg,var(--primary) 0%,color-mix(in srgb,var(--primary) 70%,#000) 100%);position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;"></div>
+        <div class="container py-4" style="position:relative;z-index:1;">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    @if (!string.IsNullOrEmpty(tenant.LogoUrl))
+                    {
+                        <img src="@tenant.LogoUrl" alt="@tenant.Name logo" class="rounded-3" style="width:52px;height:52px;object-fit:cover;box-shadow:0 2px 12px rgba(0,0,0,.25);" />
+                    }
+                    else
+                    {
+                        <div style="width:52px;height:52px;border-radius:13px;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.2);">
+                            <i class="bi bi-building text-white" style="font-size:1.4rem;"></i>
+                        </div>
+                    }
+                    <div>
+                        <h1 class="h4 mb-0 fw-800 text-white" style="font-weight:800;letter-spacing:-.02em;">@tenant.Name</h1>
+                        @if (!string.IsNullOrEmpty(tenant.Address))
+                        {
+                            <p class="mb-0 small" style="color:rgba(255,255,255,.65);margin-top:.15rem;"><i class="bi bi-geo-alt me-1"></i>@tenant.Address</p>
+                        }
+                    </div>
+                </div>
+                <div class="d-none d-md-flex align-items-center gap-2">
+                    <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:white;padding:.3rem .75rem;border-radius:99px;font-size:.75rem;font-weight:600;backdrop-filter:blur(4px);">
+                        <i class="bi bi-calendar-check me-1"></i>Online Booking
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-5">
+        <!-- Progress Steps -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-center flex-fill">
+                        <div class="rounded-circle bg-brand text-white d-inline-flex align-items-center justify-content-center fw-bold mb-1" style="width:36px; height:36px;">1</div>
+                        <div class="small fw-semibold text-brand">Select Service</div>
+                    </div>
+                    <div class="flex-fill border-top mx-2"></div>
+                    <div class="text-center flex-fill">
+                        <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center fw-bold mb-1" style="width:36px; height:36px;">2</div>
+                        <div class="small text-muted">Questions</div>
+                    </div>
+                    <div class="flex-fill border-top mx-2"></div>
+                    <div class="text-center flex-fill">
+                        <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center fw-bold mb-1" style="width:36px; height:36px;">3</div>
+                        <div class="small text-muted">Choose Time</div>
+                    </div>
+                    <div class="flex-fill border-top mx-2"></div>
+                    <div class="text-center flex-fill">
+                        <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center fw-bold mb-1" style="width:36px; height:36px;">4</div>
+                        <div class="small text-muted">Your Details</div>
+                    </div>
+                    <div class="flex-fill border-top mx-2"></div>
+                    <div class="text-center flex-fill">
+                        <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center fw-bold mb-1" style="width:36px; height:36px;">5</div>
+                        <div class="small text-muted">Confirm</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h2 class="fw-bold mb-4">Select a Service</h2>
+
+                @if (!services.Any())
+                {
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>No services are currently available for online booking.
+                    </div>
+                }
+                else
+                {
+                    @foreach (var group in services.GroupBy(s => s.CategoryName ?? "Services"))
+                    {
+                        <h5 class="text-muted mb-3 mt-4">@group.Key</h5>
+                        <div class="row g-3 mb-3">
+                            @foreach (var service in group)
+                            {
+                                <div class="col-md-6">
+                                    <div class="card service-card h-100 border shadow-sm p-3"
+                                         onclick="selectService('@service.Id', '@service.Name', @service.Price, @service.DurationMinutes)"
+                                         role="button" tabindex="0"
+                                         aria-label="Select @service.Name, @service.DurationMinutes minutes, £@service.Price"
+                                         onkeypress="if(event.key==='Enter') selectService('@service.Id', '@service.Name', @service.Price, @service.DurationMinutes)">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="fw-bold mb-1">@service.Name</h6>
+                                                @if (!string.IsNullOrEmpty(service.Description))
+                                                {
+                                                    <p class="text-muted small mb-2">@service.Description</p>
+                                                }
+                                                <div class="d-flex gap-2">
+                                                    <span class="badge bg-light text-dark border">
+                                                        <i class="bi bi-clock me-1"></i>@service.DurationMinutes min
+                                                    </span>
+                                                    <span class="badge bg-light text-dark border">
+                                                        @(service.DefaultMeetingType == BookIt.Core.Enums.MeetingType.InPerson ? "In Person" : service.DefaultMeetingType.ToString())
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="text-end ms-3">
+                                                <div class="fw-bold fs-5 text-brand">£@service.Price.ToString("0.00")</div>
+                                                <div class="form-check mt-2 text-center">
+                                                    <input class="form-check-input" type="checkbox" id="svc-@service.Id" aria-label="Select @service.Name" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <div class="card bg-light border-0 p-3 mt-4" id="selectedSummary" style="display:none!important">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong id="selectedServiceName"></strong>
+                                <span class="text-muted small ms-2" id="selectedServiceDuration"></span>
+                            </div>
+                            <div class="fw-bold" id="selectedServicePrice"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <a id="continueBtn" href="#" class="btn btn-brand btn-lg w-100 disabled" aria-disabled="true">
+                            <i class="bi bi-arrow-right me-2"></i>Continue to Select Time
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+    <script>
+    let selectedServiceId = null;
+    const tenantSlug = '@tenantSlug';
+
+    function selectService(id, name, price, duration) {
+        selectedServiceId = id;
+        document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+        event.currentTarget.classList.add('selected');
+        document.getElementById('svc-' + id).checked = true;
+
+        document.getElementById('selectedServiceName').textContent = name;
+        document.getElementById('selectedServiceDuration').textContent = duration + ' min';
+        document.getElementById('selectedServicePrice').textContent = '£' + parseFloat(price).toFixed(2);
+        document.getElementById('selectedSummary').style.display = 'block';
+
+        const continueBtn = document.getElementById('continueBtn');
+        const today = new Date().toISOString().split('T')[0];
+        continueBtn.href = `/${tenantSlug}/booking/formstep?serviceId=${id}`;
+        continueBtn.className = 'btn btn-brand btn-lg w-100';
+        continueBtn.removeAttribute('aria-disabled');
+    }
+    </script>
+    }
+}

@@ -1,0 +1,81 @@
+@{
+    ViewData["Title"] = "Choose Your Time";
+    var tenant = ViewBag.Tenant as BookIt.Core.DTOs.TenantResponse;
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+    var serviceId = (Guid)ViewBag.ServiceId;
+    var date = (DateOnly)ViewBag.Date;
+    var slots = ViewBag.Slots as List<DateTime> ?? new();
+}
+
+<div class="bg-brand text-white py-3">
+    <div class="container">
+        <h4 class="mb-0"><i class="bi bi-calendar3 me-2"></i>Choose Your Date & Time</h4>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <!-- Date Picker -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-semibold mb-3"><i class="bi bi-calendar-date me-2"></i>Select Date</h5>
+                    <div class="d-flex gap-2 flex-wrap">
+                        @for (int i = 0; i < 14; i++)
+                        {
+                            var d = DateOnly.FromDateTime(DateTime.Today.AddDays(i));
+                            var isSelected = d == date;
+                            <a href="?serviceId=@serviceId&date=@d.ToString("yyyy-MM-dd")"
+                               class="btn @(isSelected ? "btn-brand" : "btn-outline-secondary") text-center"
+                               style="min-width: 72px;"
+                               aria-label="@d.ToString("dddd, d MMMM")"
+                               aria-current="@(isSelected ? "date" : null)">
+                                <div class="small">@d.ToString("ddd")</div>
+                                <div class="fw-bold">@d.Day</div>
+                                <div class="small">@d.ToString("MMM")</div>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time Slots -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="fw-semibold mb-3">
+                        <i class="bi bi-clock me-2"></i>Available Times on @date.ToString("dddd, d MMMM yyyy")
+                    </h5>
+
+                    @if (!slots.Any())
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>No available slots on this date. Please try another day.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row g-2">
+                            @foreach (var slot in slots)
+                            {
+                                <div class="col-6 col-md-4 col-lg-3">
+                                    <a href="/booking/details?serviceIds=@serviceId&startTime=@slot.ToString("yyyy-MM-ddTHH:mm:ss")"
+                                       class="btn btn-outline-primary w-100 py-2"
+                                       aria-label="Book at @slot.ToString("h:mm tt")">
+                                        <i class="bi bi-clock me-1"></i>@slot.ToString("h:mm tt")
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a href="/@tenantSlug/book" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Services
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

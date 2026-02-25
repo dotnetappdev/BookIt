@@ -1,0 +1,135 @@
+@using BookIt.Core.DTOs
+@using BookIt.Core.Enums
+@model BookingFormFieldResponse
+
+@{
+    var fieldId = "field_" + Model.FieldName;
+    var isRequired = Model.IsRequired;
+    var reqAttr = isRequired ? "required" : "";
+    var reqMark = isRequired ? "<span class=\"text-danger ms-1\" aria-hidden=\"true\">*</span>" : "";
+}
+
+<div class="mb-4 booking-field" data-field-type="@Model.FieldType.ToString().ToLower()">
+    <label for="@fieldId" class="form-label fw-semibold">
+        @Model.Label @Html.Raw(reqMark)
+    </label>
+
+    @switch (Model.FieldType)
+    {
+        case BookingFormFieldType.Text:
+        case BookingFormFieldType.Email:
+        case BookingFormFieldType.Phone:
+            var inputType = Model.FieldType switch
+            {
+                BookingFormFieldType.Email => "email",
+                BookingFormFieldType.Phone => "tel",
+                _ => "text"
+            };
+            var autocomplete = Model.FieldType switch
+            {
+                BookingFormFieldType.Email => "email",
+                BookingFormFieldType.Phone => "tel",
+                _ => "off"
+            };
+            <input type="@inputType"
+                   class="form-control"
+                   id="@fieldId"
+                   name="@fieldId"
+                   placeholder="@Model.Placeholder"
+                   autocomplete="@autocomplete"
+                   @Html.Raw(reqAttr)
+                   aria-required="@isRequired.ToString().ToLower()" />
+            break;
+
+        case BookingFormFieldType.Number:
+            <input type="number"
+                   class="form-control"
+                   id="@fieldId"
+                   name="@fieldId"
+                   placeholder="@Model.Placeholder"
+                   @Html.Raw(reqAttr)
+                   aria-required="@isRequired.ToString().ToLower()" />
+            break;
+
+        case BookingFormFieldType.TextArea:
+            <textarea class="form-control"
+                      id="@fieldId"
+                      name="@fieldId"
+                      rows="4"
+                      placeholder="@Model.Placeholder"
+                      @Html.Raw(reqAttr)
+                      aria-required="@isRequired.ToString().ToLower()"></textarea>
+            break;
+
+        case BookingFormFieldType.Date:
+            <input type="date"
+                   class="form-control"
+                   id="@fieldId"
+                   name="@fieldId"
+                   @Html.Raw(reqAttr)
+                   aria-required="@isRequired.ToString().ToLower()" />
+            break;
+
+        case BookingFormFieldType.Select:
+            <select class="form-select"
+                    id="@fieldId"
+                    name="@fieldId"
+                    @Html.Raw(reqAttr)
+                    aria-required="@isRequired.ToString().ToLower()">
+                <option value="">@(Model.Placeholder ?? "— Select an option —")</option>
+                @foreach (var opt in Model.Options)
+                {
+                    <option value="@opt">@opt</option>
+                }
+            </select>
+            break;
+
+        case BookingFormFieldType.Radio:
+            <div class="d-flex flex-wrap gap-3" role="radiogroup" aria-labelledby="label_@Model.FieldName">
+                @foreach (var opt in Model.Options)
+                {
+                    var radioId = fieldId + "_" + opt.Replace(" ", "_").ToLower();
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio"
+                               id="@radioId"
+                               name="@fieldId"
+                               value="@opt"
+                               @Html.Raw(reqAttr)
+                               aria-required="@isRequired.ToString().ToLower()" />
+                        <label class="form-check-label" for="@radioId">@opt</label>
+                    </div>
+                }
+            </div>
+            break;
+
+        case BookingFormFieldType.Checkbox:
+            <div class="d-flex flex-wrap gap-3">
+                @if (Model.Options.Any())
+                {
+                    @foreach (var opt in Model.Options)
+                    {
+                        var cbId = fieldId + "_" + opt.Replace(" ", "_").ToLower();
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   id="@cbId"
+                                   name="@fieldId"
+                                   value="@opt" />
+                            <label class="form-check-label" for="@cbId">@opt</label>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox"
+                               id="@fieldId"
+                               name="@fieldId"
+                               value="true"
+                               @Html.Raw(reqAttr) />
+                        <label class="form-check-label" for="@fieldId">Yes</label>
+                    </div>
+                }
+            </div>
+            break;
+    }
+</div>
