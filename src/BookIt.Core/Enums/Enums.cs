@@ -93,3 +93,31 @@ public enum BookingFormFieldType
     Date = 7,
     Number = 8
 }
+
+public enum ClassType
+{
+    General = 1,
+    Yoga = 2,
+    Pilates = 3,
+    Spinning = 4,
+    Swimming = 5,
+    Aerobics = 6,
+    BodyPump = 7,
+    Zumba = 8,
+    CrossFit = 9,
+    HiitCardio = 10,
+    WaterAerobics = 11,
+    OpenSwim = 12,
+    KidsSwim = 13,
+    PersonalTraining = 14,
+    Other = 99
+}
+
+public enum SessionStatus
+{
+    Scheduled = 1,
+    InProgress = 2,
+    Completed = 3,
+    Cancelled = 4,
+    Full = 5
+}

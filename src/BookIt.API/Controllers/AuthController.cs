@@ -6,6 +6,7 @@ using BookIt.Core.DTOs;
 using BookIt.Core.Entities;
 using BookIt.Core.Enums;
 using BookIt.Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -17,11 +18,13 @@ namespace BookIt.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly BookItDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
 
-    public AuthController(BookItDbContext context, IConfiguration configuration)
+    public AuthController(BookItDbContext context, UserManager<ApplicationUser> userManager, IConfiguration configuration)
     {
         _context = context;
+        _userManager = userManager;
         _configuration = configuration;
     }
 
@@ -34,18 +37,23 @@ public class AuthController : ControllerBase
         if (tenant == null)
             return Unauthorized(new { message = "Invalid tenant" });
 
-        var user = await _context.Users
+        var user = await _userManager.Users
             .FirstOrDefaultAsync(u => u.TenantId == tenant.Id && u.Email == request.Email && !u.IsDeleted);
 
-        if (user == null || !VerifyPassword(request.Password, user.PasswordHash))
+        if (user == null)
             return Unauthorized(new { message = "Invalid credentials" });
 
-        var token = GenerateJwtToken(user, tenant);
+        var passwordValid = await _userManager.CheckPasswordAsync(user, request.Password);
+        if (!passwordValid)
+            return Unauthorized(new { message = "Invalid credentials" });
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var token = GenerateJwtToken(user, tenant, roles);
         var refreshToken = GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-        await _context.SaveChangesAsync();
+        await _userManager.UpdateAsync(user);
 
         return Ok(new AuthResponse
         {
@@ -53,7 +61,7 @@ public class AuthController : ControllerBase
             RefreshToken = refreshToken,
             ExpiresAt = DateTime.UtcNow.AddHours(24),
             UserId = user.Id,
-            Email = user.Email,
+            Email = user.Email!,
             FullName = user.FullName,
             Role = user.Role,
             TenantId = tenant.Id,
@@ -70,32 +78,36 @@ public class AuthController : ControllerBase
         if (tenant == null)
             return BadRequest(new { message = "Invalid tenant" });
 
-        var exists = await _context.Users
-            .AnyAsync(u => u.TenantId == tenant.Id && u.Email == request.Email);
-
-        if (exists)
+        var existingUser = await _userManager.FindByEmailAsync(request.Email);
+        if (existingUser != null && existingUser.TenantId == tenant.Id)
             return Conflict(new { message = "Email already registered" });
 
         var user = new ApplicationUser
         {
             TenantId = tenant.Id,
             Email = request.Email,
-            PasswordHash = HashPassword(request.Password),
+            UserName = request.Email,
             FirstName = request.FirstName,
             LastName = request.LastName,
-            Phone = request.Phone,
+            PhoneNumber = request.Phone,
             Role = UserRole.Customer,
-            IsEmailVerified = false
+            EmailConfirmed = false,
+            CreatedAt = DateTime.UtcNow
         };
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        var result = await _userManager.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+            return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
 
-        var token = GenerateJwtToken(user, tenant);
+        await _userManager.AddToRoleAsync(user, "Customer");
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var token = GenerateJwtToken(user, tenant, roles);
         var refreshToken = GenerateRefreshToken();
+
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-        await _context.SaveChangesAsync();
+        await _userManager.UpdateAsync(user);
 
         return CreatedAtAction(nameof(Login), new AuthResponse
         {
@@ -103,7 +115,7 @@ public class AuthController : ControllerBase
             RefreshToken = refreshToken,
             ExpiresAt = DateTime.UtcNow.AddHours(24),
             UserId = user.Id,
-            Email = user.Email,
+            Email = user.Email!,
             FullName = user.FullName,
             Role = user.Role,
             TenantId = tenant.Id,
@@ -134,21 +146,27 @@ public class AuthController : ControllerBase
         };
 
         _context.Tenants.Add(tenant);
+        await _context.SaveChangesAsync();
 
         var user = new ApplicationUser
         {
             TenantId = tenant.Id,
             Email = request.AdminEmail,
-            PasswordHash = HashPassword(request.AdminPassword),
+            UserName = request.AdminEmail,
             FirstName = request.AdminFirstName,
             LastName = request.AdminLastName,
             Role = UserRole.TenantAdmin,
-            IsEmailVerified = true
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
         };
 
-        _context.Users.Add(user);
+        var result = await _userManager.CreateAsync(user, request.AdminPassword);
+        if (!result.Succeeded)
+            return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
 
-        // Create default business hours (Mon-Fri)
+        await _userManager.AddToRoleAsync(user, "TenantAdmin");
+
+        // Default business hours Mon-Fri
         for (int day = 1; day <= 5; day++)
         {
             _context.BusinessHours.Add(new Core.Entities.BusinessHours
@@ -162,7 +180,6 @@ public class AuthController : ControllerBase
             });
         }
 
-        // Create default booking form
         _context.BookingForms.Add(new BookingForm
         {
             TenantId = tenant.Id,
@@ -186,11 +203,12 @@ public class AuthController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        var token = GenerateJwtToken(user, tenant);
+        var roles = await _userManager.GetRolesAsync(user);
+        var token = GenerateJwtToken(user, tenant, roles);
         var refreshToken = GenerateRefreshToken();
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-        await _context.SaveChangesAsync();
+        await _userManager.UpdateAsync(user);
 
         return CreatedAtAction(nameof(Login), new AuthResponse
         {
@@ -198,7 +216,7 @@ public class AuthController : ControllerBase
             RefreshToken = refreshToken,
             ExpiresAt = DateTime.UtcNow.AddHours(24),
             UserId = user.Id,
-            Email = user.Email,
+            Email = user.Email!,
             FullName = user.FullName,
             Role = user.Role,
             TenantId = tenant.Id,
@@ -206,22 +224,27 @@ public class AuthController : ControllerBase
         });
     }
 
-    private string GenerateJwtToken(ApplicationUser user, Tenant tenant)
+    private string GenerateJwtToken(ApplicationUser user, Tenant tenant, IList<string> roles)
     {
         var key = _configuration["Jwt:Key"] ?? "BookItSuperSecretKey-ChangeInProduction-Must-Be-At-Least-32-Characters!";
         var issuer = _configuration["Jwt:Issuer"] ?? "BookIt.API";
         var audience = _configuration["Jwt:Audience"] ?? "BookIt.Web";
         var expiryHours = int.Parse(_configuration["Jwt:ExpiryHours"] ?? "24");
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email!),
             new Claim("tenant_id", tenant.Id.ToString()),
             new Claim("tenant_slug", tenant.Slug),
             new Claim("role", ((int)user.Role).ToString()),
+            new Claim("given_name", user.FirstName),
+            new Claim("family_name", user.LastName),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        foreach (var role in roles)
+            claims.Add(new Claim(ClaimTypes.Role, role));
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
         var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
@@ -235,16 +258,6 @@ public class AuthController : ControllerBase
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-
-    private static string HashPassword(string password)
-    {
-        using var sha256 = SHA256.Create();
-        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password + "BookItSalt"));
-        return Convert.ToBase64String(bytes);
-    }
-
-    private static bool VerifyPassword(string password, string hash)
-        => HashPassword(password) == hash;
 
     private static string GenerateRefreshToken()
         => Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
