@@ -5,6 +5,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5248";
 
+// Serve static web assets from RCL packages (_content/ paths, e.g. MudBlazor CSS/JS)
+// in non-published mode (dotnet run, CI, Docker without publish step).
+builder.WebHost.UseStaticWebAssets();
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -26,7 +30,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseSession();
-// UseStaticFiles is required to serve _content/ paths from RCL packages (MudBlazor CSS/JS)
 app.UseStaticFiles();
 app.UseAntiforgery();
 app.MapStaticAssets();
