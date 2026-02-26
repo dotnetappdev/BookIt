@@ -345,6 +345,7 @@ else
         if (_form == null || !FormId.HasValue) return;
         _saving = true;
         Api.SetToken(Auth.AccessToken);
+        bool anyError = false;
 
         // Sync new fields
         for (int i = 0; i < _fields.Count; i++)
@@ -353,13 +354,14 @@ else
             f.SortOrder = i;
             if (f.IsNew)
             {
+                var effectiveLabel = string.IsNullOrWhiteSpace(f.Label) ? DefaultLabel(f.FieldType) : f.Label;
                 var opts = string.IsNullOrWhiteSpace(f.OptionsRaw) ? null
                     : JsonSerializer.Serialize(f.OptionsRaw.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList());
 
                 var saved = await Api.AddFormFieldAsync(TenantSlug, FormId.Value, new AddFormFieldRequest
                 {
-                    Label = string.IsNullOrWhiteSpace(f.Label) ? DefaultLabel(f.FieldType) : f.Label,
-                    FieldName = f.Label.ToLowerInvariant().Replace(" ", "_"),
+                    Label = effectiveLabel,
+                    FieldName = ToFieldName(effectiveLabel, i),
                     FieldType = f.FieldType,
                     IsRequired = f.IsRequired,
                     Placeholder = f.Placeholder,
@@ -367,6 +369,7 @@ else
                     SortOrder = f.SortOrder
                 });
                 if (saved != null) { f.Id = saved.Id; f.IsNew = false; }
+                else anyError = true;
             }
         }
 
@@ -376,13 +379,33 @@ else
             await Api.ReorderFormFieldsAsync(TenantSlug, FormId.Value, new ReorderFieldsRequest { FieldIds = ids });
 
         _saving = false;
-        Snackbar.Add("Form saved!", Severity.Success);
+        if (anyError)
+            Snackbar.Add("Some fields could not be saved. Please try again.", Severity.Error);
+        else
+            Snackbar.Add("Form saved!", Severity.Success);
+
+        return;
     }
 
     private async Task Done()
     {
         await Save();
-        Nav.NavigateTo($"/{TenantSlug}/admin/forms");
+        // Only navigate if no pending new fields (i.e. all saved successfully)
+        if (_fields.All(f => !f.IsNew))
+            Nav.NavigateTo($"/{TenantSlug}/admin/forms");
+    }
+
+    /// <summary>Converts a label to a safe snake_case field name with an index suffix for uniqueness.</summary>
+    private static string ToFieldName(string label, int index)
+    {
+        var slug = new string(label.ToLowerInvariant()
+            .Select(c => char.IsLetterOrDigit(c) ? c : '_')
+            .ToArray())
+            .Trim('_');
+        // Collapse consecutive underscores
+        while (slug.Contains("__")) slug = slug.Replace("__", "_");
+        if (string.IsNullOrEmpty(slug)) slug = "field";
+        return $"{slug}_{index}";
     }
 
     private static string DefaultLabel(BookingFormFieldType t) => t switch
