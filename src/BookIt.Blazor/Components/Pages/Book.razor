@@ -346,7 +346,7 @@
                             @foreach (var field in _bookingForm.Fields.Where(f => f.IsActive).OrderBy(f => f.SortOrder))
                             {
                                 var f = field;
-                                <MudItem xs="12" sm="@(f.FieldType == BookingFormFieldType.Heading || f.FieldType == BookingFormFieldType.Paragraph || f.FieldType == BookingFormFieldType.TextArea ? 12 : 6)">
+                                <MudItem xs="12" sm="@(f.FieldType == BookingFormFieldType.Heading || f.FieldType == BookingFormFieldType.Paragraph || f.FieldType == BookingFormFieldType.TextArea || f.FieldType == BookingFormFieldType.ServicesList ? 12 : 6)">
                                     @switch (f.FieldType)
                                     {
                                         case BookingFormFieldType.Heading:
@@ -437,6 +437,44 @@
                                                     <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" />
                                                     <MudText Typo="Typo.caption">Click to upload file</MudText>
                                                 </div>
+                                            </MudStack>
+                                            break;
+                                        case BookingFormFieldType.ServicesList:
+                                            <MudStack Spacing="1">
+                                                @if (!string.IsNullOrWhiteSpace(f.Label))
+                                                {
+                                                    <MudText Typo="Typo.subtitle1" Class="fw-bold">@f.Label</MudText>
+                                                }
+                                                <MudPaper Outlined="true" Style="border-radius:10px;overflow:hidden;">
+                                                    @if (!_services.Any())
+                                                    {
+                                                        <div Style="padding:1.25rem;text-align:center;opacity:.55;">
+                                                            <MudText Typo="Typo.body2">No services available yet.</MudText>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        @foreach (var svc in _services.Where(s => s.AllowOnlineBooking))
+                                                        {
+                                                            <div Style="padding:.75rem 1rem;border-bottom:1px solid var(--mud-palette-divider);display:flex;align-items:center;gap:.75rem;">
+                                                                <div Style="width:36px;height:36px;border-radius:8px;background:rgba(var(--mud-palette-primary-rgb),.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                                                    <MudIcon Icon="@Icons.Material.Filled.Spa" Size="Size.Small" Color="Color.Primary" />
+                                                                </div>
+                                                                <div Style="flex:1;">
+                                                                    <MudText Typo="Typo.body2" Class="fw-semibold">@svc.Name</MudText>
+                                                                    @if (!string.IsNullOrEmpty(svc.Description))
+                                                                    {
+                                                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@svc.Description</MudText>
+                                                                    }
+                                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@svc.DurationMinutes min</MudText>
+                                                                </div>
+                                                                <MudText Typo="Typo.body2" Class="fw-bold" Style="color:var(--mud-palette-primary);white-space:nowrap;">
+                                                                    @svc.Price.ToString("C2")
+                                                                </MudText>
+                                                            </div>
+                                                        }
+                                                    }
+                                                </MudPaper>
                                             </MudStack>
                                             break;
                                         default:

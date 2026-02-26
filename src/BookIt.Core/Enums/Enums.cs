@@ -107,7 +107,8 @@ public enum BookingFormFieldType
     Rating = 11,
     Signature = 12,
     Heading = 13,
-    Paragraph = 14
+    Paragraph = 14,
+    ServicesList = 15
 }
 
 public enum ClassType

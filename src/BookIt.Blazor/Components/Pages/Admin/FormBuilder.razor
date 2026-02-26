@@ -106,6 +106,18 @@ else
                                                       Label="@(field.FieldType == BookingFormFieldType.Heading ? "Heading text" : "Paragraph text")"
                                                       Lines="@(field.FieldType == BookingFormFieldType.Paragraph ? 2 : 1)" />
                                     }
+                                    else if (field.FieldType == BookingFormFieldType.ServicesList)
+                                    {
+                                        <MudTextField @bind-Value="field.Label" Variant="Variant.Outlined" Margin="Margin.Dense" Label="Section heading" />
+                                        <MudPaper Outlined="true" Class="pa-2 mt-2" Style="border-radius:8px;opacity:.7;">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                                <MudIcon Icon="@Icons.Material.Filled.Storefront" Size="Size.Small" Color="Color.Primary" />
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                    Services &amp; prices will be loaded live from your Services list and displayed to customers here.
+                                                </MudText>
+                                            </MudStack>
+                                        </MudPaper>
+                                    }
                                     else
                                     {
                                         <MudGrid Spacing="1">
@@ -200,6 +212,16 @@ else
                                 @tool.Label
                             </button>
                         }
+                        <MudDivider Class="my-2" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1" Style="display:block;">Services</MudText>
+                        @foreach (var t in _serviceTools)
+                        {
+                            var tool = t;
+                            <button class="toolbox-item" @onclick="@(() => AddField(tool.Type))">
+                                <MudIcon Icon="@tool.Icon" Size="Size.Small" />
+                                @tool.Label
+                            </button>
+                        }
                     </MudCardContent>
                 </MudCard>
 
@@ -278,6 +300,10 @@ else
     {
         new(BookingFormFieldType.Heading,   "Heading",     Icons.Material.Filled.Title),
         new(BookingFormFieldType.Paragraph, "Paragraph",   Icons.Material.Filled.Notes),
+    };
+    private static readonly Tool[] _serviceTools =
+    {
+        new(BookingFormFieldType.ServicesList, "Services & Prices", Icons.Material.Filled.Storefront),
     };
 
     protected override void OnInitialized()
@@ -424,6 +450,7 @@ else
         BookingFormFieldType.Signature => "Signature",
         BookingFormFieldType.Heading   => "Section Heading",
         BookingFormFieldType.Paragraph => "Paragraph Text",
+        BookingFormFieldType.ServicesList => "Our Services & Prices",
         _ => "Field"
     };
 
@@ -443,6 +470,7 @@ else
         BookingFormFieldType.Signature => "Signature",
         BookingFormFieldType.Heading   => "Heading",
         BookingFormFieldType.Paragraph => "Paragraph",
+        BookingFormFieldType.ServicesList => "Services",
         _ => t.ToString()
     };
 }
