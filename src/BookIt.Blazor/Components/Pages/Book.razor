@@ -52,16 +52,20 @@
         background: rgba(var(--mud-palette-primary-rgb),.06);
     }
     .slot-chip {
-        padding: .45rem .9rem; border-radius: 8px; cursor: pointer;
-        font-size: .82rem; font-weight: 600; text-align: center;
+        padding: .6rem .8rem; border-radius: 10px; cursor: pointer;
+        text-align: center; line-height: 1.2;
         border: 1.5px solid var(--mud-palette-divider);
         background: var(--mud-palette-surface); transition: .15s;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        min-height: 58px;
     }
-    .slot-chip:hover { border-color: var(--mud-palette-primary); }
+    .slot-chip:hover { border-color: var(--mud-palette-primary); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
     .slot-chip.selected {
         background: var(--mud-palette-primary);
         border-color: var(--mud-palette-primary); color: #fff;
     }
+    .slot-chip .slot-time { font-size: .88rem; font-weight: 700; }
+    .slot-chip .slot-dur { font-size: .72rem; opacity: .75; margin-top: 2px; }
     .confirm-card {
         border-radius: 14px; overflow: hidden;
         border: 1.5px solid var(--mud-palette-divider);
@@ -123,7 +127,7 @@
                                 </MudStack>
                                 <MudStack Row="true" Justify="Justify.SpaceBetween">
                                     <MudText Color="Color.Secondary">Duration</MudText>
-                                    <MudText Class="fw-medium">@(_selectedService?.DurationMinutes) min</MudText>
+                                    <MudText Class="fw-medium">@_requestedDurationMinutes min@(_requestedDurationMinutes != (_selectedService?.DurationMinutes ?? _requestedDurationMinutes) ? " (custom)" : "")</MudText>
                                 </MudStack>
                                 @if (_selectedService != null && _selectedService.Price > 0)
                                 {
@@ -232,6 +236,25 @@
                 <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
                     @_selectedService?.Name · @_selectedService?.DurationMinutes min
                 </MudText>
+                <!-- Duration selector -->
+                <MudPaper Elevation="0" Class="mb-3 pa-3" Style="border:1.5px solid var(--mud-palette-divider);border-radius:10px;">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Wrap="Wrap.Wrap">
+                        <MudIcon Icon="@Icons.Material.Filled.AccessTime" Color="Color.Primary" />
+                        <MudText Typo="Typo.body2" Class="fw-medium">Appointment Duration</MudText>
+                        <MudStack Row="true" Spacing="1">
+                            @foreach (var mins in DurationOptions())
+                            {
+                                var m = mins;
+                                <MudButton Variant="@(_requestedDurationMinutes == m ? Variant.Filled : Variant.Outlined)"
+                                           Color="Color.Primary" Size="Size.Small"
+                                           OnClick="@(() => SetDuration(m))">@m min</MudButton>
+                            }
+                        </MudStack>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Need more time? Select a longer slot.
+                        </MudText>
+                    </MudStack>
+                </MudPaper>
                 <MudGrid>
                     <MudItem xs="12" sm="6">
                         <MudDatePicker Date="_pickedDate" Label="Select Date"
@@ -257,7 +280,8 @@
                                     var s = slot;
                                     <div class="slot-chip @(_selectedSlot == s ? "selected" : "")"
                                          @onclick="@(() => _selectedSlot = s)">
-                                        @s.ToString("h:mm tt")
+                                        <span class="slot-time">@s.ToString("h:mm tt")</span>
+                                        <span class="slot-dur">@_requestedDurationMinutes min</span>
                                     </div>
                                 }
                             </div>
@@ -553,7 +577,7 @@
                             }
                             <MudItem xs="6">
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">Duration</MudText>
-                                <MudText Class="fw-medium">@_selectedService?.DurationMinutes min</MudText>
+                                <MudText Class="fw-medium">@_requestedDurationMinutes min@(_requestedDurationMinutes != (_selectedService?.DurationMinutes ?? _requestedDurationMinutes) ? " (custom)" : "")</MudText>
                             </MudItem>
                             @if (_selectedService != null && _selectedService.Price > 0)
                             {
@@ -636,6 +660,7 @@
     private List<DateTime> _availableSlots = new();
     private DateTime? _selectedSlot;
     private bool _slotsLoading;
+    private int _requestedDurationMinutes;
     // Step 3
     private MudForm? _detailsForm;
     private string _customerName = "";
@@ -671,6 +696,7 @@
         _selectedService = svc;
         _selectedSlot = null;
         _availableSlots.Clear();
+        _requestedDurationMinutes = svc.DurationMinutes;
     }
 
     private async Task OnDateChanged(DateTime? date)
@@ -746,7 +772,9 @@
             CustomerName = _customerName,
             CustomerEmail = _customerEmail,
             CustomerPhone = string.IsNullOrWhiteSpace(_customerPhone) ? null : _customerPhone,
-            CustomerNotes = string.IsNullOrWhiteSpace(_customerNotes) ? null : _customerNotes,
+            CustomerNotes = _requestedDurationMinutes != (_selectedService?.DurationMinutes ?? _requestedDurationMinutes)
+                ? $"[Requested duration: {_requestedDurationMinutes} min] {_customerNotes}".Trim()
+                : (string.IsNullOrWhiteSpace(_customerNotes) ? null : _customerNotes),
             CustomFormDataJson = formDataJson,
             CvFileBase64 = string.IsNullOrEmpty(_cvFileBase64) ? null : _cvFileBase64,
             CvFileName = string.IsNullOrEmpty(_cvFileName) ? null : _cvFileName,
@@ -787,4 +815,20 @@
         "cash" => "Pay in cash",
         _ => "Pay online"
     };
+
+    private List<int> DurationOptions()
+    {
+        var baseDur = _selectedService?.DurationMinutes ?? 30;
+        // Offer base duration plus 30-min increments up to 3× the base or 180 min max
+        var opts = new List<int> { baseDur };
+        for (var next = baseDur + 30; next <= Math.Min(baseDur * 3, 180); next += 30)
+            opts.Add(next);
+        return opts;
+    }
+
+    private void SetDuration(int minutes)
+    {
+        _requestedDurationMinutes = minutes;
+        _selectedSlot = null; // reset slot when duration changes
+    }
 }

@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject BookItAuthState Auth
 @inject NavigationManager Nav
+@inject IJSRuntime Js
 
 <MudThemeProvider Theme="BookItTheme.Default" IsDarkMode="@_isDark" />
 <MudPopoverProvider />
@@ -125,6 +126,16 @@
 
 @code {
     private bool _isDark = false;
-    private void ToggleDark() => _isDark = !_isDark;
+    private async void ToggleDark()
+    {
+        _isDark = !_isDark;
+        await Js.InvokeVoidAsync("localStorage.setItem", "bookit-theme", _isDark ? "dark" : "light");
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var stored = await Js.InvokeAsync<string?>("localStorage.getItem", "bookit-theme");
+        if (stored == "dark") { _isDark = true; StateHasChanged(); }
+    }
     private void Logout() { Auth.Clear(); Nav.NavigateTo("/login"); }
 }
