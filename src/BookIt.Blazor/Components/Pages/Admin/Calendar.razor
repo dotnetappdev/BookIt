@@ -13,109 +13,40 @@
 }
 else
 {
-    <MudStack>
-        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
-            <div>
-                <MudText Typo="Typo.h5" Class="fw-bold">Calendar</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary">@_viewDate.ToString("MMMM yyyy")</MudText>
-            </div>
-            <MudStack Row="true" Spacing="1">
-                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PrevMonth" />
-                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="Today">Today</MudButton>
-                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="NextMonth" />
-            </MudStack>
-        </MudStack>
-
-        @if (_loading)
-        {
-            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-        }
-        else
-        {
-            <!-- Week day headers -->
-            <MudGrid Spacing="1">
-                @foreach (var d in new[] { "Mon","Tue","Wed","Thu","Fri","Sat","Sun" })
-                {
-                    <MudItem xs="1" Style="text-align:center;">
-                        <MudText Typo="Typo.caption" Class="fw-semibold" Color="Color.Secondary">@d</MudText>
-                    </MudItem>
-                }
-            </MudGrid>
-            <!-- Calendar cells -->
-            <MudGrid Spacing="1">
-                @foreach (var day in _calendarDays)
-                {
-                    var dayAppts = _appointments.Where(a => a.StartTime.Date == day).ToList();
-                    <MudItem xs="1">
-                        <MudCard Elevation="0"
-                                 Style="@($"min-height:80px;border:1px solid var(--mud-palette-divider);{(day.Month != _viewDate.Month ? "opacity:.4;" : "")}{(day == DateTime.Today ? "border-color:var(--mud-palette-primary);border-width:2px;" : "")}")">
-                            <MudCardContent Style="padding:.5rem;">
-                                <MudText Typo="Typo.body2" Class="@(day == DateTime.Today ? "fw-bold mud-primary-text" : "fw-medium")">
-                                    @day.Day
-                                </MudText>
-                                @foreach (var apt in dayAppts.Take(3))
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Label="true"
-                                             Style="font-size:.65rem;margin:.1rem 0;width:100%;overflow:hidden;text-overflow:ellipsis;">
-                                        @apt.StartTime.ToString("h:mm") @apt.CustomerName.Split(' ')[0]
-                                    </MudChip>
-                                }
-                                @if (dayAppts.Count > 3)
-                                {
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">+@(dayAppts.Count - 3) more</MudText>
-                                }
-                            </MudCardContent>
-                        </MudCard>
-                    </MudItem>
-                }
-            </MudGrid>
-        }
-    </MudStack>
+    <BookIt.UI.Shared.Components.Admin.CalendarView
+        Appointments="@_appointments"
+        InitialView="week"
+        OnRangeChanged="@HandleRangeChanged" />
 }
 
 @code {
     [Parameter] public string TenantSlug { get; set; } = "";
 
-    private DateTime _viewDate = DateTime.Today;
     private List<AppointmentResponse> _appointments = new();
-    private List<DateTime> _calendarDays = new();
-    private bool _loading = true;
 
     protected override void OnInitialized()
     {
         if (!Auth.IsAuthenticated)
             Nav.NavigateTo($"/login?returnUrl=/{TenantSlug}/admin/calendar");
-        BuildCalendar();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender || !Auth.IsAuthenticated) return;
-        await LoadAsync();
+        // Load the current week on first render
+        var monday = DateTime.Today.AddDays(-(((int)DateTime.Today.DayOfWeek + 6) % 7));
+        await LoadAsync(monday, monday.AddDays(7));
     }
 
-    private async Task LoadAsync()
+    private async Task HandleRangeChanged((DateTime From, DateTime To) range)
     {
-        _loading = true;
+        await LoadAsync(range.From, range.To);
+    }
+
+    private async Task LoadAsync(DateTime from, DateTime to)
+    {
         Api.SetToken(Auth.AccessToken);
-        var from = new DateTime(_viewDate.Year, _viewDate.Month, 1).AddDays(-7);
-        var to = new DateTime(_viewDate.Year, _viewDate.Month, 1).AddMonths(1).AddDays(7);
         _appointments = await Api.GetAppointmentsAsync(TenantSlug, from, to);
-        _loading = false;
         StateHasChanged();
     }
-
-    private void BuildCalendar()
-    {
-        _calendarDays.Clear();
-        var first = new DateTime(_viewDate.Year, _viewDate.Month, 1);
-        // Start from Monday
-        var start = first.AddDays(-(((int)first.DayOfWeek + 6) % 7));
-        for (int i = 0; i < 35; i++)
-            _calendarDays.Add(start.AddDays(i));
-    }
-
-    private async Task PrevMonth() { _viewDate = _viewDate.AddMonths(-1); BuildCalendar(); await LoadAsync(); }
-    private async Task NextMonth() { _viewDate = _viewDate.AddMonths(1); BuildCalendar(); await LoadAsync(); }
-    private async Task Today() { _viewDate = DateTime.Today; BuildCalendar(); await LoadAsync(); }
 }
