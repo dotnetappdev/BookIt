@@ -35,6 +35,7 @@ public class AppointmentResponse
     public decimal TotalAmount { get; set; }
     public MeetingType MeetingType { get; set; }
     public string? MeetingLink { get; set; }
+    public string? Location { get; set; }
     public string? ConfirmationToken { get; set; }
     public string? BookingPin { get; set; }
     public List<ServiceSummary> Services { get; set; } = new();

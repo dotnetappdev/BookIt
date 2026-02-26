@@ -53,7 +53,7 @@ else
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                 @if (!string.IsNullOrEmpty(context.Item.PhotoUrl))
                                 {
-                                    <MudAvatar Image="@context.Item.PhotoUrl" Size="Size.Small" />
+                                    <MudAvatar Size="Size.Small" Style="@($"background-image: url('{context.Item.PhotoUrl}'); background-size: cover; background-position: center;")" />
                                 }
                                 else
                                 {

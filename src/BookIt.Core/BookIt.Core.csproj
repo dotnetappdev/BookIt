@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App">
+      <PrivateAssets>all</PrivateAssets>
+    </FrameworkReference>
   </ItemGroup>
 
 </Project>
