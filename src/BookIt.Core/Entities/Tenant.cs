@@ -34,6 +34,10 @@ public class Tenant : BaseEntity
     public bool EnablePayPal { get; set; }
     public bool EnableApplePay { get; set; }
 
+    // RevenueCat subscription management
+    public string? RevenueCatApiKey { get; set; }
+    public string? RevenueCatEntitlementId { get; set; } = "premium";
+
     // Virtual meeting settings
     public string? ZoomApiKey { get; set; }
     public string? ZoomApiSecret { get; set; }

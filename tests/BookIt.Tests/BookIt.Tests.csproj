@@ -23,6 +23,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\BookIt.Core\BookIt.Core.csproj" />
     <ProjectReference Include="..\..\src\BookIt.Infrastructure\BookIt.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\BookIt.Payments.ApplePay\BookIt.Payments.ApplePay.csproj" />
+    <ProjectReference Include="..\..\src\BookIt.Subscriptions.RevenueCat\BookIt.Subscriptions.RevenueCat.csproj" />
   </ItemGroup>
 
 </Project>

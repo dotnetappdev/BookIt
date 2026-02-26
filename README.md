@@ -40,7 +40,9 @@
 | `BookIt.UI.Shared` | Razor Class Library | Shared MudBlazor components for Blazor + MAUI |
 | `BookIt.Payments.Stripe` | Class Library | `IStripeProvider` — Stripe Payment Intents v2 |
 | `BookIt.Payments.PayPal` | Class Library | `IPayPalProvider` — PayPal Orders v2 |
-| `BookIt.Tests` | xUnit | Unit tests (13 passing) |
+| `BookIt.Payments.ApplePay` | Class Library | `IApplePayProvider` — Apple Pay via Stripe (isolated reusable DLL) |
+| `BookIt.Subscriptions.RevenueCat` | Class Library | `IRevenueCatProvider` — RevenueCat subscription management (isolated reusable DLL) |
+| `BookIt.Tests` | xUnit | Unit tests (24 passing) |
 
 ---
 
@@ -55,12 +57,16 @@
 ### Payments
 - Stripe (Payment Intents v2) via `BookIt.Payments.Stripe`
 - PayPal (Orders v2) via `BookIt.Payments.PayPal`
+- **Apple Pay** via Stripe, isolated in `BookIt.Payments.ApplePay` — reusable class library
 - Require full payment or deposit at booking time
 - Payment status tracking (Unpaid / Paid / Partial / Refunded)
 
-### Subscriptions & Feature Flags
+### Subscriptions & RevenueCat
 - Four subscription tiers: **Free** · **Starter £19/mo** · **Pro £49/mo** · **Enterprise £129/mo**
 - Monthly / annual billing toggle (20% saving)
+- **RevenueCat** subscription management via `BookIt.Subscriptions.RevenueCat` — reusable class library
+  - Entitlement-based plan resolution (maps RevenueCat products to `SubscriptionPlan`)
+  - Super-admin-only configuration panel: set RevenueCat API key, entitlement ID, and per-tier prices/product IDs
 - Feature flags map plan to capability:
   ```csharp
   FeatureFlags.CanUseOnlinePayments(SubscriptionPlan.Free);   // false
@@ -75,6 +81,12 @@
 - Quick-action panel
 - Profile dropdown (Dashboard, Settings, Subscription, Sign Out)
 - Dark / light mode toggle
+
+### Super Admin Console (`/super-admin`)
+- Tenant management (list, search, delete, copy Tenant ID)
+- **RevenueCat Configuration tab** — visible only to `SuperAdmin` role:
+  - Platform API key and entitlement identifier
+  - Per-tier pricing (monthly & annual) and RevenueCat product IDs for all four plans
 
 ### Blazor Front End
 | Page | Route |
@@ -159,22 +171,51 @@ Both front ends support dark and light mode:
 ### Stripe (`BookIt.Payments.Stripe`)
 ```csharp
 // Register
-builder.Services.AddStripePayments(builder.Configuration);
+builder.Services.AddStripePayments();
 
 // Use
-var result = await _stripeProvider.CreatePaymentIntentAsync(amount, currency, metadata);
-// result.Id, result.ClientSecret
+var result = await _stripeProvider.CreatePaymentIntentAsync(secretKey, amount, currency, metadata);
+// result.PaymentIntentId, result.ClientSecret
+```
+
+### Apple Pay via Stripe (`BookIt.Payments.ApplePay`)
+Apple Pay on the web is processed through Stripe — this library creates a PaymentIntent that
+the Stripe.js Payment Request Button presents as an Apple Pay sheet on supported devices.
+
+```csharp
+// Register (requires AddStripePayments() to be registered first)
+builder.Services.AddStripePayments();
+builder.Services.AddApplePayPayments();
+
+// Use
+var result = await _applePayProvider.CreateApplePayIntentAsync(stripeSecretKey, amount, currency);
+// result.PaymentIntentId, result.ClientSecret  →  pass ClientSecret to Stripe.js
 ```
 
 ### PayPal (`BookIt.Payments.PayPal`)
 ```csharp
 // Register
-builder.Services.AddPayPalPayments(builder.Configuration);
+builder.Services.AddPayPalPayments();
 
 // Use
-var order = await _paypalProvider.CreateOrderAsync(amount, currency, returnUrl, cancelUrl);
-// order.Id, order.ApprovalUrl
+var orderId = await _paypalProvider.CreateOrderAsync(clientId, clientSecret, amount, currency, ref, desc);
 ```
+
+### RevenueCat (`BookIt.Subscriptions.RevenueCat`)
+```csharp
+// Register
+builder.Services.AddRevenueCat();
+
+// Use — resolve the current plan from RevenueCat entitlements
+var plan = await _revenueCatProvider.GetEntitlementPlanAsync(apiKey, appUserId);
+
+// Get all offerings (used to display pricing tiers with RevenueCat product IDs)
+var tiers = await _revenueCatProvider.GetOfferingsAsync(apiKey);
+```
+
+> **Super-admin only**: The RevenueCat API key, entitlement identifier, and per-tier prices can be
+> configured in the **Super Admin Console** at `/super-admin` → **RevenueCat Config** tab.
+> This section is only rendered for users with `UserRole.SuperAdmin`.
 
 ---
 
@@ -199,8 +240,10 @@ BookIt.Infrastructure  ← EF Core, repos, services (delegates payments to provi
     ↓
 BookIt.Core         ← Entities, DTOs, interfaces, enums, FeatureFlags
     ↓
-BookIt.Payments.Stripe   ← IStripeProvider (isolated class library)
-BookIt.Payments.PayPal   ← IPayPalProvider (isolated class library)
+BookIt.Payments.Stripe        ← IStripeProvider (isolated class library)
+BookIt.Payments.PayPal        ← IPayPalProvider (isolated class library)
+BookIt.Payments.ApplePay      ← IApplePayProvider (isolated — delegates to Stripe)
+BookIt.Subscriptions.RevenueCat ← IRevenueCatProvider (isolated class library)
 
 BookIt.Blazor       ← Blazor Server front end (consumes BookIt.UI.Shared)
 BookIt.Web          ← ASP.NET Core MVC front end

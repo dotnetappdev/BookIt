@@ -5,6 +5,8 @@ using BookIt.Infrastructure.Data;
 using BookIt.Infrastructure.Repositories;
 using BookIt.Payments.Stripe;
 using BookIt.Payments.PayPal;
+using BookIt.Payments.ApplePay;
+using BookIt.Subscriptions.RevenueCat;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -53,6 +55,8 @@ public static class DependencyInjection
         services.AddScoped<IAppointmentService, BookIt.Infrastructure.Services.AppointmentService>();
         services.AddStripePayments();
         services.AddPayPalPayments();
+        services.AddApplePayPayments();
+        services.AddRevenueCat();
         services.AddScoped<IPaymentService, StripePaymentService>();
         services.AddScoped<IPayPalService, PayPalService>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));

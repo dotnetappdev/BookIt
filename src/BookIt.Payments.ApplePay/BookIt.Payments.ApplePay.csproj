@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\BookIt.Core\BookIt.Core.csproj" />
+    <ProjectReference Include="..\BookIt.Payments.Stripe\BookIt.Payments.Stripe.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>BookIt.Payments.ApplePay</RootNamespace>
+  </PropertyGroup>
+
+</Project>

@@ -4,8 +4,10 @@
     <Project Path="src/BookIt.Blazor/BookIt.Blazor.csproj" />
     <Project Path="src/BookIt.Core/BookIt.Core.csproj" />
     <Project Path="src/BookIt.Infrastructure/BookIt.Infrastructure.csproj" />
+    <Project Path="src/BookIt.Payments.ApplePay/BookIt.Payments.ApplePay.csproj" />
     <Project Path="src/BookIt.Payments.PayPal/BookIt.Payments.PayPal.csproj" />
     <Project Path="src/BookIt.Payments.Stripe/BookIt.Payments.Stripe.csproj" />
+    <Project Path="src/BookIt.Subscriptions.RevenueCat/BookIt.Subscriptions.RevenueCat.csproj" />
     <Project Path="src/BookIt.UI.Shared/BookIt.UI.Shared.csproj" />
     <Project Path="src/BookIt.Web/BookIt.Web.csproj" />
   </Folder>
