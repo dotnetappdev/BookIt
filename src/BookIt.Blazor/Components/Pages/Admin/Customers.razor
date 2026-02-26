@@ -1,0 +1,373 @@
+@page "/{tenantSlug}/admin/customers"
+@rendermode InteractiveServer
+@layout BookIt.UI.Shared.Components.Admin.AdminLayout
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject IJSRuntime Js
+
+<PageTitle>Customers — BookIt Admin</PageTitle>
+
+@if (!Auth.IsAuthenticated)
+{
+    <MudText>Redirecting…</MudText>
+}
+else
+{
+    <MudStack>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+            <div>
+                <MudText Typo="Typo.h5" Class="fw-bold">Customers</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">All customers for this business</MudText>
+            </div>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
+                       OnClick="OpenAddDialog">Add Customer</MudButton>
+        </MudStack>
+
+        <!-- Search bar -->
+        <MudTextField @bind-Value="_search" Placeholder="Search by name, email or phone…"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                      Clearable="true" Immediate="true" Class="mb-2" />
+
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        }
+        else if (!FilteredCustomers.Any())
+        {
+            <MudCard Elevation="1">
+                <MudCardContent>
+                    <MudStack AlignItems="AlignItems.Center" Class="py-8">
+                        <MudIcon Icon="@Icons.Material.Filled.PeopleOutline" Size="Size.Large" Style="opacity:.3;" />
+                        <MudText Typo="Typo.body1" Class="fw-medium">No customers yet</MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog">Add First Customer</MudButton>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        }
+        else
+        {
+            <MudDataGrid T="CustomerResponse" Items="FilteredCustomers" Filterable="false" SortMode="SortMode.Single"
+                         RowsPerPage="20" Hover="true">
+                <Columns>
+                    <TemplateColumn Title="Customer" Sortable="false">
+                        <CellTemplate>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);
+                                            display:flex;align-items:center;justify-content:center;font-size:.75rem;
+                                            font-weight:700;color:white;flex-shrink:0;">
+                                    @Initials(context.Item)
+                                </div>
+                                <div>
+                                    <MudText Typo="Typo.body2" Class="fw-medium">@context.Item.FullName</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Item.Email</MudText>
+                                </div>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.Phone" Title="Phone" />
+                    <PropertyColumn Property="x => x.City" Title="City" />
+                    <TemplateColumn Title="Bookings" Sortable="false">
+                        <CellTemplate>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">@context.Item.TotalBookings</MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Total Spent" Sortable="false">
+                        <CellTemplate>
+                            <MudText Typo="Typo.body2">£@context.Item.TotalSpent.ToString("N2")</MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Marketing" Sortable="false">
+                        <CellTemplate>
+                            @if (context.Item.MarketingOptIn)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Outlined">Opted In</MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined">Opted Out</MudChip>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Last Visit" Sortable="false">
+                        <CellTemplate>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @(context.Item.LastVisit.HasValue ? context.Item.LastVisit.Value.ToString("dd MMM yyyy") : "—")
+                            </MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="" Sortable="false">
+                        <CellTemplate>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                           OnClick="@(() => OpenEditDialog(context.Item))" />
+                            @if (_pendingDeleteId == context.Item.Id)
+                            {
+                                <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
+                                           OnClick="@(() => ConfirmDelete(context.Item))">Delete?</MudButton>
+                                <MudButton Size="Size.Small" OnClick="@(() => _pendingDeleteId = null)">Cancel</MudButton>
+                            }
+                            else
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                               OnClick="@(() => _pendingDeleteId = context.Item.Id)" />
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="CustomerResponse" />
+                </PagerContent>
+            </MudDataGrid>
+        }
+    </MudStack>
+}
+
+<!-- Add / Edit Dialog -->
+<MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editCustomer == null ? "Add Customer" : "Edit Customer")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_form.FirstName" Label="First Name" Required="true" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_form.LastName" Label="Last Name" Required="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Email" Label="Email Address" InputType="InputType.Email" Required="true" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_form.Phone" Label="Phone" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_form.Mobile" Label="Mobile" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Address" Label="Address" />
+            </MudItem>
+            <MudItem xs="5">
+                <MudTextField @bind-Value="_form.City" Label="City" />
+            </MudItem>
+            <MudItem xs="4">
+                <MudTextField @bind-Value="_form.PostCode" Label="Post Code" />
+            </MudItem>
+            <MudItem xs="3">
+                <MudTextField @bind-Value="_form.Country" Label="Country" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudSelect @bind-Value="_form.Gender" Label="Gender">
+                    <MudSelectItem Value="@("Male")">Male</MudSelectItem>
+                    <MudSelectItem Value="@("Female")">Female</MudSelectItem>
+                    <MudSelectItem Value="@("Non-binary")">Non-binary</MudSelectItem>
+                    <MudSelectItem Value="@("Prefer not to say")">Prefer not to say</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="6">
+                <MudDatePicker @bind-Date="_dobDate" Label="Date of Birth" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Tags" Label="Tags (comma-separated)" Placeholder="VIP, Regular, New…" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="3" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudSwitch @bind-Value="_form.MarketingOptIn" Color="Color.Primary" Label="Email Marketing" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudSwitch @bind-Value="_form.SmsOptIn" Color="Color.Primary" Label="SMS Marketing" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveCustomer" Disabled="_saving">
+            @(_saving ? "Saving…" : "Save")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+
+    private List<CustomerResponse> _customers = new();
+    private bool _loading = true;
+    private string _search = "";
+    private Guid? _pendingDeleteId;
+
+    private bool _dialogOpen;
+    private bool _saving;
+    private CustomerResponse? _editCustomer;
+    private CustomerFormModel _form = new();
+    private DateTime? _dobDate;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    private IEnumerable<CustomerResponse> FilteredCustomers =>
+        string.IsNullOrWhiteSpace(_search)
+            ? _customers
+            : _customers.Where(c =>
+                c.FullName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                c.Email.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                (c.Phone ?? "").Contains(_search));
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAuthenticated)
+            Nav.NavigateTo($"/login?returnUrl=/{TenantSlug}/admin/customers");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !Auth.IsAuthenticated) return;
+        Api.SetToken(Auth.AccessToken);
+        _customers = await Api.GetCustomersAsync(TenantSlug) ?? new();
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private void OpenAddDialog()
+    {
+        _editCustomer = null;
+        _form = new CustomerFormModel();
+        _dobDate = null;
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(CustomerResponse c)
+    {
+        _editCustomer = c;
+        _form = new CustomerFormModel
+        {
+            FirstName = c.FirstName,
+            LastName = c.LastName,
+            Email = c.Email,
+            Phone = c.Phone,
+            Mobile = c.Mobile,
+            Address = c.Address,
+            City = c.City,
+            PostCode = c.PostCode,
+            Country = c.Country,
+            Gender = c.Gender,
+            Tags = c.Tags,
+            Notes = c.Notes,
+            MarketingOptIn = c.MarketingOptIn,
+            SmsOptIn = c.SmsOptIn
+        };
+        _dobDate = c.DateOfBirth;
+        _dialogOpen = true;
+    }
+
+    private void CloseDialog() => _dialogOpen = false;
+
+    private async Task SaveCustomer()
+    {
+        if (string.IsNullOrWhiteSpace(_form.FirstName) || string.IsNullOrWhiteSpace(_form.Email))
+        {
+            Snackbar.Add("First name and email are required.", Severity.Warning);
+            return;
+        }
+        _saving = true;
+        Api.SetToken(Auth.AccessToken);
+
+        if (_editCustomer == null)
+        {
+            var req = new CreateCustomerRequest
+            {
+                FirstName = _form.FirstName,
+                LastName = _form.LastName,
+                Email = _form.Email,
+                Phone = _form.Phone,
+                Mobile = _form.Mobile,
+                Address = _form.Address,
+                City = _form.City,
+                PostCode = _form.PostCode,
+                Country = _form.Country,
+                Gender = _form.Gender,
+                DateOfBirth = _dobDate,
+                Tags = _form.Tags,
+                Notes = _form.Notes,
+                MarketingOptIn = _form.MarketingOptIn,
+                SmsOptIn = _form.SmsOptIn
+            };
+            var created = await Api.CreateCustomerAsync(TenantSlug, req);
+            if (created != null) { _customers.Insert(0, created); Snackbar.Add("Customer added.", Severity.Success); }
+            else Snackbar.Add("Failed to add customer.", Severity.Error);
+        }
+        else
+        {
+            var req = new UpdateCustomerRequest
+            {
+                FirstName = _form.FirstName,
+                LastName = _form.LastName,
+                Email = _form.Email,
+                Phone = _form.Phone,
+                Mobile = _form.Mobile,
+                Address = _form.Address,
+                City = _form.City,
+                PostCode = _form.PostCode,
+                Country = _form.Country,
+                Gender = _form.Gender,
+                DateOfBirth = _dobDate,
+                Tags = _form.Tags,
+                Notes = _form.Notes,
+                MarketingOptIn = _form.MarketingOptIn,
+                SmsOptIn = _form.SmsOptIn
+            };
+            var updated = await Api.UpdateCustomerAsync(TenantSlug, _editCustomer.Id, req);
+            if (updated != null)
+            {
+                var idx = _customers.IndexOf(_editCustomer);
+                if (idx >= 0) _customers[idx] = updated;
+                Snackbar.Add("Customer updated.", Severity.Success);
+            }
+            else Snackbar.Add("Failed to update customer.", Severity.Error);
+        }
+
+        _saving = false;
+        _dialogOpen = false;
+        StateHasChanged();
+    }
+
+    private async Task ConfirmDelete(CustomerResponse c)
+    {
+        _pendingDeleteId = null;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteCustomerAsync(TenantSlug, c.Id);
+        if (ok) { _customers.Remove(c); Snackbar.Add("Customer deleted.", Severity.Success); StateHasChanged(); }
+        else Snackbar.Add("Failed to delete customer.", Severity.Error);
+    }
+
+    private static string Initials(CustomerResponse c)
+    {
+        var f = string.IsNullOrEmpty(c.FirstName) ? "" : c.FirstName[0].ToString().ToUpper();
+        var l = string.IsNullOrEmpty(c.LastName)  ? "" : c.LastName[0].ToString().ToUpper();
+        return $"{f}{l}";
+    }
+
+    private class CustomerFormModel
+    {
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string? Phone { get; set; }
+        public string? Mobile { get; set; }
+        public string? Address { get; set; }
+        public string? City { get; set; }
+        public string? PostCode { get; set; }
+        public string? Country { get; set; }
+        public string? Gender { get; set; }
+        public string? Tags { get; set; }
+        public string? Notes { get; set; }
+        public bool MarketingOptIn { get; set; }
+        public bool SmsOptIn { get; set; }
+    }
+}

@@ -1,0 +1,249 @@
+@page "/"
+@rendermode InteractiveServer
+
+<PageTitle>BookIt — Smart Booking Software for Service Businesses</PageTitle>
+
+<!-- ═══════════════════════════════════════════ HERO ══════════════════════════════════════════ -->
+<section class="hero-section">
+    <div class="hero-glow"></div>
+    <div class="hero-glow-right"></div>
+    <MudContainer MaxWidth="MaxWidth.Large" Style="position:relative;z-index:1;">
+        <MudGrid Spacing="6">
+            <!-- Left: copy -->
+            <MudItem xs="12" lg="6" Style="display:flex;flex-direction:column;justify-content:center;">
+                <div class="section-badge" style="width:fit-content;">
+                    ✦ Smart booking for service pros
+                </div>
+                <h1 style="color:white;font-weight:800;font-size:clamp(2rem,5vw,3.25rem);line-height:1.05;letter-spacing:-.05em;margin:0 0 1.25rem;">
+                    Your business,<br />
+                    <span class="text-gradient">always booked.</span>
+                </h1>
+                <p style="color:rgba(255,255,255,.6);font-size:1.0625rem;line-height:1.75;max-width:480px;margin:0 0 2.25rem;">
+                    The all-in-one booking CRM for barbers, salons, spas, gyms and
+                    recruitment agencies. Accept appointments 24/7, manage staff,
+                    and get paid online with Stripe or PayPal.
+                </p>
+                <!-- CTA Buttons -->
+                <div style="display:flex;gap:.875rem;flex-wrap:wrap;margin-bottom:2rem;">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               Size="Size.Large" Href="/setup"
+                               StartIcon="@Icons.Material.Filled.RocketLaunch"
+                               Style="font-size:.9375rem;font-weight:700;border-radius:10px;padding:.75rem 1.875rem;">
+                        Start for Free
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" Size="Size.Large"
+                               Href="/demo-barber/book" Target="_blank"
+                               StartIcon="@Icons.Material.Filled.PlayCircleOutline"
+                               Style="font-size:.9375rem;font-weight:600;border-radius:10px;padding:.75rem 1.5rem;border-color:rgba(255,255,255,.22);color:rgba(255,255,255,.85);">
+                        Live Demo
+                    </MudButton>
+                </div>
+                <!-- Trust signals -->
+                <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+                    @foreach (var badge in new[] { "Free 14-day trial", "No credit card needed", "Cancel anytime" })
+                    {
+                        <div style="display:flex;align-items:center;gap:.4rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#10b981"
+                                 style="width:16px;height:16px;flex-shrink:0;">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/>
+                            </svg>
+                            <span style="color:rgba(255,255,255,.5);font-size:.8125rem;font-weight:500;">@badge</span>
+                        </div>
+                    }
+                </div>
+            </MudItem>
+
+            <!-- Right: app preview mockup -->
+            <MudItem xs="12" lg="6" Style="display:flex;align-items:center;">
+                <div class="app-preview" style="width:100%;max-width:520px;margin-left:auto;">
+                    <div class="app-preview-toolbar">
+                        <div class="preview-dot preview-dot-red"></div>
+                        <div class="preview-dot preview-dot-amber"></div>
+                        <div class="preview-dot preview-dot-green"></div>
+                        <span style="color:rgba(255,255,255,.35);font-size:.7rem;margin-left:.75rem;letter-spacing:.04em;">
+                            BookIt — Admin Dashboard
+                        </span>
+                    </div>
+                    <div class="app-preview-body">
+                        <!-- Stats row -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.625rem;margin-bottom:1rem;">
+                            @foreach (var s in _previewStats)
+                            {
+                                <div style="background:@s.Bg;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.75rem .875rem;">
+                                    <div style="font-size:1.375rem;font-weight:800;color:@s.Color;line-height:1;">@s.Value</div>
+                                    <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.38);margin-top:3px;">@s.Label</div>
+                                </div>
+                            }
+                        </div>
+                        <!-- Appointments mini-list -->
+                        <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.3);margin-bottom:.5rem;font-weight:700;">
+                            Today's Schedule
+                        </div>
+                        @foreach (var apt in _previewApts)
+                        {
+                            <div style="background:rgba(108,92,231,.1);border:1px solid rgba(108,92,231,.18);border-radius:9px;padding:.55rem .875rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.75rem;">
+                                <span style="font-size:.75rem;font-weight:700;color:rgba(255,255,255,.6);min-width:42px;">@apt.Time</span>
+                                <span style="font-size:.8125rem;color:rgba(255,255,255,.82);font-weight:500;flex:1;">@apt.Name</span>
+                                <span style="background:rgba(16,185,129,.18);color:#10b981;font-size:.65rem;font-weight:700;border-radius:6px;padding:2px 7px;">@apt.Service</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+</section>
+
+<!-- ═══════════════════════════════════════ STATS BAR ═════════════════════════════════════════ -->
+<div class="stats-bar">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2rem;text-align:center;">
+            @foreach (var s in _stats)
+            {
+                <div>
+                    <div class="stat-num">@s.Value</div>
+                    <div class="stat-lbl">@s.Label</div>
+                </div>
+            }
+        </div>
+    </MudContainer>
+</div>
+
+<!-- ═══════════════════════════════════════ FEATURES ══════════════════════════════════════════ -->
+<div class="section-py" id="features">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <div class="text-center" style="margin-bottom:3.5rem;">
+            <div class="section-badge mx-auto">Features</div>
+            <h2 style="font-size:clamp(1.625rem,4vw,2.25rem);font-weight:800;letter-spacing:-.04em;margin:.5rem 0 1rem;">
+                Everything you need to grow
+            </h2>
+            <p style="color:var(--mud-palette-text-secondary);max-width:480px;margin:0 auto;line-height:1.7;">
+                Powerful tools purpose-built for service businesses — no extra plugins, no per-feature paywalls.
+            </p>
+        </div>
+        <MudGrid Spacing="3">
+            @foreach (var f in _features)
+            {
+                <MudItem xs="12" sm="6" lg="4">
+                    <div class="feature-card mud-card">
+                        <div class="feature-icon" style="background:@f.Bg;">
+                            <MudIcon Icon="@f.Icon" Style="@($"color:{f.Color};")" />
+                        </div>
+                        <div style="font-size:1.0625rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.5rem;">@f.Title</div>
+                        <div style="color:var(--mud-palette-text-secondary);font-size:.875rem;line-height:1.7;">@f.Desc</div>
+                    </div>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudContainer>
+</div>
+
+<!-- ═══════════════════════════════════════ HOW IT WORKS ══════════════════════════════════════ -->
+<div style="background:var(--mud-palette-background-grey,rgba(108,92,231,.04));padding:5rem 0;" id="how-it-works">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <div class="text-center" style="margin-bottom:3.5rem;">
+            <div class="section-badge mx-auto">How it works</div>
+            <h2 style="font-size:clamp(1.625rem,4vw,2.25rem);font-weight:800;letter-spacing:-.04em;margin:.5rem 0 1rem;">
+                Live in under 5 minutes
+            </h2>
+        </div>
+        <MudGrid Spacing="3" Justify="Justify.Center">
+            @for (int i = 0; i < _steps.Length; i++)
+            {
+                var step = _steps[i];
+                var num = i + 1;
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="1" Style="height:100%;text-align:center;padding:8px;">
+                        <MudCardContent>
+                            <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,rgba(108,92,231,.15),rgba(162,155,254,.2));border:1.5px solid rgba(108,92,231,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:1.125rem;font-weight:800;color:#7c6ff0;">
+                                @num
+                            </div>
+                            <div style="font-size:1rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.5rem;">@step.Title</div>
+                            <div style="color:var(--mud-palette-text-secondary);font-size:.875rem;line-height:1.65;">@step.Desc</div>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudContainer>
+</div>
+
+<!-- ═══════════════════════════════════════════ CTA ═══════════════════════════════════════════ -->
+<div style="background:linear-gradient(140deg,#07071a 0%,#0f0f2e 40%,#1e1050 100%);padding:6rem 2rem;text-align:center;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(108,92,231,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(108,92,231,.06) 1px,transparent 1px);background-size:64px 64px;pointer-events:none;"></div>
+    <div style="position:absolute;top:50%;left:50%;width:700px;height:700px;background:radial-gradient(circle,rgba(108,92,231,.2) 0%,transparent 65%);transform:translate(-50%,-50%);pointer-events:none;"></div>
+    <div style="position:relative;z-index:1;">
+        <h2 style="color:white;font-size:clamp(1.75rem,5vw,2.75rem);font-weight:800;letter-spacing:-.05em;margin:0 0 1rem;">
+            Ready to fill your schedule?
+        </h2>
+        <p style="color:rgba(255,255,255,.55);font-size:1.0625rem;max-width:400px;margin:0 auto 2.25rem;line-height:1.7;">
+            Join hundreds of service businesses already using BookIt.
+        </p>
+        <div style="display:flex;gap:.875rem;justify-content:center;flex-wrap:wrap;">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+                       StartIcon="@Icons.Material.Filled.RocketLaunch" Href="/setup"
+                       Style="font-size:.9375rem;font-weight:700;border-radius:10px;padding:.8rem 2.25rem;">
+                Get Started Free
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Size="Size.Large" Href="/pricing"
+                       Style="font-size:.9375rem;font-weight:600;border-radius:10px;padding:.8rem 1.75rem;border-color:rgba(255,255,255,.22);color:rgba(255,255,255,.85);">
+                View Pricing
+            </MudButton>
+        </div>
+    </div>
+</div>
+
+@code {
+    private record PreviewStat(string Value, string Label, string Color, string Bg);
+    private record PreviewApt(string Time, string Name, string Service);
+    private record Feature(string Icon, string Title, string Desc, string Bg, string Color);
+    private record Stat(string Value, string Label);
+    private record Step(string Title, string Desc);
+
+    private PreviewStat[] _previewStats = {
+        new("8",   "Today",     "#6c5ce7", "rgba(108,92,231,.14)"),
+        new("34",  "This Week", "#10b981", "rgba(16,185,129,.14)"),
+        new("£840","Revenue",   "#3b82f6", "rgba(59,130,246,.14)"),
+        new("3",   "Pending",   "#f59e0b", "rgba(245,158,11,.14)"),
+    };
+
+    private PreviewApt[] _previewApts = {
+        new("9:00",  "Emma Wilson",   "Haircut"),
+        new("10:30", "James Clarke",  "Colour"),
+        new("13:00", "Sofia Martinez","Styling"),
+    };
+
+    private Stat[] _stats = {
+        new("500+", "Businesses"),
+        new("24/7", "Online Booking"),
+        new("3",    "Payment Methods"),
+        new("99.9%","Uptime SLA"),
+    };
+
+    private Feature[] _features = {
+        new(Icons.Material.Filled.CalendarMonth, "Smart Calendar",
+            "Full week/month calendar with complete availability management and time-slot blocking.",
+            "rgba(108,92,231,.1)", "#7c6ff0"),
+        new(Icons.Material.Filled.CreditCard, "Stripe & PayPal",
+            "Accept card payments, PayPal and Apple Pay. Require deposits or full payment at booking.",
+            "rgba(16,185,129,.1)", "#10b981"),
+        new(Icons.Material.Filled.People, "Staff Management",
+            "Multiple staff members with individual schedules, services and working hours.",
+            "rgba(59,130,246,.1)", "#3b82f6"),
+        new(Icons.Material.Filled.Assignment, "Custom Forms",
+            "Drag-and-drop form builder with text, dropdowns, file uploads and 6 more field types.",
+            "rgba(249,115,22,.1)", "#f97316"),
+        new(Icons.Material.Filled.SmartToy, "AI Chat Assistant",
+            "Embedded chat widget with appointment lookup, GPT answers and voice booking support.",
+            "rgba(108,92,231,.1)", "#7c6ff0"),
+        new(Icons.Material.Filled.CorporateFare, "Multi-Tenant",
+            "One platform, unlimited businesses. Fully isolated data with JWT-secured API access.",
+            "rgba(100,116,139,.1)", "#64748b"),
+    };
+
+    private Step[] _steps = {
+        new("Create your account",  "Sign up free — no credit card needed. Pick your business type and you're in."),
+        new("Add services & staff", "Set up your services, durations, prices and assign team members in minutes."),
+        new("Share & go live",      "Share your booking link anywhere — website, Google, social. Clients book 24/7."),
+    };
+}

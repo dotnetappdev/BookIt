@@ -1,0 +1,45 @@
+@page "/{tenantSlug}/admin"
+@rendermode InteractiveServer
+@layout BookIt.UI.Shared.Components.Admin.AdminLayout
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+
+<PageTitle>Dashboard — BookIt Admin</PageTitle>
+
+@if (!Auth.IsAuthenticated)
+{
+    <MudText>Redirecting…</MudText>
+}
+else
+{
+    <BookIt.UI.Shared.Components.Admin.DashboardView
+        TenantSlug="@TenantSlug"
+        UserName="@(Auth.UserName ?? "")"
+        TodayAppointments="@_today"
+        UpcomingAppointments="@_upcoming" />
+}
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+
+    private List<AppointmentResponse> _today = new();
+    private List<AppointmentResponse> _upcoming = new();
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAuthenticated)
+            Nav.NavigateTo($"/login?returnUrl=/{TenantSlug}/admin");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !Auth.IsAuthenticated) return;
+        Api.SetToken(Auth.AccessToken);
+        var now = DateTime.Now;
+        var appts = await Api.GetAppointmentsAsync(TenantSlug, now.Date, now.Date.AddDays(30));
+        _today = appts.Where(a => a.StartTime.Date == now.Date).ToList();
+        _upcoming = appts.Where(a => a.StartTime.Date > now.Date).ToList();
+        StateHasChanged();
+    }
+}

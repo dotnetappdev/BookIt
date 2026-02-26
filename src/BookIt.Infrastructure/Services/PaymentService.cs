@@ -1,20 +1,22 @@
 using BookIt.Core.Enums;
 using BookIt.Core.Interfaces;
 using BookIt.Infrastructure.Data;
+using BookIt.Payments.Stripe;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Stripe;
 
 namespace BookIt.Infrastructure.Services;
 
 public class StripePaymentService : IPaymentService
 {
     private readonly BookItDbContext _context;
+    private readonly IStripeProvider _stripeProvider;
     private readonly ILogger<StripePaymentService> _logger;
 
-    public StripePaymentService(BookItDbContext context, ILogger<StripePaymentService> logger)
+    public StripePaymentService(BookItDbContext context, IStripeProvider stripeProvider, ILogger<StripePaymentService> logger)
     {
         _context = context;
+        _stripeProvider = stripeProvider;
         _logger = logger;
     }
 
@@ -32,23 +34,18 @@ public class StripePaymentService : IPaymentService
 
         if (provider == PaymentProvider.Stripe && !string.IsNullOrEmpty(tenant.StripeSecretKey))
         {
-            StripeConfiguration.ApiKey = tenant.StripeSecretKey;
-
-            var options = new PaymentIntentCreateOptions
+            var metadata = new Dictionary<string, string>
             {
-                Amount = (long)(amount * 100), // Convert to pence/cents
-                Currency = currency.ToLower(),
-                Metadata = new Dictionary<string, string>
-                {
-                    { "appointment_id", appointmentId.ToString() },
-                    { "tenant_id", tenantId.ToString() }
-                }
+                { "appointment_id", appointmentId.ToString() },
+                { "tenant_id", tenantId.ToString() }
             };
 
-            var service = new PaymentIntentService();
-            var intent = await service.CreateAsync(options);
+            var result = await _stripeProvider.CreatePaymentIntentAsync(
+                tenant.StripeSecretKey,
+                (long)(amount * 100),
+                currency,
+                metadata);
 
-            // Save payment record
             var payment = new Core.Entities.Payment
             {
                 TenantId = tenantId,
@@ -57,12 +54,12 @@ public class StripePaymentService : IPaymentService
                 Currency = currency,
                 Provider = PaymentProvider.Stripe,
                 Status = PaymentStatus.Pending,
-                ProviderPaymentIntentId = intent.Id
+                ProviderPaymentIntentId = result.PaymentIntentId
             };
             _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
 
-            return intent.ClientSecret ?? intent.Id;
+            return result.ClientSecret;
         }
 
         // For PayPal/Apple Pay - return order ID placeholder
@@ -112,14 +109,8 @@ public class StripePaymentService : IPaymentService
             var tenant = await _context.Tenants.FindAsync(tenantId);
             if (tenant != null && !string.IsNullOrEmpty(tenant.StripeSecretKey))
             {
-                StripeConfiguration.ApiKey = tenant.StripeSecretKey;
-                var refundService = new RefundService();
-                var options = new RefundCreateOptions
-                {
-                    PaymentIntent = payment.ProviderPaymentIntentId,
-                    Amount = amount.HasValue ? (long)(amount.Value * 100) : null
-                };
-                await refundService.CreateAsync(options);
+                long? amountInPence = amount.HasValue ? (long)(amount.Value * 100) : null;
+                await _stripeProvider.RefundAsync(tenant.StripeSecretKey, payment.ProviderPaymentIntentId, amountInPence);
             }
         }
 

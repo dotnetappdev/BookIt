@@ -1,0 +1,270 @@
+@using BookIt.Core.DTOs
+@using BookIt.Core.Enums
+
+<style>
+    .cal-time-label {
+        width: 52px; min-width: 52px;
+        text-align: right; padding-right: .5rem;
+        font-size: .7rem; color: var(--mud-palette-text-secondary);
+        line-height: 1; margin-top: -8px;
+    }
+    .cal-hour-row {
+        display: flex; align-items: flex-start;
+        border-bottom: 1px solid var(--mud-palette-divider);
+        min-height: 52px;
+    }
+    .cal-hour-cell {
+        flex: 1; padding: .15rem .25rem;
+        border-right: 1px solid var(--mud-palette-divider);
+        min-height: 52px;
+    }
+    .cal-hour-cell:last-child { border-right: none; }
+    .cal-appt-chip {
+        display: block; font-size: .68rem; border-radius: 4px;
+        padding: .15rem .35rem; margin-bottom: 2px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default;
+    }
+    .cal-appt-confirmed { background: rgba(100,200,130,.2); color: #3ddc78; border-left: 3px solid #3ddc78; }
+    .cal-appt-pending   { background: rgba(255,180,50,.2);  color: #f5a623; border-left: 3px solid #f5a623; }
+    .cal-appt-cancelled { background: rgba(220,80,80,.2);   color: #e05050; border-left: 3px solid #e05050; }
+    .cal-appt-default   { background: rgba(130,120,240,.2); color: #a29bfe; border-left: 3px solid #a29bfe; }
+    .cal-today-col      { background: rgba(var(--mud-palette-primary-rgb), .04); }
+    .cal-month-cell {
+        min-height: 90px; border: 1px solid var(--mud-palette-divider);
+        border-radius: 6px; padding: .4rem .5rem;
+    }
+    .cal-month-cell:hover { background: rgba(var(--mud-palette-primary-rgb), .05); }
+    .cal-month-today  { border-color: var(--mud-palette-primary); border-width: 2px; }
+    .cal-month-other  { opacity: .45; }
+    .cal-scroll-body  { overflow-y: auto; max-height: calc(100vh - 220px); }
+    .cal-week-grid    { display: grid; grid-template-columns: 52px repeat(7, 1fr); }
+    .cal-day-grid     { display: grid; grid-template-columns: 52px 1fr; }
+    .cal-header-cell  {
+        text-align: center; padding: .5rem .25rem .375rem;
+        border-bottom: 1px solid var(--mud-palette-divider);
+        border-right: 1px solid var(--mud-palette-divider);
+        font-size: .75rem; font-weight: 600;
+        color: var(--mud-palette-text-secondary);
+        letter-spacing: .04em; text-transform: uppercase;
+    }
+    .cal-header-cell:last-child { border-right: none; }
+</style>
+
+<MudStack Spacing="2">
+
+    <!-- ── Toolbar ── -->
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Wrap="Wrap.Wrap">
+        <div>
+            <MudText Typo="Typo.h5" Class="fw-bold">Calendar</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@TitleLabel</MudText>
+        </div>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudToggleGroup T="string" @bind-Value="_view" Color="Color.Primary" Outlined="true" Size="Size.Small">
+                <MudToggleItem Value="@("day")"   Text="Day"   />
+                <MudToggleItem Value="@("week")"  Text="Week"  />
+                <MudToggleItem Value="@("month")" Text="Month" />
+            </MudToggleGroup>
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"  Size="Size.Small" OnClick="Prev" />
+            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="GoToday">Today</MudButton>
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" OnClick="Next" />
+        </MudStack>
+    </MudStack>
+
+    <!-- ── MONTH VIEW ── -->
+    @if (_view == "month")
+    {
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">
+            @foreach (var h in new[] { "Mon","Tue","Wed","Thu","Fri","Sat","Sun" })
+            {
+                <div style="text-align:center;padding:.35rem 0;font-size:.72rem;font-weight:700;color:var(--mud-palette-text-secondary);letter-spacing:.06em;text-transform:uppercase;">@h</div>
+            }
+            @foreach (var day in _calendarDays)
+            {
+                var appts = Appointments.Where(a => a.StartTime.Date == day).ToList();
+                <div class="cal-month-cell @(day.Month != _viewDate.Month ? "cal-month-other" : "") @(day.Date == DateTime.Today.Date ? "cal-month-today" : "")">
+                    <div style="font-size:.78rem;font-weight:@(day.Date==DateTime.Today.Date?"700":"500");color:@(day.Date==DateTime.Today.Date?"var(--mud-palette-primary)":"inherit");margin-bottom:.2rem;">@day.Day</div>
+                    @foreach (var apt in appts.Take(3))
+                    {
+                        <div class="cal-appt-chip @ApptClass(apt.Status.ToString())">
+                            @apt.StartTime.ToString("h:mm") @(apt.CustomerName.Split(' ').FirstOrDefault() ?? apt.CustomerName)
+                        </div>
+                    }
+                    @if (appts.Count > 3)
+                    {
+                        <div style="font-size:.65rem;color:var(--mud-palette-text-secondary);">+@(appts.Count-3) more</div>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <!-- ── WEEK VIEW ── -->
+    @if (_view == "week")
+    {
+        var weekDays = WeekDays.ToList();
+        <div class="cal-week-grid" style="border:1px solid var(--mud-palette-divider);border-radius:8px 8px 0 0;overflow:hidden;">
+            <div style="width:52px;border-bottom:1px solid var(--mud-palette-divider);border-right:1px solid var(--mud-palette-divider);"></div>
+            @foreach (var d in weekDays)
+            {
+                <div class="cal-header-cell @(d.Date==DateTime.Today.Date?"mud-primary-text":"")">
+                    <div>@d.ToString("ddd")</div>
+                    <div style="font-size:1.1rem;font-weight:@(d.Date==DateTime.Today.Date?"700":"400");">@d.Day</div>
+                </div>
+            }
+        </div>
+        <div class="cal-scroll-body" style="border:1px solid var(--mud-palette-divider);border-top:none;border-radius:0 0 8px 8px;">
+            @for (int h = 6; h <= 22; h++)
+            {
+                var hour = h;
+                <div class="cal-hour-row">
+                    <div class="cal-time-label">@DateTime.Today.AddHours(hour).ToString("h tt")</div>
+                    @foreach (var d in weekDays)
+                    {
+                        var day = d;
+                        var slotAppts = Appointments.Where(a => a.StartTime.Date == day.Date && a.StartTime.Hour == hour).ToList();
+                        <div class="cal-hour-cell @(day.Date==DateTime.Today.Date?"cal-today-col":"")">
+                            @foreach (var apt in slotAppts)
+                            {
+                                <div class="cal-appt-chip @ApptClass(apt.Status.ToString())" title="@apt.CustomerName — @(apt.Services.FirstOrDefault()?.Name)">
+                                    @apt.StartTime.ToString("h:mm") @(apt.CustomerName.Split(' ').FirstOrDefault() ?? apt.CustomerName)
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <!-- ── DAY VIEW ── -->
+    @if (_view == "day")
+    {
+        <div class="cal-day-grid" style="border:1px solid var(--mud-palette-divider);border-radius:8px 8px 0 0;overflow:hidden;">
+            <div style="width:52px;border-bottom:1px solid var(--mud-palette-divider);border-right:1px solid var(--mud-palette-divider);"></div>
+            <div class="cal-header-cell @(_viewDate.Date==DateTime.Today.Date?"mud-primary-text":"")">
+                <div>@_viewDate.ToString("dddd")</div>
+                <div style="font-size:1.3rem;font-weight:@(_viewDate.Date==DateTime.Today.Date?"700":"400");">@_viewDate.Day @_viewDate.ToString("MMMM")</div>
+            </div>
+        </div>
+        <div class="cal-scroll-body" style="border:1px solid var(--mud-palette-divider);border-top:none;border-radius:0 0 8px 8px;">
+            @for (int h = 6; h <= 22; h++)
+            {
+                var hour = h;
+                var slotAppts = Appointments.Where(a => a.StartTime.Date == _viewDate.Date && a.StartTime.Hour == hour).ToList();
+                <div class="cal-hour-row">
+                    <div class="cal-time-label">@DateTime.Today.AddHours(hour).ToString("h tt")</div>
+                    <div class="cal-hour-cell" style="padding:.25rem .5rem;">
+                        @foreach (var apt in slotAppts)
+                        {
+                            <div style="display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;border-radius:6px;margin-bottom:4px;background:rgba(var(--mud-palette-primary-rgb),.08);border-left:3px solid var(--mud-palette-primary);">
+                                <div style="min-width:44px;font-size:.72rem;font-weight:700;color:var(--mud-palette-primary);">@apt.StartTime.ToString("h:mm tt")</div>
+                                <div style="flex:1;">
+                                    <div style="font-size:.85rem;font-weight:600;">@apt.CustomerName</div>
+                                    <div style="font-size:.75rem;color:var(--mud-palette-text-secondary);">@(apt.Services.FirstOrDefault()?.Name ?? "") · @apt.StaffName</div>
+                                </div>
+                                <MudChip T="string" Size="Size.Small" Color="@StatusChipColor(apt.Status.ToString())" Label="true" Style="font-size:.68rem;">@apt.Status</MudChip>
+                                <div style="font-size:.8rem;font-weight:600;color:var(--mud-palette-text-secondary);">£@apt.TotalAmount.ToString("0.00")</div>
+                            </div>
+                        }
+                        @if (!slotAppts.Any())
+                        {
+                            <div style="height:52px;"></div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+</MudStack>
+
+@code {
+    [Parameter] public List<AppointmentResponse> Appointments { get; set; } = new();
+    [Parameter] public string InitialView { get; set; } = "week";
+    [Parameter] public EventCallback<(DateTime From, DateTime To)> OnRangeChanged { get; set; }
+
+    private string _view = "week";
+    private DateTime _viewDate = DateTime.Today;
+    private List<DateTime> _calendarDays = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _view = InitialView;
+        if (_view == "month") BuildMonthGrid();
+        await NotifyRange();
+    }
+
+    private string TitleLabel => _view switch
+    {
+        "day"  => _viewDate.ToString("dddd, d MMMM yyyy"),
+        "week" => $"{WeekDays.First():d MMM} – {WeekDays.Last():d MMM yyyy}",
+        _      => _viewDate.ToString("MMMM yyyy")
+    };
+
+    private IEnumerable<DateTime> WeekDays
+    {
+        get
+        {
+            var monday = _viewDate.AddDays(-(((int)_viewDate.DayOfWeek + 6) % 7));
+            return Enumerable.Range(0, 7).Select(i => monday.AddDays(i));
+        }
+    }
+
+    private void BuildMonthGrid()
+    {
+        _calendarDays.Clear();
+        var first = new DateTime(_viewDate.Year, _viewDate.Month, 1);
+        var start = first.AddDays(-(((int)first.DayOfWeek + 6) % 7));
+        for (int i = 0; i < 35; i++) _calendarDays.Add(start.AddDays(i));
+    }
+
+    private async Task NotifyRange()
+    {
+        if (!OnRangeChanged.HasDelegate) return;
+        var (from, to) = _view switch
+        {
+            "day"  => (_viewDate.Date, _viewDate.Date.AddDays(1)),
+            "week" => (WeekDays.First(), WeekDays.Last().AddDays(1)),
+            _      => (new DateTime(_viewDate.Year, _viewDate.Month, 1).AddDays(-7),
+                       new DateTime(_viewDate.Year, _viewDate.Month, 1).AddMonths(1).AddDays(7))
+        };
+        await OnRangeChanged.InvokeAsync((from, to));
+    }
+
+    private async Task Prev()
+    {
+        _viewDate = _view switch { "day" => _viewDate.AddDays(-1), "week" => _viewDate.AddDays(-7), _ => _viewDate.AddMonths(-1) };
+        if (_view == "month") BuildMonthGrid();
+        await NotifyRange();
+    }
+
+    private async Task Next()
+    {
+        _viewDate = _view switch { "day" => _viewDate.AddDays(1), "week" => _viewDate.AddDays(7), _ => _viewDate.AddMonths(1) };
+        if (_view == "month") BuildMonthGrid();
+        await NotifyRange();
+    }
+
+    private async Task GoToday()
+    {
+        _viewDate = DateTime.Today;
+        if (_view == "month") BuildMonthGrid();
+        await NotifyRange();
+    }
+
+    private static string ApptClass(string status) => status.ToLowerInvariant() switch
+    {
+        "confirmed" => "cal-appt-confirmed",
+        "pending"   => "cal-appt-pending",
+        "cancelled" => "cal-appt-cancelled",
+        _           => "cal-appt-default"
+    };
+
+    private static Color StatusChipColor(string status) => status.ToLowerInvariant() switch
+    {
+        "confirmed" => Color.Success,
+        "pending"   => Color.Warning,
+        "cancelled" => Color.Error,
+        _           => Color.Primary
+    };
+}

@@ -1,0 +1,143 @@
+@inherits LayoutComponentBase
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+@inject IJSRuntime Js
+
+<MudThemeProvider Theme="BookItTheme.Default" IsDarkMode="@_isDark" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <!-- ── Top Navigation Bar ── -->
+    <MudAppBar Elevation="0" Color="Color.Surface" Dense="false"
+               Style="height:64px;backdrop-filter:blur(16px);border-bottom:1px solid var(--mud-palette-divider);">
+        <!-- Brand -->
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <div class="brand-avatar" style="display:flex;align-items:center;justify-content:center;">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Style="color:white;" />
+            </div>
+            <MudLink Href="/" Color="Color.Default"
+                     Style="font-size:1.1rem;font-weight:800;letter-spacing:-.03em;text-decoration:none;">
+                BookIt
+            </MudLink>
+        </MudStack>
+
+        <MudSpacer />
+
+        <!-- Nav links (desktop) -->
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0" Class="d-none d-md-flex">
+            <a href="/#features" class="nav-link-pill">Features</a>
+            <a href="/#how-it-works" class="nav-link-pill">How it works</a>
+            <a href="/pricing" class="nav-link-pill">Pricing</a>
+        </MudStack>
+
+        <MudSpacer />
+
+        <!-- Right side actions -->
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <!-- Dark mode toggle -->
+            <MudTooltip Text="@(_isDark ? "Light mode" : "Dark mode")">
+                <MudIconButton Icon="@(_isDark ? Icons.Material.Filled.WbSunny : Icons.Material.Filled.NightlightRound)"
+                               Color="Color.Default" OnClick="ToggleDark" Size="Size.Small"
+                               Style="opacity:.65;" />
+            </MudTooltip>
+
+            @if (Auth.IsAuthenticated)
+            {
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Primary"
+                           Style="border-radius:8px;font-weight:600;"
+                           Href="@($"/{Auth.TenantSlug}/admin")">Dashboard</MudButton>
+                <!-- Profile menu -->
+                <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                    <ActivatorContent>
+                        <MudAvatar Color="Color.Primary"
+                                   Style="cursor:pointer;width:34px;height:34px;font-size:.8rem;font-weight:700;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);">
+                            @Auth.Initials
+                        </MudAvatar>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <div style="padding:.75rem 1rem .5rem;border-bottom:1px solid var(--mud-palette-divider);">
+                            <div style="font-weight:700;font-size:.875rem;">@Auth.UserName</div>
+                            <div style="font-size:.75rem;opacity:.55;">@Auth.UserEmail</div>
+                        </div>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Dashboard"
+                                     Href="@($"/{Auth.TenantSlug}/admin")">Dashboard</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ManageAccounts"
+                                     Href="@($"/{Auth.TenantSlug}/admin/settings")">Profile &amp; Settings</MudMenuItem>
+                        <MudDivider />
+                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="Logout"
+                                     IconColor="Color.Error">Sign Out</MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+            }
+            else
+            {
+                <MudButton Variant="Variant.Text" Size="Size.Small" Href="/login"
+                           Style="font-weight:600;border-radius:8px;">Sign In</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Href="/setup"
+                           Style="font-weight:700;border-radius:8px;padding:6px 18px;">
+                    Get Started Free
+                </MudButton>
+            }
+        </MudStack>
+    </MudAppBar>
+
+    <!-- ── Page content ── -->
+    <MudMainContent Style="padding-top:64px;">
+        @Body
+    </MudMainContent>
+
+    <!-- ── Footer ── -->
+    <footer class="site-footer">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MudGrid Spacing="5">
+                <!-- Brand column -->
+                <MudItem xs="12" md="4">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
+                        <div class="brand-avatar" style="width:28px!important;height:28px!important;display:flex;align-items:center;justify-content:center;border-radius:8px!important;">
+                            <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Style="color:white;font-size:1rem;" />
+                        </div>
+                        <span class="footer-brand">BookIt</span>
+                    </MudStack>
+                    <p style="color:rgba(255,255,255,.38);font-size:.875rem;line-height:1.7;max-width:240px;margin:0;">
+                        The smart booking CRM for modern service businesses.
+                    </p>
+                </MudItem>
+                <!-- Product column -->
+                <MudItem xs="6" md="2">
+                    <div class="footer-col-heading">Product</div>
+                    <a href="/#features" class="footer-link">Features</a>
+                    <a href="/pricing" class="footer-link">Pricing</a>
+                    <a href="/demo-barber/book" class="footer-link">Live Demo</a>
+                </MudItem>
+                <!-- Company column -->
+                <MudItem xs="6" md="2">
+                    <div class="footer-col-heading">Company</div>
+                    <a href="/setup" class="footer-link">Get Started</a>
+                    <a href="/login" class="footer-link">Sign In</a>
+                </MudItem>
+            </MudGrid>
+            <hr class="footer-divider" />
+            <span class="footer-copy">&copy; @DateTime.Now.Year BookIt. All rights reserved.</span>
+        </MudContainer>
+    </footer>
+</MudLayout>
+
+@code {
+    private bool _isDark = true;
+    private async Task ToggleDark()
+    {
+        _isDark = !_isDark;
+        await Js.InvokeVoidAsync("localStorage.setItem", "bookit-theme", _isDark ? "dark" : "light");
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var stored = await Js.InvokeAsync<string?>("localStorage.getItem", "bookit-theme");
+        // Default to dark unless the user has explicitly chosen light
+        var preferDark = stored != "light";
+        if (preferDark != _isDark) { _isDark = preferDark; StateHasChanged(); }
+    }
+    private void Logout() { Auth.Clear(); Nav.NavigateTo("/login"); }
+}

@@ -1,0 +1,418 @@
+@inject ISnackbar Snackbar
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+
+<MudStack>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+        <div>
+            <MudText Typo="Typo.h5" Class="fw-bold">Settings</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Manage your business profile and configuration</MudText>
+        </div>
+    </MudStack>
+
+    @if (_tenant == null)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudForm @ref="_form">
+            <MudGrid>
+                <MudItem xs="12" lg="8">
+                    <!-- Business Profile -->
+                    <MudCard Elevation="1" Class="mb-4">
+                        <MudCardHeader>
+                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.Business" Color="Color.Primary" /></CardHeaderAvatar>
+                            <CardHeaderContent><MudText Typo="Typo.h6">Business Profile</MudText></CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudGrid>
+                                <MudItem xs="12" sm="8">
+                                    <MudTextField @bind-Value="_name" Label="Business Name" Required="true" Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <MudSelect T="BusinessType" @bind-Value="_businessType" Label="Business Type" Variant="Variant.Outlined">
+                                        @foreach (var bt in Enum.GetValues<BusinessType>())
+                                        {
+                                            <MudSelectItem T="BusinessType" Value="bt">@bt</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField @bind-Value="_email" Label="Contact Email" InputType="InputType.Email" Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField @bind-Value="_phone" Label="Contact Phone" Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudTextField @bind-Value="_address" Label="Address" Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <MudTextField @bind-Value="_city" Label="City" Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <MudTextField @bind-Value="_postCode" Label="Post Code" Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <MudTextField @bind-Value="_country" Label="Country" Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField @bind-Value="_website" Label="Website" Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudSelect T="string" @bind-Value="_currency" Label="Currency" Variant="Variant.Outlined">
+                                        @foreach (var (code, flag, label) in _currencies)
+                                        {
+                                            <MudSelectItem T="string" Value="code">@flag @label</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudNumericField @bind-Value="_vatRate" Label="VAT / Tax Rate (%)"
+                                                     Variant="Variant.Outlined" Min="0" Max="100"
+                                                     Adornment="Adornment.End" AdornmentText="%" />
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                    </MudCard>
+
+                    <!-- Branding -->
+                    <MudCard Elevation="1" Class="mb-4">
+                        <MudCardHeader>
+                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.Palette" Color="Color.Primary" /></CardHeaderAvatar>
+                            <CardHeaderContent><MudText Typo="Typo.h6">Branding &amp; Theme</MudText></CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudGrid>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField @bind-Value="_primaryColor" Label="Primary Colour (hex)" Variant="Variant.Outlined"
+                                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Circle"
+                                                  AdornmentColor="Color.Primary" />
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField @bind-Value="_logoUrl" Label="Logo URL" Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudText Typo="Typo.subtitle2" Class="mb-2 fw-semibold">Booking Page Theme</MudText>
+                                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.75rem;">
+                                        @foreach (var t in _themes)
+                                        {
+                                            var theme = t;
+                                            <div @onclick="@(() => _selectedTheme = theme.Value)"
+                                                 style="@($"border:2px solid {((_selectedTheme == theme.Value) ? "var(--mud-palette-primary)" : "var(--mud-palette-divider)")};border-radius:12px;padding:.75rem;cursor:pointer;text-align:center;transition:.15s;background:var(--mud-palette-surface);")">
+                                                <div style="@($"width:36px;height:36px;border-radius:50%;margin:0 auto .5rem;background:linear-gradient(135deg,{theme.Primary},{theme.Secondary});")"></div>
+                                                <div style="font-size:.78rem;font-weight:600;">@theme.Label</div>
+                                                @if (_selectedTheme == theme.Value)
+                                                {
+                                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" Style="margin-top:4px;" />
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                    </MudCard>
+
+                    <!-- Payment Settings -->
+                    <MudCard Elevation="1" Class="mb-4">
+                        <MudCardHeader>
+                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.CreditCard" Color="Color.Primary" /></CardHeaderAvatar>
+                            <CardHeaderContent><MudText Typo="Typo.h6">Payment Settings</MudText></CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudStack Spacing="3">
+                                <MudSwitch @bind-Value="_requirePayment" Label="Require payment at booking" Color="Color.Primary" />
+                                <MudDivider />
+                                <MudText Typo="Typo.subtitle2" Class="fw-semibold">In-Person Payment Options</MudText>
+                                <MudStack Row="true" Spacing="4">
+                                    <MudSwitch @bind-Value="_allowPayAtShop" Label="Pay at shop / reception" Color="Color.Primary" />
+                                    <MudSwitch @bind-Value="_allowPayInCash" Label="Pay in cash" Color="Color.Primary" />
+                                </MudStack>
+                                <MudDivider />
+                                <MudText Typo="Typo.subtitle2" Class="fw-semibold">Online Payment Providers</MudText>
+                                <MudSwitch @bind-Value="_enableStripe" Label="Enable Stripe" Color="Color.Primary" />
+                                @if (_enableStripe)
+                                {
+                                    <MudGrid>
+                                        <MudItem xs="12" sm="6">
+                                            <MudTextField @bind-Value="_stripeKey" Label="Stripe Publishable Key"
+                                                          Variant="Variant.Outlined" Placeholder="pk_live_..." />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="6">
+                                            <MudTextField @bind-Value="_stripeSecret" Label="Stripe Secret Key"
+                                                          Variant="Variant.Outlined" InputType="InputType.Password"
+                                                          Placeholder="sk_live_... (leave blank to keep)" />
+                                        </MudItem>
+                                    </MudGrid>
+                                }
+                                <MudSwitch @bind-Value="_enablePaypal" Label="Enable PayPal" Color="Color.Primary" />
+                                @if (_enablePaypal)
+                                {
+                                    <MudGrid>
+                                        <MudItem xs="12" sm="6">
+                                            <MudTextField @bind-Value="_paypalClientId" Label="PayPal Client ID"
+                                                          Variant="Variant.Outlined" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="6">
+                                            <MudTextField @bind-Value="_paypalSecret" Label="PayPal Secret"
+                                                          Variant="Variant.Outlined" InputType="InputType.Password"
+                                                          Placeholder="Leave blank to keep" />
+                                        </MudItem>
+                                    </MudGrid>
+                                }
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+
+                    <!-- File Upload Settings -->
+                    <MudCard Elevation="1" Class="mb-4">
+                        <MudCardHeader>
+                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.AttachFile" Color="Color.Primary" /></CardHeaderAvatar>
+                            <CardHeaderContent><MudText Typo="Typo.h6">File Upload Settings</MudText></CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudStack Spacing="2">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Set which file types customers are allowed to upload (e.g. CV for interview bookings, supporting documents). Leave blank to use defaults.
+                                </MudText>
+                                <MudTextField @bind-Value="_allowedFileExtensions" Label="Allowed File Extensions"
+                                              Variant="Variant.Outlined" Placeholder=".pdf,.doc,.docx,.jpg,.png"
+                                              HelperText="Comma-separated, e.g. .pdf,.doc,.docx" />
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" /> For Recruitment business types, CV upload is automatically shown on the booking form.
+                                </MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+
+                    <!-- Accommodation Settings (B&B / Hotel only) -->
+                    @if (_businessType == BusinessType.BedAndBreakfast || _businessType == BusinessType.Hotel)
+                    {
+                        <MudCard Elevation="1" Class="mb-4">
+                            <MudCardHeader>
+                                <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.Hotel" Color="Color.Primary" /></CardHeaderAvatar>
+                                <CardHeaderContent><MudText Typo="Typo.h6">Accommodation Settings</MudText></CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudGrid Spacing="2">
+                                    <MudItem xs="12" sm="6">
+                                        <MudNumericField @bind-Value="_totalRooms" Label="Total Rooms / Units"
+                                                         Variant="Variant.Outlined" Min="1" Max="9999" />
+                                    </MudItem>
+                                    <MudItem xs="12">
+                                        <MudText Typo="Typo.subtitle2" Class="fw-semibold mb-2">Amenities</MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                                            Select amenities that are available at your property. These appear on your booking page.
+                                        </MudText>
+                                        <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+                                            @foreach (var amenity in _allAmenities)
+                                            {
+                                                var a = amenity;
+                                                var selected = _selectedAmenities.Contains(a);
+                                                <MudChip T="string" Color="@(selected ? Color.Primary : Color.Default)"
+                                                         Variant="@(selected ? Variant.Filled : Variant.Outlined)"
+                                                         OnClick="@(() => ToggleAmenity(a))"
+                                                         Icon="@(selected ? Icons.Material.Filled.Check : null)"
+                                                         Style="cursor:pointer;">
+                                                    @a
+                                                </MudChip>
+                                            }
+                                        </div>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudCardContent>
+                        </MudCard>
+                    }
+
+                    <MudStack Row="true" Justify="Justify.FlexEnd">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save"
+                                   OnClick="Save" Disabled="_saving">
+                            @(_saving ? "Saving..." : "Save Settings")
+                        </MudButton>
+                    </MudStack>
+                </MudItem>
+
+                <!-- Sidebar -->
+                <MudItem xs="12" lg="4">
+                    <MudCard Elevation="1">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6" Class="mb-3">
+                                <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" Class="me-2" Color="Color.Primary" />
+                                Your Booking Page
+                            </MudText>
+                            <MudTextField Value="@BookingUrl" Label="Booking Page URL" ReadOnly="true"
+                                          Variant="Variant.Outlined"
+                                          Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.ContentCopy"
+                                          OnAdornmentClick="CopyUrl" />
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    }
+</MudStack>
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+    [Parameter] public string HostUrl { get; set; } = "";
+
+    private TenantResponse? _tenant;
+    private MudForm? _form;
+    private bool _saving;
+
+    private string _name = "";
+    private BusinessType _businessType = BusinessType.Other;
+    private string _email = "";
+    private string _phone = "";
+    private string _address = "";
+    private string _city = "";
+    private string _postCode = "";
+    private string _country = "";
+    private string _website = "";
+    private string _currency = "GBP";
+    private decimal _vatRate = 0;
+    private string _primaryColor = "#6c5ce7";
+    private string _logoUrl = "";
+    private bool _requirePayment;
+    private bool _allowPayAtShop;
+    private bool _allowPayInCash;
+    private bool _enableStripe;
+    private bool _enablePaypal;
+    private string _stripeKey = "";
+    private string _stripeSecret = "";
+    private string _paypalClientId = "";
+    private string _paypalSecret = "";
+    private TenantTheme _selectedTheme = TenantTheme.Indigo;
+    private string _allowedFileExtensions = "";
+    private int? _totalRooms;
+    private List<string> _selectedAmenities = new();
+
+    private static readonly string[] _allAmenities =
+    {
+        "En-suite Bathroom", "Shared Bathroom", "Shower", "Bath",
+        "Single Bed", "Double Bed", "King Bed", "Bunk Beds",
+        "Wi-Fi", "TV", "Air Conditioning", "Heating",
+        "Parking", "Gym Access", "Swimming Pool", "Spa",
+        "Restaurant", "Bar", "Room Service", "Breakfast Included",
+        "Sea View", "Garden View", "Pet Friendly", "Accessible Room"
+    };
+
+    private void ToggleAmenity(string amenity)
+    {
+        if (_selectedAmenities.Contains(amenity)) _selectedAmenities.Remove(amenity);
+        else _selectedAmenities.Add(amenity);
+    }
+
+    private string BookingUrl => $"{HostUrl}/{TenantSlug}/book";
+
+    private static readonly (string code, string flag, string label)[] _currencies =
+    {
+        ("GBP", "🇬🇧", "GBP — British Pound (£)"),
+        ("USD", "🇺🇸", "USD — US Dollar ($)"),
+        ("EUR", "🇪🇺", "EUR — Euro (€)"),
+        ("AUD", "🇦🇺", "AUD — Australian Dollar (A$)"),
+        ("CAD", "🇨🇦", "CAD — Canadian Dollar (C$)"),
+        ("NZD", "🇳🇿", "NZD — New Zealand Dollar (NZ$)"),
+        ("SGD", "🇸🇬", "SGD — Singapore Dollar (S$)"),
+        ("CHF", "🇨🇭", "CHF — Swiss Franc (Fr)"),
+        ("JPY", "🇯🇵", "JPY — Japanese Yen (¥)"),
+        ("ZAR", "🇿🇦", "ZAR — South African Rand (R)"),
+    };
+
+    private record ThemeDef(TenantTheme Value, string Label, string Primary, string Secondary);
+
+    private static readonly ThemeDef[] _themes =
+    {
+        new(TenantTheme.Indigo,   "Indigo",   "#6c5ce7", "#a29bfe"),
+        new(TenantTheme.Ocean,    "Ocean",    "#0ea5e9", "#38bdf8"),
+        new(TenantTheme.Forest,   "Forest",   "#16a34a", "#4ade80"),
+        new(TenantTheme.Sunset,   "Sunset",   "#f97316", "#fb923c"),
+        new(TenantTheme.Rose,     "Rose",     "#e11d48", "#fb7185"),
+        new(TenantTheme.Midnight, "Midnight", "#334155", "#64748b"),
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        Api.SetToken(Auth.AccessToken);
+        _tenant = await Api.GetTenantAsync(TenantSlug);
+        if (_tenant != null)
+        {
+            _name = _tenant.Name;
+            _businessType = _tenant.BusinessType;
+            _email = _tenant.ContactEmail ?? "";
+            _phone = _tenant.ContactPhone ?? "";
+            _address = _tenant.Address ?? "";
+            _city = _tenant.City ?? "";
+            _postCode = _tenant.PostCode ?? "";
+            _country = _tenant.Country ?? "";
+            _website = _tenant.Website ?? "";
+            _currency = _tenant.Currency ?? "GBP";
+            _vatRate = _tenant.VatRate;
+            _primaryColor = _tenant.PrimaryColor ?? "#6c5ce7";
+            _logoUrl = _tenant.LogoUrl ?? "";
+            _requirePayment = _tenant.RequirePaymentUpfront;
+            _allowPayAtShop = _tenant.AllowPayAtShop;
+            _allowPayInCash = _tenant.AllowPayInCash;
+            _enableStripe = _tenant.EnableStripe;
+            _enablePaypal = _tenant.EnablePayPal;
+            _stripeKey = _tenant.StripePublishableKey ?? "";
+            _paypalClientId = _tenant.PayPalClientId ?? "";
+            _selectedTheme = _tenant.Theme;
+            _allowedFileExtensions = _tenant.AllowedFileExtensions ?? "";
+            _totalRooms = _tenant.TotalRooms;
+            if (!string.IsNullOrEmpty(_tenant.AmenitiesJson))
+            {
+                try { _selectedAmenities = System.Text.Json.JsonSerializer.Deserialize<List<string>>(_tenant.AmenitiesJson) ?? new(); }
+                catch { _selectedAmenities = new(); }
+            }
+        }
+    }
+
+    private async Task Save()
+    {
+        _saving = true;
+        Api.SetToken(Auth.AccessToken);
+        var req = new UpdateTenantRequest
+        {
+            Name = _name,
+            BusinessType = _businessType,
+            ContactEmail = _email,
+            ContactPhone = _phone,
+            Address = _address,
+            City = _city,
+            PostCode = _postCode,
+            Country = _country,
+            Website = _website,
+            Currency = _currency,
+            VatRate = _vatRate,
+            PrimaryColor = _primaryColor,
+            LogoUrl = _logoUrl,
+            RequirePaymentUpfront = _requirePayment,
+            AllowPayAtShop = _allowPayAtShop,
+            AllowPayInCash = _allowPayInCash,
+            EnableStripe = _enableStripe,
+            EnablePayPal = _enablePaypal,
+            StripePublishableKey = _stripeKey,
+            StripeSecretKey = string.IsNullOrEmpty(_stripeSecret) ? null : _stripeSecret,
+            PayPalClientId = _paypalClientId,
+            PayPalClientSecret = string.IsNullOrEmpty(_paypalSecret) ? null : _paypalSecret,
+            Theme = _selectedTheme,
+            AllowedFileExtensions = string.IsNullOrWhiteSpace(_allowedFileExtensions) ? null : _allowedFileExtensions,
+            TotalRooms = _totalRooms,
+            AmenitiesJson = _selectedAmenities.Any() ? System.Text.Json.JsonSerializer.Serialize(_selectedAmenities) : null,
+        };
+        var result = await Api.UpdateTenantAsync(TenantSlug, req);
+        _saving = false;
+        if (result != null)
+            Snackbar.Add("Settings saved!", Severity.Success);
+        else
+            Snackbar.Add("Failed to save settings.", Severity.Error);
+    }
+
+    private void CopyUrl()
+    {
+        // JS interop for clipboard is handled at host level
+        Snackbar.Add("URL copied!", Severity.Info);
+    }
+}

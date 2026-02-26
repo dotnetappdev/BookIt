@@ -13,6 +13,8 @@ public enum BusinessType
     Physiotherapy = 9,
     PersonalTrainer = 10,
     Recruitment = 11,
+    BedAndBreakfast = 12,
+    Hotel = 13,
     Other = 99
 }
 
@@ -42,6 +44,13 @@ public enum PaymentProvider
     PayPal = 2,
     ApplePay = 3,
     Manual = 4
+}
+
+public enum PaymentMethod
+{
+    Online = 1,
+    PayAtShop = 2,
+    Cash = 3
 }
 
 public enum MeetingType
@@ -93,7 +102,13 @@ public enum BookingFormFieldType
     Checkbox = 6,
     Date = 7,
     Number = 8,
-    Radio = 9
+    Radio = 9,
+    FileUpload = 10,
+    Rating = 11,
+    Signature = 12,
+    Heading = 13,
+    Paragraph = 14,
+    ServicesList = 15
 }
 
 public enum ClassType
@@ -122,4 +137,31 @@ public enum SessionStatus
     Completed = 3,
     Cancelled = 4,
     Full = 5
+}
+
+public enum SubscriptionPlan
+{
+    Free = 0,
+    Starter = 1,
+    Pro = 2,
+    Enterprise = 3
+}
+
+public enum SubscriptionStatus
+{
+    Active = 1,
+    Trialing = 2,
+    PastDue = 3,
+    Cancelled = 4,
+    Expired = 5
+}
+
+public enum TenantTheme
+{
+    Indigo = 0,   // default purple/indigo
+    Ocean = 1,    // teal/cyan
+    Forest = 2,   // green
+    Sunset = 3,   // orange/amber
+    Rose = 4,     // pink/rose
+    Midnight = 5  // deep slate/navy
 }

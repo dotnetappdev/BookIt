@@ -1,0 +1,184 @@
+@using BookIt.Core.Enums
+@{
+    ViewData["Title"] = "Subscription";
+    Layout = "_AdminLayout";
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+    var currentPlan = (SubscriptionPlan)(ViewBag.CurrentPlan ?? SubscriptionPlan.Free);
+    var status = (SubscriptionStatus)(ViewBag.SubscriptionStatus ?? SubscriptionStatus.Trialing);
+    var trialEndsAt = ViewBag.TrialEndsAt as DateTime?;
+    var periodEnd = ViewBag.CurrentPeriodEnd as DateTime?;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Subscription</h1>
+        <p class="page-subtitle">Manage your plan and billing</p>
+    </div>
+</div>
+
+<!-- Current Plan Banner -->
+<div class="card mb-4" style="border-left:4px solid var(--primary);">
+    <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div style="width:48px;height:48px;border-radius:12px;background:var(--primary-subtle);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
+                <i class="bi bi-credit-card-2-front"></i>
+            </div>
+            <div>
+                <div class="fw-bold" style="font-size:1.1rem;">@currentPlan Plan</div>
+                <div class="text-muted small">
+                    @if (status == SubscriptionStatus.Trialing && trialEndsAt.HasValue)
+                    {
+                        <span class="badge bg-warning text-dark me-2">Trial</span>
+                        <span>Free trial ends @trialEndsAt.Value.ToString("d MMM yyyy")</span>
+                    }
+                    else if (status == SubscriptionStatus.Active && periodEnd.HasValue)
+                    {
+                        <span class="badge bg-success me-2">Active</span>
+                        <span>Renews @periodEnd.Value.ToString("d MMM yyyy")</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary me-2">@status</span>
+                    }
+                </div>
+            </div>
+        </div>
+        @if (currentPlan == SubscriptionPlan.Free || status == SubscriptionStatus.Trialing)
+        {
+            <a asp-controller="Home" asp-action="Pricing" class="btn btn-brand">
+                <i class="bi bi-arrow-up-circle me-2"></i>Upgrade Plan
+            </a>
+        }
+        else
+        {
+            <a href="#plans" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left-right me-2"></i>Change Plan
+            </a>
+        }
+    </div>
+</div>
+
+<!-- Feature Usage -->
+<div class="row g-3 mb-4">
+    @{
+        var features = new[] {
+            new { Label = "Online Payments", Icon = "bi-credit-card", Available = BookIt.Core.FeatureFlags.CanUseOnlinePayments(currentPlan) },
+            new { Label = "Custom Forms", Icon = "bi-ui-checks", Available = BookIt.Core.FeatureFlags.CanUseCustomForms(currentPlan) },
+            new { Label = "AI Assistant", Icon = "bi-robot", Available = BookIt.Core.FeatureFlags.CanUseAiAssistant(currentPlan) },
+            new { Label = "Interview Scheduling", Icon = "bi-people", Available = BookIt.Core.FeatureFlags.CanUseInterviews(currentPlan) },
+            new { Label = "API Access", Icon = "bi-code-slash", Available = BookIt.Core.FeatureFlags.CanUseApiAccess(currentPlan) },
+            new { Label = "White-label Branding", Icon = "bi-brush", Available = BookIt.Core.FeatureFlags.CanRemoveBranding(currentPlan) },
+        };
+    }
+    @foreach (var f in features)
+    {
+        <div class="col-sm-6 col-lg-4">
+            <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background:var(--surface);border:1px solid var(--border);">
+                <div style="width:38px;height:38px;border-radius:9px;background:@(f.Available ? "var(--primary-subtle)" : "var(--surface-3)");color:@(f.Available ? "var(--primary)" : "var(--text-muted)");display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">
+                    <i class="bi @f.Icon"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-medium" style="font-size:.875rem;">@f.Label</div>
+                </div>
+                <div>
+                    @if (f.Available)
+                    {
+                        <span class="badge bg-success bg-opacity-10 text-success" style="font-size:.75rem;"><i class="bi bi-check2"></i> Enabled</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary bg-opacity-10 text-muted" style="font-size:.75rem;"><i class="bi bi-lock"></i> Upgrade</span>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Plan Selection -->
+<div id="plans">
+    <h5 class="fw-bold mb-3" style="letter-spacing:-.02em;">Available Plans</h5>
+    <div class="row g-4">
+        @{
+            var plans = new[] {
+                new { Plan = SubscriptionPlan.Free, Name = "Free", Price = "£0", Desc = "Solo businesses", Icon = "bi-rocket-takeoff", Color = "#475569", Bg = "#f1f5f9" },
+                new { Plan = SubscriptionPlan.Starter, Name = "Starter", Price = "£19", Desc = "Growing teams", Icon = "bi-lightning-fill", Color = "#6c5ce7", Bg = "#f0eeff" },
+                new { Plan = SubscriptionPlan.Pro, Name = "Pro", Price = "£49", Desc = "Scale your business", Icon = "bi-stars", Color = "#6c5ce7", Bg = "#f0eeff" },
+                new { Plan = SubscriptionPlan.Enterprise, Name = "Enterprise", Price = "£129", Desc = "Unlimited scale", Icon = "bi-building-check", Color = "#0f172a", Bg = "#f8fafc" },
+            };
+        }
+        @foreach (var p in plans)
+        {
+            var isCurrentPlan = p.Plan == currentPlan;
+            <div class="col-md-6 col-xl-3">
+                <div class="card h-100 @(isCurrentPlan ? "border-brand" : "") position-relative">
+                    @if (isCurrentPlan)
+                    {
+                        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:.7rem;font-weight:700;padding:.2rem .75rem;border-radius:99px;white-space:nowrap;">Current Plan</div>
+                    }
+                    <div class="card-body p-4">
+                        <div style="width:42px;height:42px;border-radius:10px;background:@p.Bg;color:@p.Color;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:.875rem;">
+                            <i class="bi @p.Icon"></i>
+                        </div>
+                        <div class="fw-bold mb-1" style="font-size:1rem;">@p.Name</div>
+                        <div class="text-muted small mb-3">@p.Desc</div>
+                        <div style="font-size:2rem;font-weight:800;color:var(--text);letter-spacing:-.05em;line-height:1;">
+                            @p.Price<span style="font-size:.875rem;font-weight:500;color:var(--text-muted);">/mo</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent p-3 pt-0">
+                        @if (isCurrentPlan)
+                        {
+                            <button class="btn btn-outline-secondary w-100 disabled" disabled>Current Plan</button>
+                        }
+                        else if (p.Plan > currentPlan)
+                        {
+                            <a asp-controller="Home" asp-action="Pricing" class="btn btn-brand w-100">
+                                <i class="bi bi-arrow-up-circle me-1"></i>Upgrade
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Home" asp-action="Pricing" class="btn btn-outline-secondary w-100">
+                                Downgrade
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Payment Providers -->
+<div class="card mt-4">
+    <div class="card-header px-4 py-3 d-flex align-items-center gap-2">
+        <i class="bi bi-credit-card text-brand"></i>
+        <span class="fw-semibold">Payment Providers</span>
+    </div>
+    <div class="card-body p-4">
+        <p class="text-muted small mb-4">Configure payment providers for your subscription billing. Stripe and PayPal are supported.</p>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="border:1px solid var(--border);">
+                    <i class="bi bi-stripe fs-2 text-brand"></i>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold" style="font-size:.9rem;">Stripe</div>
+                        <div class="text-muted" style="font-size:.8rem;">Cards, Apple Pay, Google Pay</div>
+                    </div>
+                    <a href="/@tenantSlug/admin/Settings#stripeFields" class="btn btn-sm btn-outline-secondary">Configure</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="border:1px solid var(--border);">
+                    <i class="bi bi-paypal fs-2" style="color:#003087;"></i>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold" style="font-size:.9rem;">PayPal</div>
+                        <div class="text-muted" style="font-size:.8rem;">PayPal wallet &amp; cards</div>
+                    </div>
+                    <a href="/@tenantSlug/admin/Settings#paypalFields" class="btn btn-sm btn-outline-secondary">Configure</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

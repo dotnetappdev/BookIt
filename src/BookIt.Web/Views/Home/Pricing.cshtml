@@ -1,0 +1,326 @@
+@{
+    ViewData["Title"] = "Pricing — BookIt";
+}
+
+<!-- Pricing Hero -->
+<section class="py-5" style="background:linear-gradient(135deg,#0f0f23 0%,#16213e 40%,#2d1b69 100%);position:relative;overflow:hidden;">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(108,92,231,.25) 0%,transparent 70%);pointer-events:none;"></div>
+    <div class="container py-5 text-center" style="position:relative;z-index:1;">
+        <div class="hero-badge mb-4" style="display:inline-flex;">
+            <span class="hero-badge-dot"></span>
+            <span>Simple, transparent pricing</span>
+        </div>
+        <h1 style="font-size:clamp(2rem,5vw,3.25rem);font-weight:800;letter-spacing:-.05em;color:white;margin-bottom:1rem;">
+            Plans for every business
+        </h1>
+        <p style="color:rgba(255,255,255,.65);font-size:1.1rem;max-width:480px;margin:0 auto 2rem;">
+            Start free, upgrade when you're ready. All plans include a 14-day free trial. No credit card required.
+        </p>
+        <!-- Billing toggle -->
+        <div class="d-flex align-items-center justify-content-center gap-3">
+            <span style="color:rgba(255,255,255,.7);font-size:.9rem;font-weight:500;">Monthly</span>
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="billingToggle" onchange="toggleBilling(this)" style="width:2.5em;height:1.4em;cursor:pointer;" />
+            </div>
+            <span style="color:rgba(255,255,255,.7);font-size:.9rem;font-weight:500;">
+                Annual <span style="background:rgba(16,185,129,.25);color:#10b981;font-size:.7rem;font-weight:700;padding:.2rem .5rem;border-radius:99px;margin-left:.25rem;">Save 20%</span>
+            </span>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Cards -->
+<section class="py-5" style="background:var(--surface-2);">
+    <div class="container">
+        <div class="row g-4 justify-content-center align-items-stretch">
+
+            <!-- Free Plan -->
+            <div class="col-md-6 col-lg-3">
+                <div class="pricing-card h-100">
+                    <div class="pricing-card-header">
+                        <div class="pricing-plan-icon" style="background:#f1f5f9;color:#475569;">
+                            <i class="bi bi-rocket-takeoff"></i>
+                        </div>
+                        <h3 class="pricing-plan-name">Free</h3>
+                        <p class="pricing-plan-desc">Perfect for solo businesses just getting started.</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="pricing-amount monthly-price">£0</span>
+                        <span class="pricing-amount annual-price d-none">£0</span>
+                        <span class="pricing-period">/month</span>
+                    </div>
+                    <a asp-controller="Home" asp-action="Setup" class="btn btn-outline-secondary w-100 mb-4">Get Started Free</a>
+                    <ul class="pricing-features">
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Up to 3 services</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> 1 staff member</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Online booking page</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Basic calendar</li>
+                        <li><i class="bi bi-x-circle text-muted"></i> <span class="text-muted">Online payments</span></li>
+                        <li><i class="bi bi-x-circle text-muted"></i> <span class="text-muted">Custom booking forms</span></li>
+                        <li><i class="bi bi-x-circle text-muted"></i> <span class="text-muted">AI assistant</span></li>
+                        <li><i class="bi bi-x-circle text-muted"></i> <span class="text-muted">API access</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Starter Plan -->
+            <div class="col-md-6 col-lg-3">
+                <div class="pricing-card h-100">
+                    <div class="pricing-card-header">
+                        <div class="pricing-plan-icon" style="background:#f0eeff;color:#6c5ce7;">
+                            <i class="bi bi-lightning-fill"></i>
+                        </div>
+                        <h3 class="pricing-plan-name">Starter</h3>
+                        <p class="pricing-plan-desc">For growing businesses that need more power.</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="pricing-amount monthly-price">£19</span>
+                        <span class="pricing-amount annual-price d-none">£15</span>
+                        <span class="pricing-period">/month</span>
+                    </div>
+                    <a asp-controller="Home" asp-action="Setup" class="btn btn-outline-brand w-100 mb-4">Start Free Trial</a>
+                    <ul class="pricing-features">
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Up to 10 services</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Up to 5 staff</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Online booking page</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Full calendar</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Stripe &amp; PayPal payments</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Custom booking forms</li>
+                        <li><i class="bi bi-x-circle text-muted"></i> <span class="text-muted">AI assistant</span></li>
+                        <li><i class="bi bi-x-circle text-muted"></i> <span class="text-muted">API access</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Pro Plan (highlighted) -->
+            <div class="col-md-6 col-lg-3">
+                <div class="pricing-card pricing-card-featured h-100">
+                    <div class="pricing-badge">Most Popular</div>
+                    <div class="pricing-card-header">
+                        <div class="pricing-plan-icon" style="background:rgba(108,92,231,.15);color:#fff;">
+                            <i class="bi bi-stars"></i>
+                        </div>
+                        <h3 class="pricing-plan-name" style="color:#fff;">Pro</h3>
+                        <p class="pricing-plan-desc" style="color:rgba(255,255,255,.7);">Everything you need to scale your business.</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="pricing-amount monthly-price">£49</span>
+                        <span class="pricing-amount annual-price d-none">£39</span>
+                        <span class="pricing-period" style="color:rgba(255,255,255,.6);">/month</span>
+                    </div>
+                    <a asp-controller="Home" asp-action="Setup" class="btn btn-light w-100 mb-4 fw-semibold">Start Free Trial</a>
+                    <ul class="pricing-features">
+                        <li><i class="bi bi-check-circle-fill" style="color:#a29bfe;"></i> <span style="color:rgba(255,255,255,.9);">Up to 50 services</span></li>
+                        <li><i class="bi bi-check-circle-fill" style="color:#a29bfe;"></i> <span style="color:rgba(255,255,255,.9);">Up to 25 staff</span></li>
+                        <li><i class="bi bi-check-circle-fill" style="color:#a29bfe;"></i> <span style="color:rgba(255,255,255,.9);">Online booking page</span></li>
+                        <li><i class="bi bi-check-circle-fill" style="color:#a29bfe;"></i> <span style="color:rgba(255,255,255,.9);">Full calendar</span></li>
+                        <li><i class="bi bi-check-circle-fill" style="color:#a29bfe;"></i> <span style="color:rgba(255,255,255,.9);">Stripe, PayPal &amp; Apple Pay</span></li>
+                        <li><i class="bi bi-check-circle-fill" style="color:#a29bfe;"></i> <span style="color:rgba(255,255,255,.9);">Custom booking forms</span></li>
+                        <li><i class="bi bi-check-circle-fill" style="color:#a29bfe;"></i> <span style="color:rgba(255,255,255,.9);">AI chat assistant</span></li>
+                        <li><i class="bi bi-check-circle-fill" style="color:#a29bfe;"></i> <span style="color:rgba(255,255,255,.9);">Recruitment &amp; interviews</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Enterprise Plan -->
+            <div class="col-md-6 col-lg-3">
+                <div class="pricing-card h-100">
+                    <div class="pricing-card-header">
+                        <div class="pricing-plan-icon" style="background:#0f172a;color:#a29bfe;">
+                            <i class="bi bi-building-check"></i>
+                        </div>
+                        <h3 class="pricing-plan-name">Enterprise</h3>
+                        <p class="pricing-plan-desc">Unlimited scale for large multi-location businesses.</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="pricing-amount monthly-price">£129</span>
+                        <span class="pricing-amount annual-price d-none">£99</span>
+                        <span class="pricing-period">/month</span>
+                    </div>
+                    <a href="mailto:sales@bookit.app" class="btn btn-dark w-100 mb-4">Contact Sales</a>
+                    <ul class="pricing-features">
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Unlimited services</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Unlimited staff</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> All Pro features</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> White-label branding</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> API access</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Priority support</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> SLA guarantee</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Custom integrations</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="py-5" style="background:var(--surface);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-eyebrow">FAQ</div>
+            <h2 class="section-title">Common questions</h2>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="pricingFaq">
+                    @{
+                        var faqs = new[] {
+                            new { Q = "Can I change plans later?", A = "Yes, you can upgrade or downgrade your plan at any time. Upgrades take effect immediately, downgrades at the end of your billing period." },
+                            new { Q = "Is there a free trial?", A = "All paid plans include a 14-day free trial. No credit card is required to start your trial." },
+                            new { Q = "What payment methods do you accept?", A = "We accept all major credit/debit cards via Stripe, as well as PayPal. Enterprise customers can pay by invoice." },
+                            new { Q = "Can I cancel at any time?", A = "Yes, you can cancel your subscription at any time. You'll retain access to your paid features until the end of your billing period." },
+                            new { Q = "Do you offer discounts for non-profits?", A = "Yes, we offer 50% off for registered non-profit organisations. Contact us with your charity number to apply." }
+                        };
+                    }
+                    @foreach (var (faq, i) in faqs.Select((f, idx) => (f, idx)))
+                    {
+                        <div class="accordion-item border-0 mb-2" style="border-radius:var(--radius) !important;overflow:hidden;border:1px solid var(--border) !important;">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button @(i > 0 ? "collapsed" : "") fw-semibold" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#faq@(i)"
+                                        style="background:var(--surface);color:var(--text);font-size:.9375rem;">
+                                    @faq.Q
+                                </button>
+                            </h2>
+                            <div id="faq@(i)" class="accordion-collapse collapse @(i == 0 ? "show" : "")" data-bs-parent="#pricingFaq">
+                                <div class="accordion-body" style="color:var(--text-secondary);font-size:.9rem;line-height:1.7;">
+                                    @faq.A
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-5" style="background:linear-gradient(135deg,#0f0f23 0%,#1a1a3e 50%,#2d1b69 100%);position:relative;overflow:hidden;">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(108,92,231,.2) 0%,transparent 70%);pointer-events:none;"></div>
+    <div class="container py-4 text-center" style="position:relative;z-index:1;">
+        <h2 style="font-size:clamp(1.6rem,3.5vw,2.25rem);font-weight:800;color:white;letter-spacing:-.04em;margin-bottom:.75rem;">
+            Ready to start?
+        </h2>
+        <p style="color:rgba(255,255,255,.6);margin-bottom:2rem;font-size:1rem;max-width:400px;margin-left:auto;margin-right:auto;">
+            Join hundreds of businesses already using BookIt. Free for 14 days.
+        </p>
+        <a asp-controller="Home" asp-action="Setup" class="btn btn-brand btn-lg px-5 py-3" style="font-size:1rem;border-radius:10px;">
+            <i class="bi bi-rocket-takeoff me-2"></i>Get Started Free
+        </a>
+    </div>
+</section>
+
+@section Styles {
+<style>
+.pricing-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    position: relative;
+    transition: var(--transition), box-shadow .25s;
+}
+.pricing-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+}
+.pricing-card-featured {
+    background: linear-gradient(135deg, #16213e 0%, #2d1b69 100%);
+    border-color: rgba(108,92,231,.5);
+    box-shadow: 0 8px 32px rgba(108,92,231,.35);
+}
+.pricing-card-featured:hover {
+    box-shadow: 0 16px 48px rgba(108,92,231,.5);
+}
+.pricing-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: .3rem .9rem;
+    border-radius: 99px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.pricing-plan-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: .875rem;
+}
+.pricing-plan-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -.02em;
+    margin-bottom: .375rem;
+}
+.pricing-plan-desc {
+    font-size: .85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+.pricing-price {
+    margin-bottom: 1.25rem;
+}
+.pricing-amount {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -.05em;
+    line-height: 1;
+}
+.pricing-period {
+    font-size: .9rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-left: .2rem;
+}
+.pricing-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .625rem;
+}
+.pricing-features li {
+    display: flex;
+    align-items: center;
+    gap: .625rem;
+    font-size: .875rem;
+    color: var(--text-secondary);
+}
+.pricing-features li i { font-size: .875rem; flex-shrink: 0; }
+[data-theme="dark"] .pricing-card { background: var(--surface); border-color: var(--border); }
+[data-theme="dark"] .pricing-card-featured { background: linear-gradient(135deg, #1a2035 0%, #2d1b69 100%); }
+[data-theme="dark"] .pricing-amount { color: var(--text); }
+[data-theme="dark"] .accordion-button { background: var(--surface) !important; color: var(--text) !important; }
+[data-theme="dark"] .accordion-item { background: var(--surface) !important; border-color: var(--border) !important; }
+[data-theme="dark"] .accordion-body { background: var(--surface); }
+</style>
+}
+
+@section Scripts {
+<script>
+function toggleBilling(el) {
+    var isAnnual = el.checked;
+    document.querySelectorAll('.monthly-price').forEach(function(p) {
+        p.classList.toggle('d-none', isAnnual);
+    });
+    document.querySelectorAll('.annual-price').forEach(function(p) {
+        p.classList.toggle('d-none', !isAnnual);
+    });
+}
+</script>
+}
