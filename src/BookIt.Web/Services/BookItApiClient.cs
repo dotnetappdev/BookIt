@@ -258,4 +258,59 @@ public class BookItApiClient
             new StringContent(json, Encoding.UTF8, "application/json"));
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<List<StaffResponse>> GetStaffAsync(string tenantSlug)
+    {
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/staff");
+        if (!response.IsSuccessStatusCode) return new();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<StaffResponse>>(content, _jsonOptions) ?? new();
+    }
+
+    public async Task<List<StaffResponse>> GetAllStaffAsync(string tenantSlug)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/staff/all");
+        if (!response.IsSuccessStatusCode) return new();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<StaffResponse>>(content, _jsonOptions) ?? new();
+    }
+
+    public async Task<StaffResponse?> CreateStaffAsync(string tenantSlug, CreateStaffRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/staff",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<StaffResponse>(content, _jsonOptions);
+    }
+
+    public async Task<StaffResponse?> UpdateStaffAsync(string tenantSlug, Guid staffId, UpdateStaffRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PutAsync($"/api/tenants/{tenantSlug}/staff/{staffId}",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<StaffResponse>(content, _jsonOptions);
+    }
+
+    public async Task<bool> DeleteStaffAsync(string tenantSlug, Guid staffId)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.DeleteAsync($"/api/tenants/{tenantSlug}/staff/{staffId}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> AssignStaffServicesAsync(string tenantSlug, Guid staffId, List<Guid> serviceIds)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(new AssignStaffServicesRequest { ServiceIds = serviceIds });
+        var response = await _httpClient.PutAsync($"/api/tenants/{tenantSlug}/staff/{staffId}/services",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
 }
