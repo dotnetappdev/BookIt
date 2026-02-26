@@ -12,7 +12,7 @@
 
 ![BookIt Home Page](https://github.com/user-attachments/assets/5ecaa36f-551a-49a8-9c00-0218bdbc006e)
 
-**Pricing page** — 4-tier plans (Free / Starter / Pro / Enterprise), monthly/annual toggle
+**Pricing page** — 4-tier plans (Free / Starter / Pro / Enterprise), monthly/annual toggle with Apple Pay badge on Starter+
 
 ![BookIt Pricing Page](https://github.com/user-attachments/assets/b5c3f532-d7eb-4bf6-8010-9c5dfe501047)
 
@@ -25,6 +25,61 @@
 **Admin Dashboard** — dark sidebar, stat cards, today's schedule, quick actions
 
 ![BookIt Admin Dashboard](https://github.com/user-attachments/assets/88cc84d7-b714-4af7-add2-4d553073a2db)
+
+### Admin Settings — Notifications (new)
+
+The Settings page (`/{slug}/admin/settings`) now includes three new sections:
+
+**SMS Notifications** — enable/disable, choose ClickSend or Twilio, enter credentials (API keys masked):
+
+```
+┌───────────────────────────────────────────────────┐
+│ 💬  SMS Notifications                             │
+├───────────────────────────────────────────────────┤
+│  ● Enable SMS notifications                       │
+│  Provider:  [ClickSend ▼]                         │
+│  Username   [______________________]              │
+│  API Key    [•••••••••••••••••••••] (masked)      │
+│  From       [+447700900000]                       │
+└───────────────────────────────────────────────────┘
+```
+
+**Email Notifications (SendGrid)** — enable/disable, SendGrid API key, from address:
+
+```
+┌───────────────────────────────────────────────────┐
+│ ✉️  Email Notifications (SendGrid)                │
+├───────────────────────────────────────────────────┤
+│  ● Enable booking confirmation & reminder emails  │
+│  SendGrid API Key  [SG.•••••••••••] (masked)      │
+│  From Email        [noreply@yourdomain.com]        │
+│  From Name         [Your Business Name]            │
+└───────────────────────────────────────────────────┘
+```
+
+**Reminder Alerts** — iOS Calendar-style multi-select chip UI with independent email/SMS toggles:
+
+```
+┌───────────────────────────────────────────────────┐
+│ 🔔  Reminder Alerts                               │
+├───────────────────────────────────────────────────┤
+│  Choose when to send reminders before each        │
+│  appointment. Multiple alerts — like iOS Calendar │
+│                                                   │
+│  [✓] Email reminders    [ ] SMS reminders         │
+│                                                   │
+│  [5 min] [10 min] [15 min] [30 min] [1 hour]      │
+│  [2 hours] [3 hours] [6 hours] [12 hours]         │
+│  [🔔 1 day ✓] [2 days] [1 week]                  │
+└───────────────────────────────────────────────────┘
+```
+
+### Super Admin Console (`/super-admin`) — new tab
+
+**RevenueCat Config tab** (visible to `SuperAdmin` only):
+- Set the RevenueCat platform API key and entitlement identifier
+- Configure monthly/annual prices and RevenueCat product IDs per tier (Free → Enterprise)
+- Tenant management: search, copy Tenant ID, delete
 
 ---
 
@@ -133,9 +188,12 @@ Components available:
 
 ### Prerequisites
 - .NET 10 SDK
-- SQL Server / LocalDB
-- Stripe API keys (optional)
+- SQL Server / LocalDB (or SQLite — used automatically in development)
+- Stripe API keys (optional — for online payments)
 - PayPal client credentials (optional)
+- SendGrid API key (optional — for booking confirmation and reminder emails)
+- ClickSend or Twilio credentials (optional — for SMS notifications)
+- RevenueCat API key (optional — for subscription entitlement resolution)
 
 ### Run the API
 ```bash
@@ -269,6 +327,8 @@ _reminderScheduler.CancelReminders(appointmentId);
 ## Database Migrations
 
 See [docs/EF-Migrations.md](docs/EF-Migrations.md) for full migration instructions.
+
+See [docs/Notifications.md](docs/Notifications.md) for SMS, SendGrid email, and Hangfire reminder scheduler setup.
 
 ```bash
 cd src/BookIt.Infrastructure
