@@ -16,6 +16,9 @@ public class CreateAppointmentRequest
     public MeetingType MeetingType { get; set; } = MeetingType.InPerson;
     public string? CustomFormDataJson { get; set; }
     public PaymentProvider? PaymentProvider { get; set; }
+    public PaymentMethod? PaymentMethodChoice { get; set; }  // Online / PayAtShop / Cash
+    public string? CvFileBase64 { get; set; }   // For interview bookings — base64-encoded CV
+    public string? CvFileName { get; set; }
 }
 
 public class AppointmentResponse

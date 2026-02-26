@@ -13,6 +13,8 @@ public enum BusinessType
     Physiotherapy = 9,
     PersonalTrainer = 10,
     Recruitment = 11,
+    BedAndBreakfast = 12,
+    Hotel = 13,
     Other = 99
 }
 
@@ -42,6 +44,13 @@ public enum PaymentProvider
     PayPal = 2,
     ApplePay = 3,
     Manual = 4
+}
+
+public enum PaymentMethod
+{
+    Online = 1,
+    PayAtShop = 2,
+    Cash = 3
 }
 
 public enum MeetingType

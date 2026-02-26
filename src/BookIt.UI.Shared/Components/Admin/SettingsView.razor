@@ -165,6 +165,66 @@
                         </MudCardContent>
                     </MudCard>
 
+                    <!-- File Upload Settings -->
+                    <MudCard Elevation="1" Class="mb-4">
+                        <MudCardHeader>
+                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.AttachFile" Color="Color.Primary" /></CardHeaderAvatar>
+                            <CardHeaderContent><MudText Typo="Typo.h6">File Upload Settings</MudText></CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudStack Spacing="2">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Set which file types customers are allowed to upload (e.g. CV for interview bookings, supporting documents). Leave blank to use defaults.
+                                </MudText>
+                                <MudTextField @bind-Value="_allowedFileExtensions" Label="Allowed File Extensions"
+                                              Variant="Variant.Outlined" Placeholder=".pdf,.doc,.docx,.jpg,.png"
+                                              HelperText="Comma-separated, e.g. .pdf,.doc,.docx" />
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" /> For Recruitment business types, CV upload is automatically shown on the booking form.
+                                </MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+
+                    <!-- Accommodation Settings (B&B / Hotel only) -->
+                    @if (_businessType == BusinessType.BedAndBreakfast || _businessType == BusinessType.Hotel)
+                    {
+                        <MudCard Elevation="1" Class="mb-4">
+                            <MudCardHeader>
+                                <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.Hotel" Color="Color.Primary" /></CardHeaderAvatar>
+                                <CardHeaderContent><MudText Typo="Typo.h6">Accommodation Settings</MudText></CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudGrid Spacing="2">
+                                    <MudItem xs="12" sm="6">
+                                        <MudNumericField @bind-Value="_totalRooms" Label="Total Rooms / Units"
+                                                         Variant="Variant.Outlined" Min="1" Max="9999" />
+                                    </MudItem>
+                                    <MudItem xs="12">
+                                        <MudText Typo="Typo.subtitle2" Class="fw-semibold mb-2">Amenities</MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                                            Select amenities that are available at your property. These appear on your booking page.
+                                        </MudText>
+                                        <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+                                            @foreach (var amenity in _allAmenities)
+                                            {
+                                                var a = amenity;
+                                                var selected = _selectedAmenities.Contains(a);
+                                                <MudChip T="string" Color="@(selected ? Color.Primary : Color.Default)"
+                                                         Variant="@(selected ? Variant.Filled : Variant.Outlined)"
+                                                         OnClick="@(() => ToggleAmenity(a))"
+                                                         Icon="@(selected ? Icons.Material.Filled.Check : null)"
+                                                         Style="cursor:pointer;">
+                                                    @a
+                                                </MudChip>
+                                            }
+                                        </div>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudCardContent>
+                        </MudCard>
+                    }
+
                     <MudStack Row="true" Justify="Justify.FlexEnd">
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save"
                                    OnClick="Save" Disabled="_saving">
@@ -224,6 +284,25 @@
     private string _paypalClientId = "";
     private string _paypalSecret = "";
     private TenantTheme _selectedTheme = TenantTheme.Indigo;
+    private string _allowedFileExtensions = "";
+    private int? _totalRooms;
+    private List<string> _selectedAmenities = new();
+
+    private static readonly string[] _allAmenities =
+    {
+        "En-suite Bathroom", "Shared Bathroom", "Shower", "Bath",
+        "Single Bed", "Double Bed", "King Bed", "Bunk Beds",
+        "Wi-Fi", "TV", "Air Conditioning", "Heating",
+        "Parking", "Gym Access", "Swimming Pool", "Spa",
+        "Restaurant", "Bar", "Room Service", "Breakfast Included",
+        "Sea View", "Garden View", "Pet Friendly", "Accessible Room"
+    };
+
+    private void ToggleAmenity(string amenity)
+    {
+        if (_selectedAmenities.Contains(amenity)) _selectedAmenities.Remove(amenity);
+        else _selectedAmenities.Add(amenity);
+    }
 
     private string BookingUrl => $"{HostUrl}/{TenantSlug}/book";
 
@@ -280,6 +359,13 @@
             _stripeKey = _tenant.StripePublishableKey ?? "";
             _paypalClientId = _tenant.PayPalClientId ?? "";
             _selectedTheme = _tenant.Theme;
+            _allowedFileExtensions = _tenant.AllowedFileExtensions ?? "";
+            _totalRooms = _tenant.TotalRooms;
+            if (!string.IsNullOrEmpty(_tenant.AmenitiesJson))
+            {
+                try { _selectedAmenities = System.Text.Json.JsonSerializer.Deserialize<List<string>>(_tenant.AmenitiesJson) ?? new(); }
+                catch { _selectedAmenities = new(); }
+            }
         }
     }
 
@@ -312,6 +398,9 @@
             PayPalClientId = _paypalClientId,
             PayPalClientSecret = string.IsNullOrEmpty(_paypalSecret) ? null : _paypalSecret,
             Theme = _selectedTheme,
+            AllowedFileExtensions = string.IsNullOrWhiteSpace(_allowedFileExtensions) ? null : _allowedFileExtensions,
+            TotalRooms = _totalRooms,
+            AmenitiesJson = _selectedAmenities.Any() ? System.Text.Json.JsonSerializer.Serialize(_selectedAmenities) : null,
         };
         var result = await Api.UpdateTenantAsync(TenantSlug, req);
         _saving = false;
