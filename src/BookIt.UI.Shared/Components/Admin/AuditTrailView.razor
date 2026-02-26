@@ -1,0 +1,227 @@
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+
+<MudStack>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+        <div>
+            <MudText Typo="Typo.h5" Class="fw-bold">Audit Trail</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Track all changes made across your account</MudText>
+        </div>
+    </MudStack>
+
+    <!-- Filters -->
+    <MudCard Elevation="1" Class="mb-4">
+        <MudCardContent>
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6" md="3">
+                    <MudSelect T="string" Label="Entity / Table" Value="_filterEntity" ValueChanged="v => { _filterEntity = v; _ = LoadAsync(); }"
+                               Clearable="true" Dense="true" Variant="Variant.Outlined">
+                        @foreach (var e in _entityNames)
+                        {
+                            <MudSelectItem Value="@e">@e</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="2">
+                    <MudSelect T="string" Label="Action" Value="_filterAction" ValueChanged="v => { _filterAction = v; _ = LoadAsync(); }"
+                               Clearable="true" Dense="true" Variant="Variant.Outlined">
+                        <MudSelectItem Value="@("Created")">Created</MudSelectItem>
+                        <MudSelectItem Value="@("Updated")">Updated</MudSelectItem>
+                        <MudSelectItem Value="@("Deleted")">Deleted</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudTextField T="string" Label="Changed By" Value="_filterChangedBy"
+                                  ValueChanged="v => { _filterChangedBy = v; _ = LoadAsync(); }"
+                                  Clearable="true" Variant="Variant.Outlined"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="2">
+                    <MudDatePicker Label="From" Date="_filterFrom" DateChanged="v => { _filterFrom = v; _ = LoadAsync(); }"
+                                   Clearable="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="2">
+                    <MudDatePicker Label="To" Date="_filterTo" DateChanged="v => { _filterTo = v; _ = LoadAsync(); }"
+                                   Clearable="true" Variant="Variant.Outlined" />
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+
+    <!-- Data Grid -->
+    <MudDataGrid T="AuditLogResponse"
+                 Items="@_items"
+                 Filterable="true"
+                 FilterMode="DataGridFilterMode.ColumnFilterRow"
+                 Hideable="true"
+                 ColumnResizeMode="ResizeMode.Column"
+                 Dense="true"
+                 Hover="true"
+                 Bordered="false"
+                 Striped="true"
+                 Elevation="1"
+                 RowClick="@(args => OpenDetails(args.Item))"
+                 Style="cursor:pointer;">
+        <Columns>
+            <PropertyColumn Property="x => x.ChangedAt" Title="Date / Time" Format="yyyy-MM-dd HH:mm:ss" Sortable="true" />
+            <PropertyColumn Property="x => x.EntityName" Title="Entity" Sortable="true" />
+            <PropertyColumn Property="x => x.EntityId" Title="Record ID" Sortable="false" />
+            <PropertyColumn Property="x => x.Action" Title="Action" Sortable="true">
+                <CellTemplate>
+                    @{
+                        var color = context.Item.Action switch
+                        {
+                            "Created" => Color.Success,
+                            "Deleted" => Color.Error,
+                            _         => Color.Warning
+                        };
+                    }
+                    <MudChip T="string" Size="Size.Small" Color="@color" Variant="Variant.Text" Label="true">
+                        @context.Item.Action
+                    </MudChip>
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.ChangedBy" Title="Changed By" Sortable="true" />
+        </Columns>
+        <NoRecordsContent>
+            <MudStack AlignItems="AlignItems.Center" Class="py-8">
+                <MudIcon Icon="@Icons.Material.Filled.History" Size="Size.Large" Color="Color.Default" Style="opacity:.3;" />
+                <MudText Typo="Typo.body1">No audit records found</MudText>
+            </MudStack>
+        </NoRecordsContent>
+    </MudDataGrid>
+
+    <!-- Pagination -->
+    @if (_totalPages > 1)
+    {
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mt-3">
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                Showing @((_page - 1) * _pageSize + 1)–@(Math.Min(_page * _pageSize, _totalCount)) of @_totalCount records
+            </MudText>
+            <MudPagination Count="_totalPages" Selected="_page" SelectedChanged="OnPageChanged"
+                           BoundaryCount="1" MiddleCount="3" ShowFirstButton ShowLastButton />
+            <MudSelect T="int" Value="_pageSize" ValueChanged="OnPageSizeChanged" Dense="true"
+                       Variant="Variant.Outlined" Style="width:90px;">
+                <MudSelectItem Value="10">10</MudSelectItem>
+                <MudSelectItem Value="25">25</MudSelectItem>
+                <MudSelectItem Value="50">50</MudSelectItem>
+                <MudSelectItem Value="100">100</MudSelectItem>
+            </MudSelect>
+        </MudStack>
+    }
+
+    <!-- Detail Dialog -->
+    <MudDialog @bind-Visible="_detailOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true })">
+        <TitleContent>
+            <MudText Typo="Typo.h6">Audit Record Detail</MudText>
+        </TitleContent>
+        <DialogContent>
+            @if (_selected != null)
+            {
+                <MudGrid Spacing="2">
+                    <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Entity</MudText><MudText>@_selected.EntityName</MudText></MudItem>
+                    <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Record ID</MudText><MudText Style="font-size:.8rem;word-break:break-all;">@_selected.EntityId</MudText></MudItem>
+                    <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Action</MudText><MudText>@_selected.Action</MudText></MudItem>
+                    <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Changed By</MudText><MudText>@(_selected.ChangedBy ?? "—")</MudText></MudItem>
+                    <MudItem xs="12"><MudText Typo="Typo.caption" Color="Color.Secondary">Changed At</MudText><MudText>@_selected.ChangedAt.ToString("yyyy-MM-dd HH:mm:ss") UTC</MudText></MudItem>
+                    @if (!string.IsNullOrEmpty(_selected.OldValues))
+                    {
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Previous Values</MudText>
+                            <pre style="font-size:.75rem;background:var(--mud-palette-surface);padding:8px;border-radius:6px;overflow:auto;max-height:200px;">@_selected.OldValues</pre>
+                        </MudItem>
+                    }
+                    @if (!string.IsNullOrEmpty(_selected.NewValues))
+                    {
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">New Values</MudText>
+                            <pre style="font-size:.75rem;background:var(--mud-palette-surface);padding:8px;border-radius:6px;overflow:auto;max-height:200px;">@_selected.NewValues</pre>
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="@(() => _detailOpen = false)">Close</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudStack>
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+
+    private List<AuditLogResponse> _items = new();
+    private int _totalCount;
+    private int _totalPages;
+    private int _page = 1;
+    private int _pageSize = 25;
+    private bool _loading;
+
+    private string? _filterEntity;
+    private string? _filterAction;
+    private string? _filterChangedBy;
+    private DateTime? _filterFrom;
+    private DateTime? _filterTo;
+
+    private bool _detailOpen;
+    private AuditLogResponse? _selected;
+
+    // Common entity names for the filter dropdown
+    private static readonly string[] _entityNames = new[]
+    {
+        "Appointments", "Services", "Staff", "Customers", "Payments",
+        "BookingForms", "ClassSessions", "Tenants", "EmailTemplates",
+        "Webhooks", "StaffInvitations", "Clients"
+    };
+
+    protected override async Task OnParametersSetAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+        Api.SetToken(Auth.AccessToken);
+        var result = await Api.GetAuditTrailAsync(TenantSlug, new AuditLogQueryParams
+        {
+            Page = _page,
+            PageSize = _pageSize,
+            EntityName = _filterEntity,
+            Action = _filterAction,
+            ChangedBy = _filterChangedBy,
+            From = _filterFrom,
+            To = _filterTo
+        });
+        if (result != null)
+        {
+            _items = result.Items;
+            _totalCount = result.TotalCount;
+            _totalPages = result.TotalPages;
+        }
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task OnPageChanged(int page)
+    {
+        _page = page;
+        await LoadAsync();
+    }
+
+    private async Task OnPageSizeChanged(int size)
+    {
+        _pageSize = size;
+        _page = 1;
+        await LoadAsync();
+    }
+
+    private void OpenDetails(AuditLogResponse row)
+    {
+        _selected = row;
+        _detailOpen = true;
+    }
+}

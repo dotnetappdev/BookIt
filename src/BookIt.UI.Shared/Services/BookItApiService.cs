@@ -272,6 +272,18 @@ public class BookItApiService
     public Task<List<WebhookDeliveryResponse>?> GetWebhookDeliveriesAsync(string slug, Guid webhookId) =>
         GetAsync<List<WebhookDeliveryResponse>>($"/api/tenants/{slug}/webhooks/{webhookId}/deliveries");
 
+    // ── Audit Trail ──
+    public Task<PagedResult<AuditLogResponse>?> GetAuditTrailAsync(string slug, AuditLogQueryParams queryParams)
+    {
+        var qs = $"page={queryParams.Page}&pageSize={queryParams.PageSize}";
+        if (!string.IsNullOrWhiteSpace(queryParams.EntityName)) qs += $"&entityName={Uri.EscapeDataString(queryParams.EntityName)}";
+        if (!string.IsNullOrWhiteSpace(queryParams.Action))     qs += $"&action={Uri.EscapeDataString(queryParams.Action)}";
+        if (!string.IsNullOrWhiteSpace(queryParams.ChangedBy))  qs += $"&changedBy={Uri.EscapeDataString(queryParams.ChangedBy)}";
+        if (queryParams.From.HasValue) qs += $"&from={queryParams.From.Value:O}";
+        if (queryParams.To.HasValue)   qs += $"&to={queryParams.To.Value:O}";
+        return GetAsync<PagedResult<AuditLogResponse>>($"/api/tenants/{slug}/audit-trail?{qs}");
+    }
+
     private async Task<bool> PostBoolAsync(string url, object body)
     {
         var r = await _http.PostAsync(url, Json(body));
