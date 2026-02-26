@@ -31,6 +31,8 @@ public class TenantResponse
     public string? StripePublishableKey { get; set; }
     public string? PayPalClientId { get; set; }
     public TenantTheme Theme { get; set; } = TenantTheme.Indigo;
+    public string? BookingPageTitle { get; set; }
+    public string? BannerImageUrl { get; set; }
     // File upload
     public string? AllowedFileExtensions { get; set; }  // e.g. ".pdf,.doc,.docx"
     // Accommodation (B&B / Hotel)
@@ -92,6 +94,8 @@ public class UpdateTenantRequest
     public string? VapiPublicKey { get; set; }
     public bool EnableAiChat { get; set; } = true;
     public TenantTheme Theme { get; set; } = TenantTheme.Indigo;
+    public string? BookingPageTitle { get; set; }
+    public string? BannerImageUrl { get; set; }
     // File upload
     public string? AllowedFileExtensions { get; set; }  // comma-separated, e.g. ".pdf,.doc,.docx"
     // Accommodation (B&B / Hotel)

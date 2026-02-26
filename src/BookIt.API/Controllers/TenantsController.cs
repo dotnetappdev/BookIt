@@ -49,6 +49,9 @@ public class TenantsController : ControllerBase
         tenant.LogoUrl = request.LogoUrl;
         tenant.PrimaryColor = request.PrimaryColor;
         tenant.SecondaryColor = request.SecondaryColor;
+        tenant.Theme = request.Theme;
+        tenant.BookingPageTitle = request.BookingPageTitle;
+        tenant.BannerImageUrl = request.BannerImageUrl;
         tenant.ContactEmail = request.ContactEmail;
         tenant.ContactPhone = request.ContactPhone;
         tenant.Address = request.Address;
@@ -159,6 +162,9 @@ public class TenantsController : ControllerBase
         LogoUrl = t.LogoUrl,
         PrimaryColor = t.PrimaryColor,
         SecondaryColor = t.SecondaryColor,
+        Theme = t.Theme,
+        BookingPageTitle = t.BookingPageTitle,
+        BannerImageUrl = t.BannerImageUrl,
         ContactEmail = t.ContactEmail,
         ContactPhone = t.ContactPhone,
         Address = t.Address,

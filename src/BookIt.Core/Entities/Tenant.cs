@@ -75,6 +75,11 @@ public class Tenant : BaseEntity
     public bool EnableEmailReminders { get; set; } = true;
     public bool EnableSmsReminders { get; set; } = false;
 
+    // Booking page branding
+    public string? BookingPageTitle { get; set; }
+    public string? BannerImageUrl { get; set; }
+    public TenantTheme Theme { get; set; } = TenantTheme.Indigo;
+
     // Navigation properties
     public ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
     public ICollection<Service> Services { get; set; } = new List<Service>();

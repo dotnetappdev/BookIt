@@ -7,6 +7,7 @@
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 @inject IJSRuntime Js
+@inject BookItApiService Api
 
 <MudThemeProvider Theme="_theme" IsDarkMode="@_isDark" />
 <MudPopoverProvider />
@@ -48,7 +49,7 @@
             <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight"
                      Style="margin-left:8px;">
                 <ActivatorContent>
-                    <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.8rem;font-weight:700;color:white;letter-spacing:.02em;flex-shrink:0;">
+                    <div style="@($"width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,{_themePrimary},{_themeSecondary});display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.8rem;font-weight:700;color:white;letter-spacing:.02em;flex-shrink:0;")">
                         @Auth.Initials
                     </div>
                 </ActivatorContent>
@@ -79,7 +80,7 @@
         <!-- Brand -->
         <MudDrawerHeader Style="padding:18px 16px 14px;">
             <div style="display:flex;align-items:center;gap:10px;">
-                <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <div style="@($"width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,{_themePrimary},{_themeSecondary});display:flex;align-items:center;justify-content:center;flex-shrink:0;")">
                     <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Style="color:white;" />
                 </div>
                 <div>
@@ -141,8 +142,8 @@
 
         <!-- User footer strip -->
         <MudSpacer />
-        <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;">
-            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:white;flex-shrink:0;">
+        <div style="@($"padding:12px 14px;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;")">
+            <div style="@($"width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,{_themePrimary},{_themeSecondary});display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:white;flex-shrink:0;")">
                 @Auth.Initials
             </div>
             <div style="flex:1;overflow:hidden;">
@@ -168,6 +169,8 @@
     private bool _drawerOpen = true;
     private bool _isDark = true;
     private MudTheme _theme = BookItTheme.Default;
+    private string _themePrimary = BookItTheme.PrimaryOf(TenantTheme.Indigo);
+    private string _themeSecondary = BookItTheme.SecondaryOf(TenantTheme.Indigo);
 
     private string _pageTitle => Nav.Uri.TrimEnd('/').Split('/').LastOrDefault(x => !string.IsNullOrEmpty(x)) switch
     {
@@ -198,6 +201,20 @@
         // Default to dark unless the user has explicitly chosen light
         var preferDark = stored != "light";
         if (preferDark != _isDark) { _isDark = preferDark; StateHasChanged(); }
+
+        // Load tenant theme
+        if (Auth.IsAuthenticated && !string.IsNullOrEmpty(Auth.TenantSlug))
+        {
+            Api.SetToken(Auth.AccessToken);
+            var tenant = await Api.GetTenantAsync(Auth.TenantSlug);
+            if (tenant != null)
+            {
+                _theme = BookItTheme.FromTenantTheme(tenant.Theme);
+                _themePrimary = BookItTheme.PrimaryOf(tenant.Theme);
+                _themeSecondary = BookItTheme.SecondaryOf(tenant.Theme);
+                StateHasChanged();
+            }
+        }
     }
 
     private void Logout()
