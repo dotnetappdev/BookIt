@@ -16,6 +16,7 @@ public class RegisterRequest
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string? Phone { get; set; }
+    public string? MembershipNumber { get; set; }
     public string TenantSlug { get; set; } = string.Empty;
 }
 

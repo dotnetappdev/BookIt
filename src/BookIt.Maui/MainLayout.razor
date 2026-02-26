@@ -1,0 +1,58 @@
+@inherits LayoutComponentBase
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+
+<MudThemeProvider Theme="BookItTheme.Default" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<div class="safe-area-top">
+    @if (Auth.IsAuthenticated)
+    {
+        <!-- Top app bar -->
+        <MudAppBar Elevation="0" Dense="true" Style="background:var(--mud-palette-primary);">
+            <MudText Style="color:white;font-weight:800;font-size:1.1rem;">BookIt</MudText>
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"
+                           OnClick='@(() => Nav.NavigateTo("/profile"))' />
+        </MudAppBar>
+
+        <div class="main-content" style="padding-top:48px;">
+            @Body
+        </div>
+
+        <!-- Bottom navigation -->
+        <nav class="bottom-nav">
+            <a href="/dashboard" class="bottom-nav-item @(IsActive("/dashboard") ? "active" : "")">
+                <MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Small" />
+                <span>Home</span>
+            </a>
+            <a href="/calendar" class="bottom-nav-item @(IsActive("/calendar") ? "active" : "")">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" />
+                <span>Calendar</span>
+            </a>
+            <a href="/appointments" class="bottom-nav-item @(IsActive("/appointments") ? "active" : "")">
+                <MudIcon Icon="@Icons.Material.Filled.EventNote" Size="Size.Small" />
+                <span>Bookings</span>
+            </a>
+            <a href="/wallet" class="bottom-nav-item @(IsActive("/wallet") ? "active" : "")">
+                <MudIcon Icon="@Icons.Material.Filled.QrCode" Size="Size.Small" />
+                <span>Wallet</span>
+            </a>
+            <a href="/profile" class="bottom-nav-item @(IsActive("/profile") ? "active" : "")">
+                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                <span>Profile</span>
+            </a>
+        </nav>
+    }
+    else
+    {
+        @Body
+    }
+</div>
+
+@code {
+    private bool IsActive(string path) =>
+        Nav.Uri.Contains(path, StringComparison.OrdinalIgnoreCase);
+}

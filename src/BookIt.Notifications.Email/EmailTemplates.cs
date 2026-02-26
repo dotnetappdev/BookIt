@@ -150,4 +150,73 @@ internal static class EmailTemplates
 </body>
 </html>";
     }
+
+    public static string BookingApproved(
+        string customerName,
+        string businessName,
+        DateTime start,
+        string? confirmationToken)
+    {
+        var tokenHtml = !string.IsNullOrEmpty(confirmationToken)
+            ? $"<div style=\"margin:20px 0;text-align:center;\"><div style=\"font-size:12px;color:#718096;margin-bottom:6px;\">Your booking reference</div><div style=\"display:inline-block;background:#f0f4ff;border:2px dashed #6c5ce7;border-radius:8px;padding:10px 24px;font-size:22px;font-weight:800;letter-spacing:4px;color:#6c5ce7;\">{confirmationToken}</div></div>"
+            : "";
+
+        return $@"<!DOCTYPE html>
+<html>
+<head><meta charset=""utf-8""><meta name=""viewport"" content=""width=device-width,initial-scale=1""></head>
+<body style=""margin:0;padding:0;background:#f7f8fc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"">
+  <div style=""max-width:600px;margin:32px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);"">
+    <div style=""background:linear-gradient(135deg,#00b894,#00cec9);padding:32px 40px;"">
+      <div style=""font-size:24px;font-weight:800;color:white;"">{businessName}</div>
+      <div style=""font-size:14px;color:rgba(255,255,255,.8);margin-top:4px;"">✅ Booking Approved</div>
+    </div>
+    <div style=""padding:32px 40px;"">
+      <p style=""font-size:16px;color:#2d3748;"">Hi {customerName},</p>
+      <p style=""color:#4a5568;"">Great news! Your booking has been <strong>approved</strong>.</p>
+      <div style=""background:#f7f8fc;border-radius:8px;padding:16px 20px;margin:20px 0;"">
+        <div style=""color:#718096;font-size:14px;"">{start:dddd, d MMMM yyyy} at {start:h:mm tt}</div>
+      </div>
+      {tokenHtml}
+      <p style=""color:#718096;font-size:14px;"">We look forward to seeing you. Please arrive on time.</p>
+    </div>
+    <div style=""padding:20px 40px;background:#f7f8fc;border-top:1px solid #eee;text-align:center;font-size:12px;color:#a0aec0;"">
+      Powered by <strong>BookIt</strong> — The Smart Booking Platform
+    </div>
+  </div>
+</body>
+</html>";
+    }
+
+    public static string BookingDeclined(
+        string customerName,
+        string businessName,
+        DateTime start,
+        string? reason)
+    {
+        var reasonHtml = !string.IsNullOrEmpty(reason)
+            ? $"<p style=\"color:#4a5568;\"><strong>Reason:</strong> {reason}</p>"
+            : "";
+
+        return $@"<!DOCTYPE html>
+<html>
+<head><meta charset=""utf-8""><meta name=""viewport"" content=""width=device-width,initial-scale=1""></head>
+<body style=""margin:0;padding:0;background:#f7f8fc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"">
+  <div style=""max-width:600px;margin:32px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);"">
+    <div style=""background:linear-gradient(135deg,#d63031,#e17055);padding:32px 40px;"">
+      <div style=""font-size:24px;font-weight:800;color:white;"">{businessName}</div>
+      <div style=""font-size:14px;color:rgba(255,255,255,.8);margin-top:4px;"">❌ Booking Declined</div>
+    </div>
+    <div style=""padding:32px 40px;"">
+      <p style=""font-size:16px;color:#2d3748;"">Hi {customerName},</p>
+      <p style=""color:#4a5568;"">Unfortunately your booking request for <strong>{start:dddd, d MMMM yyyy} at {start:h:mm tt}</strong> has been <strong>declined</strong>.</p>
+      {reasonHtml}
+      <p style=""color:#718096;font-size:14px;"">Please contact us or re-book at another time. We apologise for any inconvenience.</p>
+    </div>
+    <div style=""padding:20px 40px;background:#f7f8fc;border-top:1px solid #eee;text-align:center;font-size:12px;color:#a0aec0;"">
+      Powered by <strong>BookIt</strong> — The Smart Booking Platform
+    </div>
+  </div>
+</body>
+</html>";
+    }
 }

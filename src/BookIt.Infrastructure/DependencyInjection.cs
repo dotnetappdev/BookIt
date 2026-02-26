@@ -57,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<ITenantContext, HttpTenantContext>();
         services.AddScoped<ITenantService, TenantService>();
         services.AddScoped<IAppointmentService, BookIt.Infrastructure.Services.AppointmentService>();
+        services.AddScoped<IWebhookService, WebhookService>();
         services.AddStripePayments();
         services.AddPayPalPayments();
         services.AddApplePayPayments();

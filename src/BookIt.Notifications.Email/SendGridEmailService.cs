@@ -138,6 +138,40 @@ public sealed class SendGridEmailService : IEmailNotificationService
         await SendAsync(sendGridApiKey, fromEmail, fromName, toEmail, customerName, subject, html, cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task SendBookingApprovedAsync(
+        string sendGridApiKey,
+        string fromEmail,
+        string fromName,
+        string toEmail,
+        string customerName,
+        string businessName,
+        DateTime appointmentStart,
+        string? confirmationToken,
+        CancellationToken cancellationToken = default)
+    {
+        var html = EmailTemplates.BookingApproved(customerName, businessName, appointmentStart, confirmationToken);
+        var subject = $"Booking Approved \u2014 {businessName} on {appointmentStart:d MMM}";
+        await SendAsync(sendGridApiKey, fromEmail, fromName, toEmail, customerName, subject, html, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task SendBookingDeclinedAsync(
+        string sendGridApiKey,
+        string fromEmail,
+        string fromName,
+        string toEmail,
+        string customerName,
+        string businessName,
+        DateTime appointmentStart,
+        string? reason,
+        CancellationToken cancellationToken = default)
+    {
+        var html = EmailTemplates.BookingDeclined(customerName, businessName, appointmentStart, reason);
+        var subject = $"Booking Declined \u2014 {businessName}";
+        await SendAsync(sendGridApiKey, fromEmail, fromName, toEmail, customerName, subject, html, cancellationToken);
+    }
+
     // Placeholder helpers
 
     private static Dictionary<string, string> BuildPlaceholders(

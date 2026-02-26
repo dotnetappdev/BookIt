@@ -1,7 +1,10 @@
 using BookIt.Core.Entities;
 using BookIt.Core.Enums;
+using BookIt.Core.Interfaces;
 using BookIt.Infrastructure.Data;
+using BookIt.Notifications.Email;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using AppointmentService = BookIt.Infrastructure.Services.AppointmentService;
 
 namespace BookIt.Tests.Domain;
@@ -16,12 +19,19 @@ public class AppointmentServiceTests
         return new BookItDbContext(options);
     }
 
+    private static AppointmentService CreateService(BookItDbContext context)
+    {
+        var emailMock = new Mock<IEmailNotificationService>();
+        var webhookMock = new Mock<IWebhookService>();
+        return new AppointmentService(context, emailMock.Object, webhookMock.Object);
+    }
+
     [Fact]
     public async Task CreateAppointment_SetsConfirmationToken()
     {
         // Arrange
         var context = CreateInMemoryContext();
-        var service = new AppointmentService(context);
+        var service = CreateService(context);
         var appointment = new Appointment
         {
             TenantId = Guid.NewGuid(),
@@ -59,7 +69,7 @@ public class AppointmentServiceTests
         context.Appointments.Add(appointment);
         await context.SaveChangesAsync();
 
-        var service = new AppointmentService(context);
+        var service = CreateService(context);
 
         // Act
         await service.CancelAppointmentAsync(tenantId, appointment.Id, "Customer requested cancellation");
@@ -88,7 +98,7 @@ public class AppointmentServiceTests
         });
         await context.SaveChangesAsync();
 
-        var service = new AppointmentService(context);
+        var service = CreateService(context);
 
         // Act
         var slots = await service.GetAvailableSlotsAsync(tenantId, serviceId, null, DateOnly.FromDateTime(DateTime.Today.AddDays(1)));
@@ -132,7 +142,7 @@ public class AppointmentServiceTests
         });
         await context.SaveChangesAsync();
 
-        var service = new AppointmentService(context);
+        var service = CreateService(context);
 
         // Act
         var slots = await service.GetAvailableSlotsAsync(tenantId, serviceId, null, nextMonday);

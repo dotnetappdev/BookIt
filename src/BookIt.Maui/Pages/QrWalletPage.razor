@@ -1,0 +1,92 @@
+@page "/wallet"
+@attribute [Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="pa-4">
+    <MudStack Spacing="3">
+        <div>
+            <MudText Typo="Typo.h5" Style="font-weight:800;">Wallet</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Your upcoming booking pass</MudText>
+        </div>
+
+        @if (_loading)
+        {
+            <div style="text-align:center;padding:48px;">
+                <MudProgressCircular Indeterminate="true" />
+            </div>
+        }
+        else if (_nextAppointment == null)
+        {
+            <div style="text-align:center;padding:48px;color:var(--mud-palette-text-secondary);">
+                <MudIcon Icon="@Icons.Material.Filled.Wallet" Style="font-size:56px;opacity:.4;" />
+                <MudText Style="margin-top:12px;font-weight:600;">No upcoming bookings</MudText>
+                <MudText Typo="Typo.body2">Your next appointment QR code will appear here</MudText>
+            </div>
+        }
+        else
+        {
+            <AppointmentQrCard Appointment="_nextAppointment" BusinessName="@_tenantName" LogoUrl="@_logoUrl" />
+
+            @if (_appointments.Count > 1)
+            {
+                <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Style="text-align:center;">
+                    @(_appointments.Count - 1) more upcoming booking@(_appointments.Count > 2 ? "s" : "")
+                </MudText>
+
+                @foreach (var apt in _appointments.Skip(1).Take(3))
+                {
+                    <MudCard Elevation="0" Style="border:1px solid var(--mud-palette-divider);border-radius:12px;">
+                        <MudCardContent Style="padding:12px 16px !important;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <div style="font-weight:600;font-size:.875rem;">@string.Join(", ", apt.Services.Select(s => s.Name))</div>
+                                    <div style="font-size:.8125rem;color:var(--mud-palette-text-secondary);">
+                                        @apt.StartTime.ToString("ddd d MMM") · @apt.StartTime.ToString("h:mm tt")
+                                    </div>
+                                </div>
+                                <MudChip T="string" Size="Size.Small" Color="@StatusColor(apt.Status)" Label="true">@apt.Status</MudChip>
+                            </div>
+                        </MudCardContent>
+                    </MudCard>
+                }
+            }
+        }
+    </MudStack>
+</MudContainer>
+
+@code {
+    [Inject] private BookItApiService Api { get; set; } = default!;
+    [Inject] private BookItAuthState Auth { get; set; } = default!;
+
+    private List<AppointmentResponse> _appointments = new();
+    private AppointmentResponse? _nextAppointment;
+    private bool _loading = true;
+    private string _tenantName = "BookIt";
+    private string? _logoUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Auth.TenantSlug)) return;
+        Api.SetToken(Auth.AccessToken);
+
+        var tenant = await Api.GetTenantAsync(Auth.TenantSlug);
+        _tenantName = tenant?.Name ?? "BookIt";
+        _logoUrl = tenant?.LogoUrl;
+
+        var all = await Api.GetAppointmentsAsync(Auth.TenantSlug, DateTime.Now, DateTime.Now.AddDays(90));
+        _appointments = all
+            .Where(a => a.Status != AppointmentStatus.Cancelled)
+            .OrderBy(a => a.StartTime)
+            .ToList();
+
+        _nextAppointment = _appointments.FirstOrDefault();
+        _loading = false;
+    }
+
+    private static Color StatusColor(AppointmentStatus s) => s switch
+    {
+        AppointmentStatus.Confirmed => Color.Success,
+        AppointmentStatus.Pending   => Color.Warning,
+        AppointmentStatus.Cancelled => Color.Error,
+        _                           => Color.Default
+    };
+}

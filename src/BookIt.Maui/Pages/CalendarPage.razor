@@ -1,0 +1,28 @@
+@page "/calendar"
+@attribute [Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="pa-4">
+    <BookIt.UI.Shared.Components.Admin.CalendarView
+        Appointments="_appointments"
+        OnRangeChanged="LoadAppointments" />
+</MudContainer>
+
+@code {
+    [Inject] private BookItApiService Api { get; set; } = default!;
+    [Inject] private BookItAuthState Auth { get; set; } = default!;
+
+    private List<AppointmentResponse> _appointments = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Auth.TenantSlug)) return;
+        Api.SetToken(Auth.AccessToken);
+        await LoadAppointments((DateTime.Today.AddDays(-7), DateTime.Today.AddDays(14)));
+    }
+
+    private async Task LoadAppointments((DateTime From, DateTime To) range)
+    {
+        if (string.IsNullOrEmpty(Auth.TenantSlug)) return;
+        _appointments = await Api.GetAppointmentsAsync(Auth.TenantSlug, range.From, range.To);
+    }
+}

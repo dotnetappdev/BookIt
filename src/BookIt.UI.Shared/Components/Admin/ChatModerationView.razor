@@ -1,0 +1,142 @@
+@using BookIt.Core.DTOs
+@using BookIt.Core.Enums
+@inject BookIt.UI.Shared.Services.BookItApiService Api
+@inject BookIt.UI.Shared.Services.BookItAuthState Auth
+
+<MudStack Spacing="3">
+    <div>
+        <MudText Typo="Typo.h5" Class="fw-bold">AI Chat Moderation</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Review and moderate AI-assisted chat conversations</MudText>
+    </div>
+
+    <MudGrid Spacing="3">
+        <!-- Config panel -->
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="1">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:700;">Chat Settings</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudStack Spacing="2">
+                        <MudSwitch @bind-Value="_enableAiChat" Color="Color.Primary" Label="Enable AI Chat" />
+                        <MudSwitch @bind-Value="_requireModeration" Color="Color.Warning" Label="Require moderation before sending" />
+                        <MudTextField @bind-Value="_systemPrompt" Label="AI System Prompt" Variant="Variant.Outlined"
+                                      Lines="4" HelperText="Instructions that guide the AI assistant's tone and scope" />
+                        <MudTextField @bind-Value="_blockedPhrases" Label="Blocked phrases (comma-separated)"
+                                      Variant="Variant.Outlined" HelperText="Responses containing these phrases will be flagged" />
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                                   OnClick="SaveSettings" StartIcon="@Icons.Material.Filled.Save">
+                            Save Settings
+                        </MudButton>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Flagged messages -->
+        <MudItem xs="12" md="8">
+            <MudCard Elevation="1">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:700;">
+                                Flagged Responses
+                                @if (_flaggedMessages.Any())
+                                {
+                                    <MudBadge Content="@_flaggedMessages.Count" Color="Color.Error" Class="ml-2" />
+                                }
+                            </MudText>
+                            <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" OnClick="LoadFlagged" />
+                        </MudStack>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent Style="padding:0 !important;">
+                    @if (_loading)
+                    {
+                        <div style="padding:32px;text-align:center;">
+                            <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                        </div>
+                    }
+                    else if (!_flaggedMessages.Any())
+                    {
+                        <div style="padding:32px;text-align:center;color:var(--mud-palette-text-secondary);">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="font-size:40px;color:var(--mud-palette-success);" />
+                            <div style="margin-top:8px;font-weight:600;">No flagged messages</div>
+                            <div style="font-size:.875rem;">All AI responses are within guidelines</div>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var msg in _flaggedMessages)
+                        {
+                            <div style="display:flex;gap:16px;padding:16px 20px;border-bottom:1px solid var(--mud-palette-divider);align-items:flex-start;">
+                                <MudAvatar Color="Color.Warning" Size="Size.Small" Style="flex-shrink:0;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Flag" />
+                                </MudAvatar>
+                                <div style="flex:1;">
+                                    <div style="font-size:.8125rem;font-weight:600;margin-bottom:2px;">@msg.SessionId</div>
+                                    <div style="font-size:.875rem;color:var(--mud-palette-text-secondary);margin-bottom:6px;">@msg.Content</div>
+                                    <div style="font-size:.75rem;color:var(--mud-palette-text-disabled);">@msg.FlaggedAt.ToString("d MMM yyyy h:mm tt")</div>
+                                </div>
+                                <div style="display:flex;gap:8px;flex-shrink:0;">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Check" Color="Color.Success"
+                                                   Size="Size.Small" OnClick="@(() => ApproveMessage(msg))" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                                   Size="Size.Small" OnClick="@(() => RemoveMessage(msg))" />
+                                </div>
+                            </div>
+                        }
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudStack>
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+
+    private bool _enableAiChat = true;
+    private bool _requireModeration = false;
+    private string _systemPrompt = "You are a helpful booking assistant. Answer questions about services, availability, and appointments only.";
+    private string _blockedPhrases = "";
+    private bool _loading;
+
+    private readonly List<FlaggedMessage> _flaggedMessages = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFlagged();
+    }
+
+    private async Task LoadFlagged()
+    {
+        _loading = true;
+        // In a real implementation this would call an API endpoint for flagged chat messages.
+        // For now we simulate with an empty list.
+        await Task.Delay(200);
+        _loading = false;
+    }
+
+    private Task ApproveMessage(FlaggedMessage msg)
+    {
+        _flaggedMessages.Remove(msg);
+        return Task.CompletedTask;
+    }
+
+    private Task RemoveMessage(FlaggedMessage msg)
+    {
+        _flaggedMessages.Remove(msg);
+        return Task.CompletedTask;
+    }
+
+    private Task SaveSettings()
+    {
+        // Persist via settings API (future)
+        return Task.CompletedTask;
+    }
+
+    private record FlaggedMessage(string SessionId, string Content, DateTime FlaggedAt);
+}

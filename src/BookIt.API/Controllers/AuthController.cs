@@ -90,6 +90,7 @@ public class AuthController : ControllerBase
             FirstName = request.FirstName,
             LastName = request.LastName,
             PhoneNumber = request.Phone,
+            MembershipNumber = request.MembershipNumber,
             Role = UserRole.Customer,
             EmailConfirmed = false,
             CreatedAt = DateTime.UtcNow
