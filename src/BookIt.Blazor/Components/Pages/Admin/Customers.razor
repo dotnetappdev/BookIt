@@ -48,8 +48,11 @@ else
         }
         else
         {
-            <MudDataGrid T="CustomerResponse" Items="FilteredCustomers" Filterable="false" SortMode="SortMode.Single"
-                         RowsPerPage="20" Hover="true">
+            <MudDataGrid T="CustomerResponse" Items="FilteredCustomers"
+                         Filterable="true" FilterMode="DataGridFilterMode.ColumnFilterRow"
+                         SortMode="SortMode.Multiple"
+                         RowsPerPage="20"
+                         Hover="true">
                 <Columns>
                     <TemplateColumn Title="Customer" Sortable="false">
                         <CellTemplate>
@@ -68,8 +71,7 @@ else
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.Phone" Title="Phone" />
                     <PropertyColumn Property="x => x.MembershipNumber" Title="Membership No." />
-                    <PropertyColumn Property="x => x.City" Title="City" />
-                    <TemplateColumn Title="Bookings" Sortable="false">
+                    <PropertyColumn Property="x => x.City" Title="City" />                    <TemplateColumn Title="Bookings" Sortable="false">
                         <CellTemplate>
                             <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">@context.Item.TotalBookings</MudChip>
                         </CellTemplate>
