@@ -5,6 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Stripe.net" Version="50.3.0" />
   </ItemGroup>
 

@@ -1,9 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <!-- When building on Windows, skip iOS and Mac Catalyst TFMs to avoid resolving runtime packs not available on this host. -->
-    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net10.0-android;net10.0-windows10.0.19041.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">net10.0-android;net10.0-ios;net10.0-maccatalyst;net10.0-windows10.0.19041.0</TargetFrameworks>
+    <!-- Build only the TFMs supported on the current host OS to avoid resolving unavailable runtime packs. -->
+    <TargetFrameworks>net10.0-android</TargetFrameworks>
+    <TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <RootNamespace>BookIt.Maui</RootNamespace>
     <UseMaui>true</UseMaui>
@@ -33,9 +34,10 @@
 
   <ItemGroup>
     <!-- Blazor Hybrid -->
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="10.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
     <!-- Explicit MAUI controls package per MA002 to match the installed MAUI SDK -->
-    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.20" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
     <PackageReference Include="MudBlazor" Version="9.0.0" />
     <!-- Offline SQLite -->
     <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
@@ -43,7 +45,7 @@
     <!-- QR code generation -->
     <PackageReference Include="QRCoder" Version="1.6.0" />
     <!-- Secure storage of tokens -->
-    <PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.20" />
+    <PackageReference Include="Microsoft.Maui.Essentials" Version="$(MauiVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,8 +59,5 @@
     <MauiImage Include="Resources/Images/*" />
     <MauiFont Include="Resources/Fonts/*" />
   </ItemGroup>
-
-  <!-- No-op placeholder for Static Web Assets target when building outside of ASP.NET SDK contexts -->
-  <Target Name="StaticWebAssetsPrepareForRun" />
 
 </Project>

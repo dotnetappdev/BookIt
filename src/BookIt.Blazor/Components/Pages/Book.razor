@@ -470,8 +470,8 @@
                                         case BookingFormFieldType.Rating:
                                             <MudStack>
                                                 <MudText Typo="Typo.caption" Color="Color.Secondary">@f.Label</MudText>
-                                                <MudRating Value="@(int.TryParse(GetFieldValue(f.FieldName), out var r) ? r : 0)"
-                                                           ValueChanged="@((int v) => SetFieldValue(f.FieldName, v.ToString()))" />
+                                                <MudRating SelectedValue="@(int.TryParse(GetFieldValue(f.FieldName), out var r) ? r : 0)"
+                                                           SelectedValueChanged="@((int v) => SetFieldValue(f.FieldName, v.ToString()))" />
                                             </MudStack>
                                             break;
                                         case BookingFormFieldType.FileUpload:
