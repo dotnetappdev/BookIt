@@ -199,7 +199,7 @@ builder.Services.AddSendGridEmail();
 ### Alert Configuration
 
 Each tenant configures reminder alerts just like iOS Calendar — selecting one or more preset
-alert times from a chip UI in Settings:
+alert times from a chip UI in Settings, with an option to add a fully custom offset:
 
 | Preset | Minutes before |
 |---|---|
@@ -215,6 +215,10 @@ alert times from a chip UI in Settings:
 | 1 day | 1 440 |
 | 2 days | 2 880 |
 | 1 week | 10 080 |
+| **Custom** | Any value in hours, days, or weeks |
+
+The **Custom** option lets you type any number and choose a unit (Hours / Days / Weeks).
+For example, entering `3` and selecting `weeks` adds a reminder 3 weeks before the appointment.
 
 Stored in `Tenant.ReminderAlerts` as a comma-separated string of minutes (e.g. `"60,1440"`).
 
@@ -309,6 +313,10 @@ When **Twilio** is selected:
 │  [2 hours] [3 hours] [6 hours] [12 hours]           │
 │  [🔔 1 day] [2 days] [1 week]                      │
 │  (selected chips are highlighted in purple)         │
+│                                                     │
+│  Custom alert (any value):                          │
+│  Value [3]  Unit [Weeks ▼]  [+ Add]                │
+│  ↳ Adds a removable "3 weeks" chip above the row   │
 └─────────────────────────────────────────────────────┘
 ```
 

@@ -57,7 +57,7 @@ The Settings page (`/{slug}/admin/settings`) now includes three new sections:
 └───────────────────────────────────────────────────┘
 ```
 
-**Reminder Alerts** — iOS Calendar-style multi-select chip UI with independent email/SMS toggles:
+**Reminder Alerts** — iOS Calendar-style multi-select chip UI with independent email/SMS toggles and a custom offset input:
 
 ```
 ┌───────────────────────────────────────────────────┐
@@ -71,6 +71,9 @@ The Settings page (`/{slug}/admin/settings`) now includes three new sections:
 │  [5 min] [10 min] [15 min] [30 min] [1 hour]      │
 │  [2 hours] [3 hours] [6 hours] [12 hours]         │
 │  [🔔 1 day ✓] [2 days] [1 week]                  │
+│                                                   │
+│  Custom:  [3] [Weeks ▼] [+ Add]                  │
+│           ↳ adds "3 weeks" chip (removable)       │
 └───────────────────────────────────────────────────┘
 ```
 

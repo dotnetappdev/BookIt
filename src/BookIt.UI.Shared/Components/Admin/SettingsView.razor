@@ -308,6 +308,40 @@
                                             </MudChip>
                                         }
                                     </div>
+                                    @{
+                                        var presetMinutes = _reminderAlertOptions.Select(o => o.Minutes).ToHashSet();
+                                        var customAlerts  = _selectedAlerts.Where(m => !presetMinutes.Contains(m)).ToList();
+                                    }
+                                    @if (customAlerts.Any())
+                                    {
+                                        <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem;">
+                                            @foreach (var cm in customAlerts)
+                                            {
+                                                var minutes = cm;
+                                                <MudChip T="int" Color="Color.Secondary" Variant="Variant.Filled"
+                                                         Icon="@Icons.Material.Filled.AccessTime"
+                                                         OnClose="@(() => _selectedAlerts.Remove(minutes))"
+                                                         Style="cursor:default;">
+                                                    @MinutesToLabel(minutes)
+                                                </MudChip>
+                                            }
+                                        </div>
+                                    }
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-3">
+                                        <MudNumericField @bind-Value="_customAlertValue" Min="1" Max="999"
+                                                         Variant="Variant.Outlined" Label="Value"
+                                                         Margin="Margin.Dense" HideSpinButtons="true"
+                                                         Style="max-width:90px;" />
+                                        <MudSelect @bind-Value="_customAlertUnit" Variant="Variant.Outlined"
+                                                   Margin="Margin.Dense" Style="max-width:120px;">
+                                            <MudSelectItem Value="@("hours")">Hours</MudSelectItem>
+                                            <MudSelectItem Value="@("days")">Days</MudSelectItem>
+                                            <MudSelectItem Value="@("weeks")">Weeks</MudSelectItem>
+                                        </MudSelect>
+                                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                                   StartIcon="@Icons.Material.Filled.Add"
+                                                   OnClick="AddCustomAlert">Add</MudButton>
+                                    </MudStack>
                                 </div>
                             </MudStack>
                         </MudCardContent>
@@ -434,29 +468,68 @@
     // Reminder alert fields
     private bool _enableEmailReminders = true;
     private bool _enableSmsReminders;
-    private List<int> _selectedAlerts = new() { 1440 };
+    private List<int> _selectedAlerts = new() { MinutesPerDay };
+    private int _customAlertValue = 1;
+    private string _customAlertUnit = "hours";
+
+    private const int MinutesPerHour = 60;
+    private const int MinutesPerDay  = 1440;
+    private const int MinutesPerWeek = 10080;
 
     private record ReminderAlertOption(int Minutes, string Label);
     private static readonly ReminderAlertOption[] _reminderAlertOptions =
     {
-        new(5,    "5 min"),
-        new(10,   "10 min"),
-        new(15,   "15 min"),
-        new(30,   "30 min"),
-        new(60,   "1 hour"),
-        new(120,  "2 hours"),
-        new(180,  "3 hours"),
-        new(360,  "6 hours"),
-        new(720,  "12 hours"),
-        new(1440, "1 day"),
-        new(2880, "2 days"),
-        new(10080,"1 week"),
+        new(5,             "5 min"),
+        new(10,            "10 min"),
+        new(15,            "15 min"),
+        new(30,            "30 min"),
+        new(MinutesPerHour,    "1 hour"),
+        new(MinutesPerHour * 2, "2 hours"),
+        new(MinutesPerHour * 3, "3 hours"),
+        new(MinutesPerHour * 6, "6 hours"),
+        new(MinutesPerHour * 12, "12 hours"),
+        new(MinutesPerDay,      "1 day"),
+        new(MinutesPerDay * 2,  "2 days"),
+        new(MinutesPerWeek,     "1 week"),
     };
 
     private void ToggleAlert(int minutes)
     {
         if (_selectedAlerts.Contains(minutes)) _selectedAlerts.Remove(minutes);
         else _selectedAlerts.Add(minutes);
+    }
+
+    private void AddCustomAlert()
+    {
+        if (_customAlertValue <= 0) return;
+        var minutes = _customAlertUnit switch
+        {
+            "days"  => _customAlertValue * MinutesPerDay,
+            "weeks" => _customAlertValue * MinutesPerWeek,
+            _       => _customAlertValue * MinutesPerHour,
+        };
+        if (!_selectedAlerts.Contains(minutes))
+            _selectedAlerts.Add(minutes);
+    }
+
+    private static string MinutesToLabel(int minutes)
+    {
+        if (minutes % MinutesPerWeek == 0)
+        {
+            var w = minutes / MinutesPerWeek;
+            return w == 1 ? "1 week" : $"{w} weeks";
+        }
+        if (minutes % MinutesPerDay == 0)
+        {
+            var d = minutes / MinutesPerDay;
+            return d == 1 ? "1 day" : $"{d} days";
+        }
+        if (minutes % MinutesPerHour == 0)
+        {
+            var h = minutes / MinutesPerHour;
+            return h == 1 ? "1 hour" : $"{h} hours";
+        }
+        return $"{minutes} min";
     }
 
     private static readonly string[] _allAmenities =
