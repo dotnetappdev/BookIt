@@ -3,6 +3,8 @@ bin/
 obj/
 **/bin/
 **/obj/
+## Windows-style build output paths (backslash in directory name)
+**/bin\*/
 *.user
 *.suo
 .vs/
