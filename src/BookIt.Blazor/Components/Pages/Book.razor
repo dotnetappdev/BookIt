@@ -4,6 +4,7 @@
 @inject BookItApiService Api
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
+@inject IJSRuntime Js
 
 <PageTitle>Book an Appointment</PageTitle>
 
@@ -646,7 +647,9 @@
         StateHasChanged();
     }
 
-    private void TriggerFileInput() { }
+    private const long MaxCvFileSizeBytes = 5 * 1024 * 1024; // 5 MB
+
+    private void TriggerFileInput() => Js.InvokeVoidAsync("eval", "document.getElementById('cvFileInput').click()");
 
     private async Task OnCvFileChanged(InputFileChangeEventArgs e)
     {
@@ -654,7 +657,7 @@
         if (file == null) return;
         _cvFileName = file.Name;
         using var ms = new System.IO.MemoryStream();
-        await file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024).CopyToAsync(ms);
+        await file.OpenReadStream(maxAllowedSize: MaxCvFileSizeBytes).CopyToAsync(ms);
         _cvFileBase64 = Convert.ToBase64String(ms.ToArray());
         StateHasChanged();
     }
@@ -673,11 +676,20 @@
 
     private void ToggleCheckbox(string key, string option, bool isChecked)
     {
-        var current = _customFieldValues.TryGetValue(key, out var v) ? v.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList() : new();
-        if (isChecked) { if (!current.Contains(option)) current.Add(option); }
-        else current.Remove(option);
+        var current = _customFieldValues.TryGetValue(key, out var v)
+            ? v.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList()
+            : new List<string>();
+        if (isChecked && !current.Contains(option)) current.Add(option);
+        else if (!isChecked) current.Remove(option);
         _customFieldValues[key] = string.Join(", ", current);
     }
+
+    private static PaymentMethod ParsePaymentMethod(string choice) => choice switch
+    {
+        "shop" => PaymentMethod.PayAtShop,
+        "cash" => PaymentMethod.Cash,
+        _      => PaymentMethod.Online,
+    };
 
     private async Task ConfirmBooking()
     {
@@ -700,9 +712,7 @@
             CustomFormDataJson = formDataJson,
             CvFileBase64 = string.IsNullOrEmpty(_cvFileBase64) ? null : _cvFileBase64,
             CvFileName = string.IsNullOrEmpty(_cvFileName) ? null : _cvFileName,
-            PaymentMethodChoice = _paymentMethodChoice == "online" ? PaymentMethod.Online
-                                : _paymentMethodChoice == "shop" ? PaymentMethod.PayAtShop
-                                : PaymentMethod.Cash,
+            PaymentMethodChoice = ParsePaymentMethod(_paymentMethodChoice),
         };
 
         var result = await Api.CreateAppointmentAsync(TenantSlug, req);
