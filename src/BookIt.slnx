@@ -1,0 +1,15 @@
+<Solution>
+  <Project Path="BookIt.API/BookIt.API.csproj" />
+  <Project Path="BookIt.Blazor/BookIt.Blazor.csproj" />
+  <Project Path="BookIt.Core/BookIt.Core.csproj" />
+  <Project Path="BookIt.Infrastructure/BookIt.Infrastructure.csproj" />
+  <Project Path="BookIt.Maui/BookIt.Maui.csproj" />
+  <Project Path="BookIt.Notifications.Email/BookIt.Notifications.Email.csproj" />
+  <Project Path="BookIt.Notifications.Sms/BookIt.Notifications.Sms.csproj" />
+  <Project Path="BookIt.Payments.ApplePay/BookIt.Payments.ApplePay.csproj" />
+  <Project Path="BookIt.Payments.PayPal/BookIt.Payments.PayPal.csproj" />
+  <Project Path="BookIt.Payments.Stripe/BookIt.Payments.Stripe.csproj" />
+  <Project Path="BookIt.Subscriptions.RevenueCat/BookIt.Subscriptions.RevenueCat.csproj" />
+  <Project Path="BookIt.UI.Shared/BookIt.UI.Shared.csproj" />
+  <Project Path="BookIt.Web/BookIt.Web.csproj" />
+</Solution>
