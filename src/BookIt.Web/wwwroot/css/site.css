@@ -805,6 +805,18 @@ body {
     overflow-y: auto;
 }
 .auth-form-container { width: 100%; max-width: 420px; }
+/* Auth pages — ensure clear, readable text in all colour modes */
+.auth-form-container h1,
+.auth-form-container h2 { color: var(--text); }
+.auth-form-container .form-label { color: var(--text); }
+.auth-form-container .form-control,
+.auth-form-container .form-select { color: var(--text); }
+.auth-form-container .form-control::placeholder,
+.auth-form-container .form-select::placeholder { color: var(--text-muted); opacity: 1; } /* lighter than --text-secondary by design */
+.auth-form-container .input-group-text { color: var(--text-secondary); } /* slightly darker than placeholder */
+/* Setup / Register page */
+#setupForm .form-label { color: var(--text); }
+#setupForm h1 { color: var(--text); }
 
 /* ─── Confirmation ─── */
 .confirm-icon-wrap {
