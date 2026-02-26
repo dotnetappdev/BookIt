@@ -1,0 +1,26 @@
+@page "/{tenantSlug}/admin/email-templates"
+@rendermode InteractiveServer
+@layout BookIt.UI.Shared.Components.Admin.AdminLayout
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+
+<PageTitle>Email Templates — BookIt Admin</PageTitle>
+
+@if (!Auth.IsAuthenticated)
+{
+    <MudText>Redirecting…</MudText>
+}
+else
+{
+    <BookIt.UI.Shared.Components.Admin.EmailTemplatesView Slug="@TenantSlug" />
+}
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAuthenticated)
+            Nav.NavigateTo($"/login?returnUrl=/{TenantSlug}/admin/email-templates");
+    }
+}

@@ -172,3 +172,10 @@ public enum SmsProvider
     ClickSend = 1,
     Twilio = 2
 }
+
+public enum EmailTemplateType
+{
+    BookingConfirmation = 0,
+    AppointmentReminder = 1,
+    BookingCancellation = 2
+}

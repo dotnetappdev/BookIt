@@ -179,12 +179,21 @@
                                         }
                                     </td>
                                     <td style="padding:14px 16px;text-align:right;">
-                                        <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small"
-                                                       Style="color:rgba(255,255,255,.5);"
-                                                       OnClick="@(() => Nav.NavigateTo($"/{t.Slug}/admin"))" />
-                                        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Size="Size.Small"
-                                                       Style="color:rgba(255,255,255,.5);"
-                                                       OnClick="@(() => CopyTenantId(t))" />
+                                        <MudTooltip Text="View tenant admin dashboard">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Dashboard" Size="Size.Small"
+                                                           Style="color:rgba(255,255,255,.6);"
+                                                           OnClick="@(() => OpenNewTab($"/{t.Slug}/admin"))" />
+                                        </MudTooltip>
+                                        <MudTooltip Text="View public booking page">
+                                            <MudIconButton Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small"
+                                                           Style="color:rgba(255,255,255,.6);"
+                                                           OnClick="@(() => OpenNewTab($"/{t.Slug}/book"))" />
+                                        </MudTooltip>
+                                        <MudTooltip Text="Copy tenant ID">
+                                            <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Size="Size.Small"
+                                                           Style="color:rgba(255,255,255,.5);"
+                                                           OnClick="@(() => CopyTenantId(t))" />
+                                        </MudTooltip>
                                         @if (_pendingDeleteId == t.Id)
                                         {
                                             <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
@@ -339,6 +348,9 @@
     }
 
     private void OpenSetupPage() => Nav.NavigateTo("/setup");
+
+    private async Task OpenNewTab(string url) =>
+        await Js.InvokeVoidAsync("window.open", url, "_blank");
 
     private async Task ConfirmDeleteTenant(TenantListResponse t)
     {

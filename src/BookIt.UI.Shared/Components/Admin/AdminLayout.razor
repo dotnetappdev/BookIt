@@ -135,6 +135,9 @@
             <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/settings")"
                         Icon="@Icons.Material.Filled.Tune"
                         Style="color:rgba(255,255,255,.65);">Settings</MudNavLink>
+            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/email-templates")"
+                        Icon="@Icons.Material.Filled.MarkEmailRead"
+                        Style="color:rgba(255,255,255,.65);">Email Templates</MudNavLink>
             <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/subscriptions")"
                         Icon="@Icons.Material.Filled.CreditCard"
                         Style="color:rgba(255,255,255,.65);">Subscription</MudNavLink>
@@ -174,16 +177,17 @@
 
     private string _pageTitle => Nav.Uri.TrimEnd('/').Split('/').LastOrDefault(x => !string.IsNullOrEmpty(x)) switch
     {
-        "admin"         => "Dashboard",
-        "calendar"      => "Calendar",
-        "services"      => "Services",
-        "customers"     => "Customers",
-        "forms"         => "Booking Forms",
-        "builder"       => "Form Builder",
-        "interviews"    => "Interviews",
-        "settings"      => "Settings",
-        "subscriptions" => "Subscription",
-        _               => "Dashboard"
+        "admin"            => "Dashboard",
+        "calendar"         => "Calendar",
+        "services"         => "Services",
+        "customers"        => "Customers",
+        "forms"            => "Booking Forms",
+        "builder"          => "Form Builder",
+        "interviews"       => "Interviews",
+        "settings"         => "Settings",
+        "email-templates"  => "Email Templates",
+        "subscriptions"    => "Subscription",
+        _                  => "Dashboard"
     };
 
     protected override void OnInitialized() => Auth.OnChange += StateHasChanged;

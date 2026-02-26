@@ -169,4 +169,17 @@ public class BookItApiService
 
     public Task<bool> SuperAdminDeleteTenantAsync(Guid tenantId) =>
         DeleteAsync($"/api/admin/tenants/{tenantId}");
+
+    // ── Email Templates ──
+    public Task<List<EmailTemplateResponse>?> GetEmailTemplatesAsync(string slug) =>
+        GetAsync<List<EmailTemplateResponse>>($"/api/tenants/{slug}/email-templates");
+
+    public Task<EmailTemplateResponse?> CreateEmailTemplateAsync(string slug, UpsertEmailTemplateRequest req) =>
+        PostAsync<EmailTemplateResponse>($"/api/tenants/{slug}/email-templates", req);
+
+    public Task<EmailTemplateResponse?> UpdateEmailTemplateAsync(string slug, Guid id, UpsertEmailTemplateRequest req) =>
+        PutAsync<EmailTemplateResponse>($"/api/tenants/{slug}/email-templates/{id}", req);
+
+    public Task<bool> DeleteEmailTemplateAsync(string slug, Guid id) =>
+        DeleteAsync($"/api/tenants/{slug}/email-templates/{id}");
 }

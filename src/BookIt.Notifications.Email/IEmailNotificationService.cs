@@ -1,6 +1,13 @@
 namespace BookIt.Notifications.Email;
 
 /// <summary>
+/// A pre-rendered custom email template loaded from the database.
+/// </summary>
+/// <param name="Subject">Email subject line (may contain placeholders).</param>
+/// <param name="HtmlBody">Full HTML body (may contain placeholders).</param>
+public record CustomEmailTemplate(string Subject, string HtmlBody);
+
+/// <summary>
 /// Email notification service for booking-related messages.
 /// All methods accept credentials per-call for multi-tenant use.
 /// </summary>
@@ -20,6 +27,7 @@ public interface IEmailNotificationService
         string? location,
         string? meetingLink,
         string? bookingPin,
+        CustomEmailTemplate? customTemplate = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>Sends a reminder email to the customer ahead of their appointment.</summary>
@@ -35,6 +43,7 @@ public interface IEmailNotificationService
         int minutesBefore,
         string? location,
         string? meetingLink,
+        CustomEmailTemplate? customTemplate = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>Sends a booking cancellation notification email to the customer.</summary>
@@ -48,5 +57,6 @@ public interface IEmailNotificationService
         string serviceName,
         DateTime appointmentStart,
         string? reason,
+        CustomEmailTemplate? customTemplate = null,
         CancellationToken cancellationToken = default);
 }

@@ -1,4 +1,5 @@
 using BookIt.Core.Entities;
+using BookIt.Core.Enums;
 using BookIt.Infrastructure.Data;
 using BookIt.Notifications.Email;
 using BookIt.Notifications.Sms;
@@ -46,6 +47,27 @@ public sealed class AppointmentReminderJob
         var tenant = appointment.Tenant;
         var serviceName = appointment.Services.FirstOrDefault()?.Service?.Name ?? "Appointment";
 
+        // Load custom reminder email template if one exists for this tenant
+        CustomEmailTemplate? customTemplate = null;
+        if (tenant.EnableEmailReminders && !string.IsNullOrEmpty(tenant.SendGridApiKey))
+        {
+            var activeTemplates = await _context.EmailTemplates
+                .Where(t => t.TenantId == tenant.Id &&
+                            t.TemplateType == EmailTemplateType.AppointmentReminder &&
+                            t.IsActive)
+                .OrderByDescending(t => t.UpdatedAt ?? t.CreatedAt)
+                .ToListAsync(cancellationToken);
+
+            if (activeTemplates.Count > 1)
+                _logger.LogWarning(
+                    "Tenant {TenantId} has {Count} active AppointmentReminder email templates; using the most recently updated one.",
+                    tenant.Id, activeTemplates.Count);
+
+            var raw = activeTemplates.FirstOrDefault();
+            if (raw != null)
+                customTemplate = new CustomEmailTemplate(raw.SubjectLine, raw.HtmlBody);
+        }
+
         // Send email reminder
         if (tenant.EnableEmailReminders && !string.IsNullOrEmpty(tenant.SendGridApiKey))
         {
@@ -61,6 +83,7 @@ public sealed class AppointmentReminderJob
                 minutesBefore,
                 tenant.Address,
                 appointment.MeetingLink,
+                customTemplate,
                 cancellationToken);
         }
 

@@ -1,0 +1,330 @@
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject ISnackbar Snackbar
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+}
+
+<!-- Header -->
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+    <div>
+        <MudText Typo="Typo.h5" Class="fw-bold">Email Templates</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Custom HTML templates per notification type. Placeholders are replaced at send time.
+        </MudText>
+    </div>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenNewDialog">New Template</MudButton>
+</MudStack>
+
+<!-- Placeholder reference card -->
+<MudExpansionPanels Elevation="0" Class="mb-4">
+    <MudExpansionPanel Text="📋 Available Placeholders" Style="background:var(--mud-palette-surface);border:1px solid var(--mud-palette-divider);border-radius:12px;">
+        <MudGrid Spacing="2">
+            @foreach (var (ph, desc) in _placeholders)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                        <code style="background:rgba(var(--mud-palette-primary-rgb),.1);color:var(--mud-palette-primary);padding:2px 6px;border-radius:4px;font-size:.8rem;">
+                            @($"{{{{{ph}}}}}")
+                        </code>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@desc</MudText>
+                    </MudStack>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudExpansionPanel>
+</MudExpansionPanels>
+
+<!-- Templates list -->
+@if (!_loading && !_templates.Any())
+{
+    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+        No custom templates yet. Click <strong>New Template</strong> to create one.
+        The built-in BookIt templates will be used for all notifications until you add a custom one.
+    </MudAlert>
+}
+else
+{
+    <MudGrid Spacing="3">
+        @foreach (var t in _templates)
+        {
+            var tmpl = t;
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="1">
+                    <MudCardHeader>
+                        <CardHeaderAvatar>
+                            <MudIcon Icon="@TypeIcon(tmpl.TemplateType)" Color="Color.Primary" />
+                        </CardHeaderAvatar>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.subtitle1" Class="fw-semibold">@tmpl.Name</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@TypeLabel(tmpl.TemplateType)</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudChip T="string" Size="Size.Small"
+                                     Color="@(tmpl.IsActive ? Color.Success : Color.Default)"
+                                     Variant="Variant.Outlined">
+                                @(tmpl.IsActive ? "Active" : "Inactive")
+                            </MudChip>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Subject: <em>@tmpl.SubjectLine</em>
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit"
+                                   OnClick="@(() => OpenEditDialog(tmpl))">Edit</MudButton>
+                        <MudButton Size="Size.Small" StartIcon="@Icons.Material.Filled.Preview"
+                                   OnClick="@(() => OpenPreview(tmpl))">Preview</MudButton>
+                        <MudSpacer />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                       Size="Size.Small"
+                                       OnClick="@(() => DeleteTemplate(tmpl))" />
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+<!-- Edit / Create dialog -->
+<MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editingId == null ? "New Email Template" : "Edit Email Template")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="3">
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_draftName" Label="Template Name" Variant="Variant.Outlined"
+                              HelperText="Internal label (not shown to customers)" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="_draftType" Label="Notification Type" Variant="Variant.Outlined">
+                    <MudSelectItem Value="EmailTemplateType.BookingConfirmation">Booking Confirmation</MudSelectItem>
+                    <MudSelectItem Value="EmailTemplateType.AppointmentReminder">Appointment Reminder</MudSelectItem>
+                    <MudSelectItem Value="EmailTemplateType.BookingCancellation">Booking Cancellation</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_draftSubject" Label="Subject Line" Variant="Variant.Outlined"
+                              HelperText="e.g. Booking Confirmed — {{ServiceName}} on {{AppointmentDate}}" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudText Typo="Typo.subtitle2" Class="mb-1 fw-semibold">HTML Body</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">
+                    Full HTML email. Use placeholders like <code>{{"{{"}}CustomerName{{"}}"}}</code>, <code>{{"{{"}}ServiceName{{"}}"}}</code>, etc.
+                </MudText>
+                <MudTextField @bind-Value="_draftBody" Lines="14" Variant="Variant.Outlined"
+                              InputType="InputType.Text"
+                              Style="font-family:monospace;font-size:.82rem;" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSwitch @bind-Value="_draftActive" Label="Active (use this template for outgoing emails)"
+                           Color="Color.Primary" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="_saving" OnClick="SaveTemplate">
+            @(_saving ? "Saving…" : "Save")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Preview dialog -->
+<MudDialog @bind-Visible="_previewOpen" Options="new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true }">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Template Preview — @_previewTemplate?.Name</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_previewTemplate != null)
+        {
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Subject</MudText>
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-3">
+                @_previewTemplate.SubjectLine
+            </MudAlert>
+            <MudText Typo="Typo.subtitle2" Class="mb-1">HTML Body (raw)</MudText>
+            <div style="background:var(--mud-palette-surface);border:1px solid var(--mud-palette-divider);border-radius:8px;padding:12px;overflow:auto;max-height:400px;">
+                <pre style="font-size:.78rem;white-space:pre-wrap;word-break:break-all;margin:0;">@_previewTemplate.HtmlBody</pre>
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _previewOpen = false)">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+
+    private List<EmailTemplateResponse> _templates = new();
+    private bool _loading = true;
+    private bool _saving;
+
+    // Dialog state
+    private bool _dialogOpen;
+    private Guid? _editingId;
+    private string _draftName = "";
+    private EmailTemplateType _draftType = EmailTemplateType.BookingConfirmation;
+    private string _draftSubject = "";
+    private string _draftBody = "";
+    private bool _draftActive = true;
+
+    private DialogOptions _dialogOptions = new() { MaxWidth = MaxWidth.Large, FullWidth = true };
+
+    // Preview dialog
+    private bool _previewOpen;
+    private EmailTemplateResponse? _previewTemplate;
+
+    private static readonly (string Placeholder, string Description)[] _placeholders =
+    {
+        ("CustomerName",        "Customer's full name"),
+        ("BusinessName",        "Your business name"),
+        ("ServiceName",         "Booked service name"),
+        ("AppointmentDate",     "e.g. Monday, 3 March 2025"),
+        ("AppointmentTime",     "e.g. 10:30 AM"),
+        ("AppointmentDateTime", "Date and time combined"),
+        ("AppointmentEnd",      "End time (confirmation)"),
+        ("Location",            "Address or venue"),
+        ("MeetingLink",         "Online meeting URL"),
+        ("BookingPin",          "PIN code (confirmation)"),
+        ("WhenText",            "e.g. in 30 minutes, tomorrow (reminder)"),
+        ("CancellationReason",  "Reason text (cancellation)"),
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        Api.SetToken(Auth.AccessToken);
+        _templates = await Api.GetEmailTemplatesAsync(Slug) ?? new();
+        _loading = false;
+    }
+
+    private void OpenNewDialog()
+    {
+        _editingId = null;
+        _draftName = "";
+        _draftType = EmailTemplateType.BookingConfirmation;
+        _draftSubject = "Booking Confirmed — {{ServiceName}} on {{AppointmentDate}}";
+        _draftBody = DefaultHtmlBody();
+        _draftActive = true;
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(EmailTemplateResponse t)
+    {
+        _editingId = t.Id;
+        _draftName = t.Name;
+        _draftType = t.TemplateType;
+        _draftSubject = t.SubjectLine;
+        _draftBody = t.HtmlBody;
+        _draftActive = t.IsActive;
+        _dialogOpen = true;
+    }
+
+    private void OpenPreview(EmailTemplateResponse t)
+    {
+        _previewTemplate = t;
+        _previewOpen = true;
+    }
+
+    private void CloseDialog() => _dialogOpen = false;
+
+    private async Task SaveTemplate()
+    {
+        if (string.IsNullOrWhiteSpace(_draftName) || string.IsNullOrWhiteSpace(_draftSubject) || string.IsNullOrWhiteSpace(_draftBody))
+        {
+            Snackbar.Add("Name, subject line, and HTML body are required.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        var req = new UpsertEmailTemplateRequest
+        {
+            TemplateType = _draftType,
+            Name = _draftName,
+            SubjectLine = _draftSubject,
+            HtmlBody = _draftBody,
+            IsActive = _draftActive,
+        };
+
+        Api.SetToken(Auth.AccessToken);
+        EmailTemplateResponse? result;
+        if (_editingId == null)
+        {
+            result = await Api.CreateEmailTemplateAsync(Slug, req);
+            if (result != null) { _templates.Add(result); Snackbar.Add("Template created.", Severity.Success); }
+            else Snackbar.Add("Failed to create template.", Severity.Error);
+        }
+        else
+        {
+            result = await Api.UpdateEmailTemplateAsync(Slug, _editingId.Value, req);
+            if (result != null)
+            {
+                var idx = _templates.FindIndex(t => t.Id == _editingId.Value);
+                if (idx >= 0) _templates[idx] = result;
+                Snackbar.Add("Template saved.", Severity.Success);
+            }
+            else Snackbar.Add("Failed to save template.", Severity.Error);
+        }
+
+        _saving = false;
+        _dialogOpen = false;
+    }
+
+    private async Task DeleteTemplate(EmailTemplateResponse t)
+    {
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteEmailTemplateAsync(Slug, t.Id);
+        if (ok) { _templates.Remove(t); Snackbar.Add("Template deleted.", Severity.Success); }
+        else Snackbar.Add("Failed to delete template.", Severity.Error);
+    }
+
+    private static string TypeLabel(EmailTemplateType type) => type switch
+    {
+        EmailTemplateType.BookingConfirmation => "Booking Confirmation",
+        EmailTemplateType.AppointmentReminder => "Appointment Reminder",
+        EmailTemplateType.BookingCancellation => "Booking Cancellation",
+        _ => type.ToString()
+    };
+
+    private static string TypeIcon(EmailTemplateType type) => type switch
+    {
+        EmailTemplateType.BookingConfirmation => Icons.Material.Filled.CheckCircle,
+        EmailTemplateType.AppointmentReminder => Icons.Material.Filled.NotificationsActive,
+        EmailTemplateType.BookingCancellation => Icons.Material.Filled.Cancel,
+        _ => Icons.Material.Filled.Email
+    };
+
+    private static string DefaultHtmlBody() =>
+        """
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family:sans-serif;background:#f7f8fc;margin:0;padding:0;">
+          <div style="max-width:600px;margin:32px auto;background:#fff;border-radius:12px;overflow:hidden;">
+            <div style="background:#6c5ce7;padding:32px 40px;color:#fff;">
+              <div style="font-size:22px;font-weight:800;">{{BusinessName}}</div>
+              <div style="font-size:14px;opacity:.8;margin-top:4px;">Booking Confirmation</div>
+            </div>
+            <div style="padding:32px 40px;">
+              <p>Hi {{CustomerName}},</p>
+              <p>Your booking is confirmed:</p>
+              <ul>
+                <li><strong>Service:</strong> {{ServiceName}}</li>
+                <li><strong>Date:</strong> {{AppointmentDate}}</li>
+                <li><strong>Time:</strong> {{AppointmentTime}}</li>
+                <li><strong>Location:</strong> {{Location}}</li>
+              </ul>
+              <p>Booking PIN: <strong>{{BookingPin}}</strong></p>
+            </div>
+          </div>
+        </body>
+        </html>
+        """;
+}
