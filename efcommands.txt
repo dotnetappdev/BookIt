@@ -1,0 +1,3 @@
+cd src/BookIt.Infrastructure
+dotnet ef migrations add InitialCreate --startup-project ../BookIt.API
+dotnet ef database update --startup-project ../BookIt.API

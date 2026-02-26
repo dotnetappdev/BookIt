@@ -37,4 +37,6 @@ public class Customer : BaseEntity
     /// <summary>Optional link to an authenticated user account (if the customer registered).</summary>
     public Guid? UserId { get; set; }
     public ApplicationUser? User { get; set; }
+
+    public string FullName => $"{FirstName} {LastName}";
 }

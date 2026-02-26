@@ -83,4 +83,16 @@ public interface IEmailNotificationService
         DateTime appointmentStart,
         string? reason,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Sends a staff invitation email with a link to set up their account.</summary>
+    Task SendStaffInvitationAsync(
+        string sendGridApiKey,
+        string fromEmail,
+        string fromName,
+        string toEmail,
+        string staffName,
+        string businessName,
+        string inviteLink,
+        DateTime expiresAt,
+        CancellationToken cancellationToken = default);
 }

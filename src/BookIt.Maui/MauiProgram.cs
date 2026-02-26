@@ -23,8 +23,11 @@ public static class MauiProgram
         // Blazor WebView
         builder.Services.AddMauiBlazorWebView();
 
-        // MudBlazor
-        builder.Services.AddMudServices();
+        // MudBlazor with dark theme
+        builder.Services.AddMudServices(config =>
+        {
+            config.SnackbarConfiguration.PositionClass = MudBlazor.Defaults.Classes.Position.BottomRight;
+        });
 
         // BookIt shared UI (includes BookItApiService, BookItAuthState)
         builder.Services.AddBookItUI("https://api.bookit.app");

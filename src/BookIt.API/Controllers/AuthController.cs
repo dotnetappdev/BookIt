@@ -31,14 +31,31 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
     {
-        var tenant = await _context.Tenants
-            .FirstOrDefaultAsync(t => t.Slug == request.TenantSlug && !t.IsDeleted);
+        ApplicationUser? user;
+        Tenant? tenant;
 
-        if (tenant == null)
-            return Unauthorized(new { message = "Invalid tenant" });
+        if (!string.IsNullOrEmpty(request.TenantSlug))
+        {
+            tenant = await _context.Tenants
+                .FirstOrDefaultAsync(t => t.Slug == request.TenantSlug && !t.IsDeleted);
 
-        var user = await _userManager.Users
-            .FirstOrDefaultAsync(u => u.TenantId == tenant.Id && u.Email == request.Email && !u.IsDeleted);
+            if (tenant == null)
+                return Unauthorized(new { message = "Invalid tenant" });
+
+            user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.TenantId == tenant.Id && u.Email == request.Email && !u.IsDeleted);
+        }
+        else
+        {
+            user = await _userManager.Users
+                .Include(u => u.Tenant)
+                .FirstOrDefaultAsync(u => u.Email == request.Email && !u.IsDeleted);
+
+            if (user?.Tenant == null)
+                return Unauthorized(new { message = "Invalid credentials" });
+
+            tenant = user.Tenant;
+        }
 
         if (user == null)
             return Unauthorized(new { message = "Invalid credentials" });
@@ -73,14 +90,30 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
     {
-        var tenant = await _context.Tenants
-            .FirstOrDefaultAsync(t => t.Slug == request.TenantSlug && !t.IsDeleted);
+        Tenant? tenant;
 
-        if (tenant == null)
-            return BadRequest(new { message = "Invalid tenant" });
+        if (!string.IsNullOrEmpty(request.TenantSlug))
+        {
+            tenant = await _context.Tenants
+                .FirstOrDefaultAsync(t => t.Slug == request.TenantSlug && !t.IsDeleted);
 
-        var existingUser = await _userManager.FindByEmailAsync(request.Email);
-        if (existingUser != null && existingUser.TenantId == tenant.Id)
+            if (tenant == null)
+                return BadRequest(new { message = "Invalid tenant" });
+        }
+        else
+        {
+            var existingUser = await _userManager.Users
+                .Include(u => u.Tenant)
+                .FirstOrDefaultAsync(u => u.Email == request.Email && !u.IsDeleted);
+
+            if (existingUser?.Tenant == null)
+                return BadRequest(new { message = "User account not found. Please contact your organization administrator." });
+
+            tenant = existingUser.Tenant;
+        }
+
+        var existingUserCheck = await _userManager.FindByEmailAsync(request.Email);
+        if (existingUserCheck != null && existingUserCheck.TenantId == tenant.Id)
             return Conflict(new { message = "Email already registered" });
 
         var user = new ApplicationUser

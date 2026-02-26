@@ -1,0 +1,285 @@
+@page "/superadmin/database"
+@rendermode InteractiveServer
+@layout BookIt.UI.Shared.Components.Admin.AdminLayout
+@using Microsoft.AspNetCore.Authorization
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@attribute [Authorize(Roles = "SuperAdmin")]
+
+<PageTitle>Database Management — BookIt Super Admin</PageTitle>
+
+@if (!Auth.IsAuthenticated || Auth.Role != Core.Enums.UserRole.SuperAdmin)
+{
+    <MudText>Unauthorized access</MudText>
+}
+else
+{
+    <MudStack Spacing="4">
+        <div>
+            <MudText Typo="Typo.h5" Class="fw-bold">Database Management</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Manage demo data seeding and database cleanup operations
+            </MudText>
+        </div>
+
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        }
+        else
+        {
+            <!-- Status Card -->
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Database Status</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Color="Color.Primary" OnClick="LoadStatus" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudStack Spacing="2">
+                        <MudAlert Severity="@(_hasDemoData ? Severity.Info : Severity.Warning)">
+                            @if (_hasDemoData)
+                            {
+                                <text><strong>Demo data is present</strong> - The database contains seeded demonstration data including staff, customers, and appointments.</text>
+                            }
+                            else
+                            {
+                                <text><strong>No demo data found</strong> - The database is empty or contains only basic configuration.</text>
+                            }
+                        </MudAlert>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+
+            <!-- Seed Demo Data Card -->
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" />
+                            <div>
+                                <MudText Typo="Typo.h6">Seed Demo Data</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Populate the database with sample data for testing
+                                </MudText>
+                            </div>
+                        </MudStack>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.body2" Class="mb-3">
+                        This operation will create:
+                    </MudText>
+                    <MudList T="string" Dense="true">
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Groups">
+                            <MudText Typo="Typo.body2">2 Client companies with user accounts</MudText>
+                        </MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.People">
+                            <MudText Typo="Typo.body2">3 Staff members linked to clients</MudText>
+                        </MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Person">
+                            <MudText Typo="Typo.body2">20 Customer records</MudText>
+                        </MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Event">
+                            <MudText Typo="Typo.body2">25 Appointments (15 past, 10 future)</MudText>
+                        </MudListItem>
+                    </MudList>
+
+                    @if (_hasDemoData)
+                    {
+                        <MudAlert Severity="Severity.Warning" Class="mt-3">
+                            Demo data already exists. Clear existing data first before seeding new data.
+                        </MudAlert>
+                    }
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                               StartIcon="@Icons.Material.Filled.CloudUpload"
+                               OnClick="SeedData" Disabled="@(_seeding || _hasDemoData)">
+                        @if (_seeding)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            <span>Seeding...</span>
+                        }
+                        else
+                        {
+                            <span>Seed Demo Data</span>
+                        }
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+
+            <!-- Clear Demo Data Card -->
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Filled.DeleteSweep" Color="Color.Error" />
+                            <div>
+                                <MudText Typo="Typo.h6">Clear Demo Data</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Remove demonstration data from the database
+                                </MudText>
+                            </div>
+                        </MudStack>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudAlert Severity="Severity.Warning" Class="mb-3">
+                        <strong>Warning:</strong> This will permanently delete:
+                    </MudAlert>
+                    <MudList T="string" Dense="true">
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Delete">
+                            <MudText Typo="Typo.body2">All staff members and their associations</MudText>
+                        </MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Delete">
+                            <MudText Typo="Typo.body2">All customers and their booking history</MudText>
+                        </MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Delete">
+                            <MudText Typo="Typo.body2">All appointments (past and future)</MudText>
+                        </MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Delete">
+                            <MudText Typo="Typo.body2">All client companies and their user accounts</MudText>
+                        </MudListItem>
+                    </MudList>
+
+                    <MudAlert Severity="Severity.Info" Class="mt-3">
+                        <strong>Preserved:</strong> Tenant configuration, services, admin users, and system settings will be kept.
+                    </MudAlert>
+
+                    @if (!_hasDemoData)
+                    {
+                        <MudAlert Severity="Severity.Info" Class="mt-3">
+                            No demo data to clear.
+                        </MudAlert>
+                    }
+
+                    @if (_confirmClear)
+                    {
+                        <MudAlert Severity="Severity.Error" Class="mt-3">
+                            <strong>Are you absolutely sure?</strong> This action cannot be undone!
+                            <div Class="mt-2">
+                                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
+                                           OnClick="ConfirmClearData" Disabled="_clearing" Class="mr-2">
+                                    Yes, Delete Everything
+                                </MudButton>
+                                <MudButton Variant="Variant.Outlined" Size="Size.Small"
+                                           OnClick="@(() => _confirmClear = false)">
+                                    Cancel
+                                </MudButton>
+                            </div>
+                        </MudAlert>
+                    }
+                </MudCardContent>
+                <MudCardActions>
+                    @if (!_confirmClear)
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                                   StartIcon="@Icons.Material.Filled.DeleteSweep"
+                                   OnClick="@(() => _confirmClear = true)" Disabled="@(!_hasDemoData || _clearing)">
+                            Clear Demo Data
+                        </MudButton>
+                    }
+                </MudCardActions>
+            </MudCard>
+        }
+    </MudStack>
+}
+
+@code {
+    private bool _loading = true;
+    private bool _seeding;
+    private bool _clearing;
+    private bool _hasDemoData;
+    private bool _confirmClear;
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAuthenticated || Auth.Role != Core.Enums.UserRole.SuperAdmin)
+            Nav.NavigateTo("/");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !Auth.IsAuthenticated) return;
+        await LoadStatus();
+    }
+
+    private async Task LoadStatus()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        Api.SetToken(Auth.AccessToken);
+        try
+        {
+            var status = await Api.GetDatabaseStatusAsync();
+            _hasDemoData = status?.GetType().GetProperty("hasDemoData")?.GetValue(status) as bool? ?? false;
+        }
+        catch
+        {
+            Snackbar.Add("Failed to load database status", Severity.Error);
+        }
+
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task SeedData()
+    {
+        _seeding = true;
+        Api.SetToken(Auth.AccessToken);
+
+        try
+        {
+            var result = await Api.SeedDemoDataAsync();
+            if (result)
+            {
+                Snackbar.Add("Demo data seeded successfully!", Severity.Success);
+                await LoadStatus();
+            }
+            else
+            {
+                Snackbar.Add("Failed to seed demo data", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error seeding data: {ex.Message}", Severity.Error);
+        }
+
+        _seeding = false;
+    }
+
+    private async Task ConfirmClearData()
+    {
+        _clearing = true;
+        Api.SetToken(Auth.AccessToken);
+
+        try
+        {
+            var result = await Api.ClearDemoDataAsync();
+            if (result)
+            {
+                Snackbar.Add("Demo data cleared successfully!", Severity.Success);
+                _confirmClear = false;
+                await LoadStatus();
+            }
+            else
+            {
+                Snackbar.Add("Failed to clear demo data", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error clearing data: {ex.Message}", Severity.Error);
+        }
+
+        _clearing = false;
+    }
+}

@@ -1,0 +1,305 @@
+@page "/superadmin/clients"
+@rendermode InteractiveServer
+@layout BookIt.UI.Shared.Components.Admin.AdminLayout
+@using Microsoft.AspNetCore.Authorization
+@using BookIt.Core.DTOs
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@attribute [Authorize(Roles = "SuperAdmin")]
+
+<PageTitle>Clients — BookIt Super Admin</PageTitle>
+
+@if (!Auth.IsAuthenticated || Auth.Role != Core.Enums.UserRole.SuperAdmin)
+{
+    <MudText>Unauthorized access</MudText>
+}
+else
+{
+    <MudStack>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+            <div>
+                <MudText Typo="Typo.h5" Class="fw-bold">Clients</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Manage client accounts across all tenants</MudText>
+            </div>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
+                       OnClick="OpenAddDialog">Add Client</MudButton>
+        </MudStack>
+
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        }
+        else if (!_clients.Any())
+        {
+            <MudCard Elevation="1">
+                <MudCardContent>
+                    <MudStack AlignItems="AlignItems.Center" Class="py-8">
+                        <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Large" Style="opacity:.3;" />
+                        <MudText Typo="Typo.body1" Class="fw-medium">No clients yet</MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog">Add First Client</MudButton>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        }
+        else
+        {
+            <MudDataGrid T="ClientResponse" Items="_clients"
+                         Filterable="true" FilterMode="DataGridFilterMode.ColumnFilterRow"
+                         SortMode="SortMode.Multiple"
+                         RowsPerPage="20"
+                         Hover="true" Striped="false" Dense="false">
+                <Columns>
+                    <PropertyColumn Property="x => x.CompanyName" Title="Company" />
+                    <PropertyColumn Property="x => x.ContactName" Title="Contact" />
+                    <PropertyColumn Property="x => x.Email" Title="Email" />
+                    <PropertyColumn Property="x => x.Phone" Title="Phone" />
+                    <PropertyColumn Property="x => x.TenantName" Title="Tenant" />
+                    <PropertyColumn Property="x => x.StaffCount" Title="Staff" />
+                    <TemplateColumn Title="Status" Sortable="true" Filterable="false">
+                        <CellTemplate>
+                            <MudChip T="string" Size="Size.Small"
+                                     Color="@(context.Item.IsActive ? Color.Success : Color.Default)"
+                                     Variant="Variant.Outlined">
+                                @(context.Item.IsActive ? "Active" : "Inactive")
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="" Sortable="false" Filterable="false">
+                        <CellTemplate>
+                            <MudStack Row="true" Spacing="0">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                               OnClick="@(() => OpenEditDialog(context.Item))" />
+                                @if (_pendingDeleteId == context.Item.Id)
+                                {
+                                    <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
+                                               OnClick="@(() => ConfirmDelete(context.Item))">Delete?</MudButton>
+                                    <MudButton Size="Size.Small" OnClick="@(() => _pendingDeleteId = null)">Cancel</MudButton>
+                                }
+                                else
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                   OnClick="@(() => _pendingDeleteId = context.Item.Id)" />
+                                }
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="ClientResponse" />
+                </PagerContent>
+            </MudDataGrid>
+        }
+    </MudStack>
+}
+
+<!-- Add / Edit Dialog -->
+<MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editClient == null ? "Add Client" : "Edit Client")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            @if (_editClient == null)
+            {
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="_form.TenantId" Label="Tenant" Variant="Variant.Outlined" Required="true">
+                        @foreach (var tenant in _tenants)
+                        {
+                            <MudSelectItem Value="@tenant.Id">@tenant.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            }
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.CompanyName" Label="Company Name" Required="true" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.ContactName" Label="Contact Name" Required="true" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_form.Email" Label="Email" InputType="InputType.Email" Required="true" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_form.Phone" Label="Phone" Required="true" Variant="Variant.Outlined" />
+            </MudItem>
+            @if (_editClient == null)
+            {
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_form.Password" Label="Password" InputType="InputType.Password" Required="true" Variant="Variant.Outlined" 
+                                  HelperText="Initial password for client login" />
+                </MudItem>
+            }
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Address" Label="Address" Lines="2" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="3" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSwitch @bind-Value="_form.IsActive" Color="Color.Primary" Label="Active" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveClient" Disabled="_saving">
+            @(_saving ? "Saving…" : "Save")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<ClientResponse> _clients = new();
+    private List<TenantListResponse> _tenants = new();
+    private bool _loading = true;
+    private Guid? _pendingDeleteId;
+
+    private bool _dialogOpen;
+    private bool _saving;
+    private ClientResponse? _editClient;
+    private ClientFormModel _form = new();
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAuthenticated || Auth.Role != Core.Enums.UserRole.SuperAdmin)
+            Nav.NavigateTo("/");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !Auth.IsAuthenticated) return;
+        Api.SetToken(Auth.AccessToken);
+        _clients = await Api.GetAllClientsAsync() ?? new();
+        _tenants = await Api.GetAllTenantsAsync() ?? new();
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private void OpenAddDialog()
+    {
+        _editClient = null;
+        _form = new ClientFormModel();
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(ClientResponse c)
+    {
+        _editClient = c;
+        _form = new ClientFormModel
+        {
+            TenantId = c.TenantId,
+            CompanyName = c.CompanyName,
+            ContactName = c.ContactName,
+            Email = c.Email,
+            Phone = c.Phone,
+            Address = c.Address,
+            Notes = c.Notes,
+            IsActive = c.IsActive
+        };
+        _dialogOpen = true;
+    }
+
+    private void CloseDialog() => _dialogOpen = false;
+
+    private async Task SaveClient()
+    {
+        if (string.IsNullOrWhiteSpace(_form.CompanyName) || string.IsNullOrWhiteSpace(_form.Email))
+        {
+            Snackbar.Add("Company name and email are required.", Severity.Warning);
+            return;
+        }
+
+        if (_editClient == null && string.IsNullOrWhiteSpace(_form.Password))
+        {
+            Snackbar.Add("Password is required for new clients.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        Api.SetToken(Auth.AccessToken);
+
+        if (_editClient == null)
+        {
+            var req = new CreateClientRequest
+            {
+                TenantId = _form.TenantId,
+                CompanyName = _form.CompanyName!,
+                ContactName = _form.ContactName ?? string.Empty,
+                Email = _form.Email!,
+                Phone = _form.Phone ?? string.Empty,
+                Address = _form.Address,
+                Notes = _form.Notes,
+                Password = _form.Password!,
+                IsActive = _form.IsActive
+            };
+            var created = await Api.CreateClientAsync(req);
+            if (created != null)
+            {
+                _clients.Add(created);
+                Snackbar.Add("Client created.", Severity.Success);
+            }
+            else Snackbar.Add("Failed to create client.", Severity.Error);
+        }
+        else
+        {
+            var req = new UpdateClientRequest
+            {
+                CompanyName = _form.CompanyName!,
+                ContactName = _form.ContactName ?? string.Empty,
+                Email = _form.Email!,
+                Phone = _form.Phone ?? string.Empty,
+                Address = _form.Address,
+                Notes = _form.Notes,
+                IsActive = _form.IsActive
+            };
+            var updated = await Api.UpdateClientAsync(_editClient.Id, req);
+            if (updated != null)
+            {
+                var idx = _clients.FindIndex(c => c.Id == _editClient.Id);
+                if (idx >= 0) _clients[idx] = updated;
+                Snackbar.Add("Client updated.", Severity.Success);
+            }
+            else Snackbar.Add("Failed to update client.", Severity.Error);
+        }
+
+        _saving = false;
+        _dialogOpen = false;
+        StateHasChanged();
+    }
+
+    private async Task ConfirmDelete(ClientResponse c)
+    {
+        _pendingDeleteId = null;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteClientAsync(c.Id);
+        if (ok)
+        {
+            _clients.Remove(c);
+            Snackbar.Add("Client removed.", Severity.Success);
+            StateHasChanged();
+        }
+        else Snackbar.Add("Failed to remove client.", Severity.Error);
+    }
+
+    private class ClientFormModel
+    {
+        public Guid TenantId { get; set; }
+        public string? CompanyName { get; set; }
+        public string? ContactName { get; set; }
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        public string? Address { get; set; }
+        public string? Notes { get; set; }
+        public string? Password { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+}

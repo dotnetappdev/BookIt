@@ -1,10 +1,14 @@
 using BookIt.Core.DTOs;
 using BookIt.Core.Entities;
 using BookIt.Core.Interfaces;
+using BookIt.Core.Enums;
 using BookIt.Infrastructure.Data;
+using BookIt.Notifications.Email;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 
 namespace BookIt.API.Controllers;
 
@@ -14,11 +18,22 @@ public class StaffController : ControllerBase
 {
     private readonly BookItDbContext _context;
     private readonly ITenantService _tenantService;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IEmailNotificationService _emailService;
+    private readonly IConfiguration _configuration;
 
-    public StaffController(BookItDbContext context, ITenantService tenantService)
+    public StaffController(
+        BookItDbContext context, 
+        ITenantService tenantService,
+        UserManager<ApplicationUser> userManager,
+        IEmailNotificationService emailService,
+        IConfiguration configuration)
     {
         _context = context;
         _tenantService = tenantService;
+        _userManager = userManager;
+        _emailService = emailService;
+        _configuration = configuration;
     }
 
     [HttpGet]
@@ -29,6 +44,7 @@ public class StaffController : ControllerBase
 
         var staff = await _context.Staff
             .Include(s => s.Services).ThenInclude(ss => ss.Service)
+            .Include(s => s.Client)
             .Where(s => s.TenantId == tenant.Id && s.IsActive && !s.IsDeleted)
             .OrderBy(s => s.SortOrder)
             .ToListAsync();
@@ -48,6 +64,7 @@ public class StaffController : ControllerBase
 
         var staff = await _context.Staff
             .Include(s => s.Services).ThenInclude(ss => ss.Service)
+            .Include(s => s.Client)
             .Where(s => s.TenantId == tenant.Id && !s.IsDeleted)
             .OrderBy(s => s.SortOrder)
             .ToListAsync();
@@ -83,6 +100,12 @@ public class StaffController : ControllerBase
         if (!_tenantService.IsValidTenantAccess(tenant.Id))
             return Forbid();
 
+        if (string.IsNullOrWhiteSpace(request.Email))
+            return BadRequest(new { message = "Email is required" });
+
+        if (string.IsNullOrWhiteSpace(request.Phone))
+            return BadRequest(new { message = "Phone is required" });
+
         var staff = new Staff
         {
             Id = Guid.NewGuid(),
@@ -95,11 +118,48 @@ public class StaffController : ControllerBase
             Bio = request.Bio,
             IsActive = request.IsActive,
             SortOrder = request.SortOrder,
+            ClientId = request.ClientId,
             CreatedAt = DateTime.UtcNow
         };
 
         _context.Staff.Add(staff);
         await _context.SaveChangesAsync();
+
+        if (request.SendInvite)
+        {
+            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+            var invitation = new StaffInvitation
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenant.Id,
+                StaffId = staff.Id,
+                Email = request.Email,
+                Token = token,
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                IsUsed = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.StaffInvitations.Add(invitation);
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                var sendGridKey = _configuration["SendGrid:ApiKey"] ?? "";
+                var fromEmail = tenant.ContactEmail ?? "noreply@bookit.app";
+                var fromName = tenant.Name;
+                var inviteLink = $"{_configuration["AppUrl"]}/staff-invite/{token}";
+
+                await _emailService.SendStaffInvitationAsync(
+                    sendGridKey, fromEmail, fromName, request.Email,
+                    staff.FullName, tenant.Name, inviteLink, invitation.ExpiresAt);
+            }
+            catch (Exception ex)
+            {
+                // Log but don't fail the request
+                Console.WriteLine($"Failed to send staff invitation email: {ex.Message}");
+            }
+        }
 
         return CreatedAtAction(nameof(GetStaffById), new { tenantSlug, id = staff.Id }, MapToResponse(staff));
     }
@@ -190,6 +250,71 @@ public class StaffController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("api/tenants/staff/accept-invitation")]
+    public async Task<ActionResult<AuthResponse>> AcceptInvitation([FromBody] AcceptStaffInvitationRequest request)
+    {
+        var invitation = await _context.StaffInvitations
+            .Include(i => i.Staff)
+            .Include(i => i.Tenant)
+            .FirstOrDefaultAsync(i => i.Token == request.Token && !i.IsDeleted);
+
+        if (invitation == null || invitation.IsUsed || invitation.ExpiresAt < DateTime.UtcNow)
+            return BadRequest(new { message = "Invalid or expired invitation" });
+
+        var staff = invitation.Staff;
+        var tenant = invitation.Tenant;
+
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenant.Id,
+            Email = staff.Email,
+            UserName = staff.Email,
+            FirstName = staff.FirstName,
+            LastName = staff.LastName,
+            PhoneNumber = staff.Phone,
+            Role = UserRole.Staff,
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await _userManager.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+            return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
+
+        await _userManager.AddToRoleAsync(user, "Staff");
+
+        staff.UserId = user.Id;
+        invitation.IsUsed = true;
+        invitation.UsedAt = DateTime.UtcNow;
+        invitation.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Account created successfully. You can now sign in." });
+    }
+
+    [HttpGet("api/tenants/staff/invitation/{token}")]
+    public async Task<ActionResult<StaffInvitationResponse>> GetInvitation(string token)
+    {
+        var invitation = await _context.StaffInvitations
+            .Include(i => i.Staff)
+            .Include(i => i.Tenant)
+            .FirstOrDefaultAsync(i => i.Token == token && !i.IsDeleted);
+
+        if (invitation == null || invitation.IsUsed || invitation.ExpiresAt < DateTime.UtcNow)
+            return BadRequest(new { message = "Invalid or expired invitation" });
+
+        return Ok(new StaffInvitationResponse
+        {
+            Id = invitation.Id,
+            Token = invitation.Token,
+            Email = invitation.Email,
+            StaffName = invitation.Staff.FullName,
+            ExpiresAt = invitation.ExpiresAt,
+            IsUsed = invitation.IsUsed
+        });
+    }
+
     private static StaffResponse MapToResponse(Staff s) => new()
     {
         Id = s.Id,
@@ -201,6 +326,8 @@ public class StaffController : ControllerBase
         Bio = s.Bio,
         IsActive = s.IsActive,
         SortOrder = s.SortOrder,
+        ClientId = s.ClientId,
+        ClientName = s.Client?.CompanyName,
         Services = s.Services.Select(ss => new StaffServiceItem { Id = ss.Service.Id, Name = ss.Service.Name }).ToList()
     };
 }

@@ -142,10 +142,10 @@ else
                 <MudTextField @bind-Value="_form.LastName" Label="Last Name" Required="true" />
             </MudItem>
             <MudItem xs="6">
-                <MudTextField @bind-Value="_form.Email" Label="Email" InputType="InputType.Email" />
+                <MudTextField @bind-Value="_form.Email" Label="Email" InputType="InputType.Email" Required="true" />
             </MudItem>
             <MudItem xs="6">
-                <MudTextField @bind-Value="_form.Phone" Label="Phone" />
+                <MudTextField @bind-Value="_form.Phone" Label="Phone" Required="true" />
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_form.PhotoUrl" Label="Photo URL" Placeholder="https://…" />
@@ -159,6 +159,15 @@ else
             <MudItem xs="6" Class="d-flex align-items-center">
                 <MudSwitch @bind-Value="_form.IsActive" Color="Color.Primary" Label="Active" />
             </MudItem>
+            @if (_editStaff == null)
+            {
+                <MudItem xs="12">
+                    <MudSwitch @bind-Value="_form.SendInvite" Color="Color.Primary" Label="Send invitation email to set password" />
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        Staff member will receive an email with a link to create their account password
+                    </MudText>
+                </MudItem>
+            }
         </MudGrid>
     </DialogContent>
     <DialogActions>
@@ -236,6 +245,16 @@ else
             Snackbar.Add("First name is required.", Severity.Warning);
             return;
         }
+        if (string.IsNullOrWhiteSpace(_form.Email))
+        {
+            Snackbar.Add("Email is required.", Severity.Warning);
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_form.Phone))
+        {
+            Snackbar.Add("Phone is required.", Severity.Warning);
+            return;
+        }
         _saving = true;
         Api.SetToken(Auth.AccessToken);
 
@@ -245,15 +264,23 @@ else
             {
                 FirstName = _form.FirstName,
                 LastName = _form.LastName ?? string.Empty,
-                Email = _form.Email,
-                Phone = _form.Phone,
+                Email = _form.Email!,
+                Phone = _form.Phone!,
                 PhotoUrl = _form.PhotoUrl,
                 Bio = _form.Bio,
                 IsActive = _form.IsActive,
-                SortOrder = _form.SortOrder
+                SortOrder = _form.SortOrder,
+                SendInvite = _form.SendInvite
             };
             var created = await Api.CreateStaffAsync(TenantSlug, req);
-            if (created != null) { _staff.Add(created); Snackbar.Add("Staff member added.", Severity.Success); }
+            if (created != null) 
+            { 
+                _staff.Add(created); 
+                var msg = _form.SendInvite 
+                    ? "Staff member added and invitation sent." 
+                    : "Staff member added.";
+                Snackbar.Add(msg, Severity.Success); 
+            }
             else Snackbar.Add("Failed to add staff member.", Severity.Error);
         }
         else
@@ -310,5 +337,6 @@ else
         public string? Bio { get; set; }
         public bool IsActive { get; set; } = true;
         public int SortOrder { get; set; }
+        public bool SendInvite { get; set; } = true;
     }
 }

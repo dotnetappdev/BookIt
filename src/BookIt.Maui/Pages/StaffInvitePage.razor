@@ -1,0 +1,163 @@
+@page "/staff-invite/{token}"
+@inject BookItApiService Api
+@inject NavigationManager Nav
+
+<div style="min-height:100vh;background:#1a1a1a;color:#e8e8e8;">
+    <MudContainer MaxWidth="MaxWidth.Small" Style="padding:48px 24px;">
+        <div style="text-align:center;margin-bottom:32px;">
+            <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
+                <MudIcon Icon="@Icons.Material.Filled.People" Style="color:white;font-size:36px;" />
+            </div>
+            <MudText Typo="Typo.h4" Style="font-weight:800;letter-spacing:-.03em;color:#fff;">Staff Invitation</MudText>
+            @if (_invitation != null)
+            {
+                <MudText Style="color:#9e9e9e;">Set up your account</MudText>
+            }
+        </div>
+
+        @if (_loading)
+        {
+            <MudPaper Elevation="4" Style="background:#2a2a2a;border-radius:16px;">
+                <MudCardContent>
+                    <MudStack AlignItems="AlignItems.Center" Class="py-4">
+                        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                        <MudText>Loading invitation...</MudText>
+                    </MudStack>
+                </MudCardContent>
+            </MudPaper>
+        }
+        else if (!string.IsNullOrEmpty(_error))
+        {
+            <MudPaper Elevation="4" Style="background:#2a2a2a;border-radius:16px;padding:24px;">
+                <MudAlert Severity="Severity.Error">@_error</MudAlert>
+                <MudButton Href="/login" Variant="Variant.Text" Color="Color.Primary" FullWidth="true" Style="margin-top:16px;">
+                    Back to Login
+                </MudButton>
+            </MudPaper>
+        }
+        else if (_invitation != null)
+        {
+            <MudPaper Elevation="4" Style="background:#2a2a2a;border-radius:16px;padding:24px;">
+                <MudStack Spacing="3">
+                    <div>
+                        <MudText Typo="Typo.h6" Class="mb-1" Style="color:#fff;">Set Your Password</MudText>
+                        <MudText Typo="Typo.body2" Style="color:#9e9e9e;">
+                            Create a password for @_invitation.Email
+                        </MudText>
+                    </div>
+
+                    <MudTextField @bind-Value="_password" Label="Password"
+                                  InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                                  Variant="Variant.Outlined" Required="true"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@(_showPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                  OnAdornmentClick="@(() => _showPassword = !_showPassword)"
+                                  HelperText="At least 8 characters" />
+
+                    <MudTextField @bind-Value="_confirmPassword" Label="Confirm Password"
+                                  InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                                  Variant="Variant.Outlined" Required="true"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@(_showPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                  OnAdornmentClick="@(() => _showPassword = !_showPassword)" />
+
+                    @if (!string.IsNullOrEmpty(_validationError))
+                    {
+                        <MudAlert Severity="Severity.Error">@_validationError</MudAlert>
+                    }
+
+                    <MudText Typo="Typo.caption" Style="color:#9e9e9e;">
+                        This invitation expires on @_invitation.ExpiresAt.ToString("dddd, d MMMM yyyy 'at' h:mm tt")
+                    </MudText>
+
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                               OnClick="AcceptInvitation" Disabled="_submitting" Style="height:48px;font-weight:700;">
+                        @if (_submitting)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="margin-right:8px;" />
+                        }
+                        Create Account
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
+        }
+    </MudContainer>
+</div>
+
+@code {
+    [Parameter] public string Token { get; set; } = "";
+
+    private StaffInvitationResponse? _invitation;
+    private bool _loading = true;
+    private bool _submitting;
+    private bool _showPassword;
+    private string _password = "";
+    private string _confirmPassword = "";
+    private string? _error;
+    private string? _validationError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _invitation = await Api.GetStaffInvitationAsync(Token);
+            _loading = false;
+        }
+        catch
+        {
+            _error = "Invalid or expired invitation link.";
+            _loading = false;
+        }
+    }
+
+    private async Task AcceptInvitation()
+    {
+        _validationError = null;
+
+        if (string.IsNullOrWhiteSpace(_password))
+        {
+            _validationError = "Password is required.";
+            return;
+        }
+
+        if (_password.Length < 8)
+        {
+            _validationError = "Password must be at least 8 characters.";
+            return;
+        }
+
+        if (_password != _confirmPassword)
+        {
+            _validationError = "Passwords do not match.";
+            return;
+        }
+
+        _submitting = true;
+
+        try
+        {
+            var result = await Api.AcceptStaffInvitationAsync(new AcceptStaffInvitationRequest
+            {
+                Token = Token,
+                Password = _password
+            });
+
+            if (result)
+            {
+                Nav.NavigateTo("/login");
+            }
+            else
+            {
+                _validationError = "Failed to create account. Please try again.";
+            }
+        }
+        catch
+        {
+            _validationError = "An error occurred. Please try again.";
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+}

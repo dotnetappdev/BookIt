@@ -188,6 +188,12 @@ public class BookItApiService
     public Task<bool> AssignStaffServicesAsync(string slug, Guid staffId, AssignStaffServicesRequest req) =>
         PostBoolAsync($"/api/tenants/{slug}/staff/{staffId}/services", req);
 
+    public Task<StaffInvitationResponse?> GetStaffInvitationAsync(string token) =>
+        GetAsync<StaffInvitationResponse>($"/api/tenants/staff/invitation/{token}");
+
+    public Task<bool> AcceptStaffInvitationAsync(AcceptStaffInvitationRequest req) =>
+        PostBoolAsync("/api/tenants/staff/accept-invitation", req);
+
     // ── Class Sessions ──
     public Task<List<ClassSessionResponse>?> GetClassSessionsAsync(string slug, int days = 365) =>
         GetAsync<List<ClassSessionResponse>>($"/api/tenants/{slug}/class-sessions?days={days}");
@@ -210,6 +216,32 @@ public class BookItApiService
 
     public Task<bool> SuperAdminDeleteTenantAsync(Guid tenantId) =>
         DeleteAsync($"/api/admin/tenants/{tenantId}");
+
+    // ── Clients ──
+    public Task<List<ClientResponse>?> GetAllClientsAsync() =>
+        GetAsync<List<ClientResponse>>("/api/admin/clients");
+
+    public Task<ClientResponse?> GetClientAsync(Guid id) =>
+        GetAsync<ClientResponse>($"/api/admin/clients/{id}");
+
+    public Task<ClientResponse?> CreateClientAsync(CreateClientRequest req) =>
+        PostAsync<ClientResponse>("/api/admin/clients", req);
+
+    public Task<ClientResponse?> UpdateClientAsync(Guid id, UpdateClientRequest req) =>
+        PutAsync<ClientResponse>($"/api/admin/clients/{id}", req);
+
+    public Task<bool> DeleteClientAsync(Guid id) =>
+        DeleteAsync($"/api/admin/clients/{id}");
+
+    // ── Database Management ──
+    public Task<object?> GetDatabaseStatusAsync() =>
+        GetAsync<object>("/api/admin/database/status");
+
+    public Task<bool> SeedDemoDataAsync() =>
+        PostBoolAsync("/api/admin/database/seed", new { });
+
+    public Task<bool> ClearDemoDataAsync() =>
+        PostBoolAsync("/api/admin/database/clear", new { });
 
     // ── Email Templates ──
     public Task<List<EmailTemplateResponse>?> GetEmailTemplatesAsync(string slug) =>

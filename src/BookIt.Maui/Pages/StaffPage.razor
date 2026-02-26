@@ -1,0 +1,255 @@
+@page "/staff"
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+
+<div style="min-height:100vh;background:#1a1a1a;">
+    <MudContainer MaxWidth="MaxWidth.Large" Style="padding:24px;">
+        @if (!Auth.IsAuthenticated)
+        {
+            <MudText Style="color:#e8e8e8;">Please log in to manage staff.</MudText>
+        }
+        else
+        {
+            <MudStack>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+                    <div>
+                        <MudText Typo="Typo.h5" Class="fw-bold" Style="color:#fff;">Staff</MudText>
+                        <MudText Typo="Typo.body2" Style="color:#9e9e9e;">Manage your team members</MudText>
+                    </div>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
+                               OnClick="OpenAddDialog">Add Staff</MudButton>
+                </MudStack>
+
+                @if (_loading)
+                {
+                    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+                }
+                else if (!_staff.Any())
+                {
+                    <MudPaper Elevation="4" Style="background:#2a2a2a;border-radius:16px;">
+                        <MudCardContent>
+                            <MudStack AlignItems="AlignItems.Center" Class="py-8">
+                                <MudIcon Icon="@Icons.Material.Filled.PeopleOutline" Size="Size.Large" Style="opacity:.3;color:#9e9e9e;" />
+                                <MudText Style="color:#e8e8e8;">No staff members yet</MudText>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog">Add First Staff Member</MudButton>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudPaper>
+                }
+                else
+                {
+                    <MudStack Spacing="2">
+                        @foreach (var s in _staff)
+                        {
+                            <MudPaper Elevation="4" Style="background:#2a2a2a;border-radius:12px;">
+                                <MudCardContent>
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                            @if (!string.IsNullOrEmpty(s.PhotoUrl))
+                                            {
+                                                <MudAvatar Size="Size.Medium" Style="@($"background-image: url('{s.PhotoUrl?.Replace("'", "%27")}'); background-size: cover;")" />
+                                            }
+                                            else
+                                            {
+                                                <MudAvatar Color="Color.Primary" Size="Size.Medium">@Initials(s)</MudAvatar>
+                                            }
+                                            <div>
+                                                <MudText Typo="Typo.body1" Class="fw-bold" Style="color:#fff;">@s.FullName</MudText>
+                                                <MudText Typo="Typo.caption" Style="color:#9e9e9e;">@s.Email</MudText>
+                                                <MudText Typo="Typo.caption" Style="color:#9e9e9e;">@s.Phone</MudText>
+                                            </div>
+                                        </MudStack>
+                                        <MudStack Row="true" Spacing="1">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                                           OnClick="@(() => OpenEditDialog(s))" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                           OnClick="@(() => DeleteStaff(s))" />
+                                        </MudStack>
+                                    </MudStack>
+                                </MudCardContent>
+                            </MudPaper>
+                        }
+                    </MudStack>
+                }
+            </MudStack>
+        }
+    </MudContainer>
+</div>
+
+<MudDialog @bind-Visible="_dialogOpen">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editStaff == null ? "Add Staff Member" : "Edit Staff Member")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudTextField @bind-Value="_form.FirstName" Label="First Name" Variant="Variant.Outlined" Required="true" />
+            <MudTextField @bind-Value="_form.LastName" Label="Last Name" Variant="Variant.Outlined" Required="true" />
+            <MudTextField @bind-Value="_form.Email" Label="Email" Variant="Variant.Outlined" 
+                          InputType="InputType.Email" Required="true" />
+            <MudTextField @bind-Value="_form.Phone" Label="Mobile" Variant="Variant.Outlined" Required="true" />
+            <MudTextField @bind-Value="_form.Bio" Label="Bio" Variant="Variant.Outlined" Lines="2" />
+            @if (_editStaff == null)
+            {
+                <MudSwitch @bind-Value="_form.SendInvite" Color="Color.Primary" Label="Send invitation email" />
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    Staff will receive an email to set their password
+                </MudText>
+            }
+            @if (!string.IsNullOrEmpty(_formError))
+            {
+                <MudAlert Severity="Severity.Error">@_formError</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveStaff" Disabled="_saving">
+            @(_saving ? "Saving…" : "Save")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<StaffResponse> _staff = new();
+    private bool _loading = true;
+    private bool _dialogOpen;
+    private bool _saving;
+    private StaffResponse? _editStaff;
+    private StaffFormModel _form = new();
+    private string? _formError;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !Auth.IsAuthenticated) return;
+        Api.SetToken(Auth.AccessToken);
+        _staff = await Api.GetAllStaffAsync(Auth.TenantSlug) ?? new();
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private void OpenAddDialog()
+    {
+        _editStaff = null;
+        _form = new StaffFormModel();
+        _formError = null;
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(StaffResponse s)
+    {
+        _editStaff = s;
+        _form = new StaffFormModel
+        {
+            FirstName = s.FirstName,
+            LastName = s.LastName,
+            Email = s.Email,
+            Phone = s.Phone,
+            Bio = s.Bio
+        };
+        _formError = null;
+        _dialogOpen = true;
+    }
+
+    private void CloseDialog() => _dialogOpen = false;
+
+    private async Task SaveStaff()
+    {
+        _formError = null;
+
+        if (string.IsNullOrWhiteSpace(_form.FirstName) || string.IsNullOrWhiteSpace(_form.LastName))
+        {
+            _formError = "First and last name are required.";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_form.Email))
+        {
+            _formError = "Email is required.";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_form.Phone))
+        {
+            _formError = "Mobile is required.";
+            return;
+        }
+
+        _saving = true;
+        Api.SetToken(Auth.AccessToken);
+
+        if (_editStaff == null)
+        {
+            var req = new CreateStaffRequest
+            {
+                FirstName = _form.FirstName!,
+                LastName = _form.LastName!,
+                Email = _form.Email!,
+                Phone = _form.Phone!,
+                Bio = _form.Bio,
+                SendInvite = _form.SendInvite
+            };
+            var created = await Api.CreateStaffAsync(Auth.TenantSlug, req);
+            if (created != null)
+            {
+                _staff.Add(created);
+                _dialogOpen = false;
+            }
+            else
+            {
+                _formError = "Failed to add staff member.";
+            }
+        }
+        else
+        {
+            var req = new UpdateStaffRequest
+            {
+                FirstName = _form.FirstName!,
+                LastName = _form.LastName!,
+                Email = _form.Email!,
+                Phone = _form.Phone!,
+                Bio = _form.Bio
+            };
+            var updated = await Api.UpdateStaffAsync(Auth.TenantSlug, _editStaff.Id, req);
+            if (updated != null)
+            {
+                var idx = _staff.IndexOf(_editStaff);
+                if (idx >= 0) _staff[idx] = updated;
+                _dialogOpen = false;
+            }
+            else
+            {
+                _formError = "Failed to update staff member.";
+            }
+        }
+
+        _saving = false;
+        StateHasChanged();
+    }
+
+    private async Task DeleteStaff(StaffResponse s)
+    {
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteStaffAsync(Auth.TenantSlug, s.Id);
+        if (ok)
+        {
+            _staff.Remove(s);
+            StateHasChanged();
+        }
+    }
+
+    private static string Initials(StaffResponse s)
+    {
+        var f = string.IsNullOrEmpty(s.FirstName) ? "" : s.FirstName[0].ToString().ToUpper();
+        var l = string.IsNullOrEmpty(s.LastName) ? "" : s.LastName[0].ToString().ToUpper();
+        return $"{f}{l}";
+    }
+
+    private class StaffFormModel
+    {
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        public string? Bio { get; set; }
+        public bool SendInvite { get; set; } = true;
+    }
+}

@@ -1,4 +1,5 @@
 using System.Text;
+using BookIt.API.Services;
 using BookIt.Core.Enums;
 using BookIt.Infrastructure;
 using BookIt.Infrastructure.Data;
@@ -46,6 +47,7 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IDatabaseSeederService, DatabaseSeederService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -87,6 +89,15 @@ using (var scope = app.Services.CreateScope())
     try
     {
         db.Database.EnsureCreated();
+
+        // Seed demo data on first run if not exists
+        var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeederService>();
+        if (!await seeder.HasDemoDataAsync())
+        {
+            await seeder.SeedDemoDataAsync();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("Demo data seeded successfully");
+        }
     }
     catch (Exception ex)
     {

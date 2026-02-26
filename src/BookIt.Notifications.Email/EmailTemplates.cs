@@ -219,4 +219,40 @@ internal static class EmailTemplates
 </body>
 </html>";
     }
+
+    public static string StaffInvitation(
+        string staffName,
+        string businessName,
+        string inviteLink,
+        DateTime expiresAt)
+    {
+        return $@"<!DOCTYPE html>
+<html>
+<head><meta charset=""utf-8""><meta name=""viewport"" content=""width=device-width,initial-scale=1""></head>
+<body style=""margin:0;padding:0;background:#f7f8fc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"">
+  <div style=""max-width:600px;margin:32px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);"">
+    <div style=""background:linear-gradient(135deg,#6c5ce7,#a29bfe);padding:32px 40px;"">
+      <div style=""font-size:24px;font-weight:800;color:white;"">{businessName}</div>
+      <div style=""font-size:14px;color:rgba(255,255,255,.8);margin-top:4px;"">🎉 Staff Invitation</div>
+    </div>
+    <div style=""padding:32px 40px;"">
+      <p style=""font-size:16px;color:#2d3748;"">Hi {staffName},</p>
+      <p style=""color:#4a5568;"">You've been invited to join <strong>{businessName}</strong> as a staff member on BookIt!</p>
+      <p style=""color:#4a5568;"">Click the button below to set up your account and create your password:</p>
+      <div style=""text-align:center;margin:32px 0;"">
+        <a href=""{inviteLink}"" style=""display:inline-block;background:#6c5ce7;color:white;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;"">
+          Accept Invitation
+        </a>
+      </div>
+      <p style=""color:#718096;font-size:14px;"">This invitation link expires on {expiresAt:dddd, d MMMM yyyy} at {expiresAt:h:mm tt}.</p>
+      <p style=""color:#718096;font-size:12px;margin-top:24px;"">If you didn't expect this invitation, you can safely ignore this email.</p>
+    </div>
+    <div style=""padding:20px 40px;background:#f7f8fc;border-top:1px solid #eee;text-align:center;font-size:12px;color:#a0aec0;"">
+      Powered by <strong>BookIt</strong> — The Smart Booking Platform
+    </div>
+  </div>
+</body>
+</html>";
+    }
 }
+

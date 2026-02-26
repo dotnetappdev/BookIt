@@ -2,12 +2,12 @@
 @inject BookItAuthState Auth
 @inject NavigationManager Nav
 
-<MudThemeProvider Theme="BookItTheme.Default" />
+<MudThemeProvider Theme="BookItTheme.Default" DefaultScrollbar="true" IsDarkMode="true" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<div class="safe-area-top">
+<div class="safe-area-top" style="background:#1a1a1a;min-height:100vh;">
     @if (Auth.IsAuthenticated)
     {
         <!-- Top app bar -->
@@ -18,12 +18,12 @@
                            OnClick='@(() => Nav.NavigateTo("/profile"))' />
         </MudAppBar>
 
-        <div class="main-content" style="padding-top:48px;">
+        <div class="main-content" style="padding-top:48px;background:#1a1a1a;min-height:100vh;">
             @Body
         </div>
 
         <!-- Bottom navigation -->
-        <nav class="bottom-nav">
+        <nav class="bottom-nav" style="background:#2a2a2a;border-top:1px solid #3a3a3a;">
             <a href="/dashboard" class="bottom-nav-item @(IsActive("/dashboard") ? "active" : "")">
                 <MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Small" />
                 <span>Home</span>

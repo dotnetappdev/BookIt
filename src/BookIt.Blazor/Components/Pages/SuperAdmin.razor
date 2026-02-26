@@ -216,6 +216,36 @@
             }
                 </MudTabPanel>
 
+                <!-- Clients Tab -->
+                <MudTabPanel Text="Clients" Icon="@Icons.Material.Filled.Groups">
+                    <div style="text-align:center;padding:60px 20px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Large" Style="color:#6c5ce7;font-size:4rem;margin-bottom:16px;" />
+                        <MudText Typo="Typo.h5" Class="mb-2" Style="font-weight:700;">Client Management</MudText>
+                        <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
+                            Manage client accounts and their staff associations
+                        </MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+                                   Href="/superadmin/clients" StartIcon="@Icons.Material.Filled.ArrowForward">
+                            Go to Client Management
+                        </MudButton>
+                    </div>
+                </MudTabPanel>
+
+                <!-- Database Management Tab -->
+                <MudTabPanel Text="Database" Icon="@Icons.Material.Filled.Storage">
+                    <div style="text-align:center;padding:60px 20px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Storage" Size="Size.Large" Style="color:#6c5ce7;font-size:4rem;margin-bottom:16px;" />
+                        <MudText Typo="Typo.h5" Class="mb-2" Style="font-weight:700;">Database Management</MudText>
+                        <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
+                            Seed demo data or clear the database
+                        </MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+                                   Href="/superadmin/database" StartIcon="@Icons.Material.Filled.ArrowForward">
+                            Go to Database Management
+                        </MudButton>
+                    </div>
+                </MudTabPanel>
+
                 <!-- RevenueCat Configuration — SuperAdmin only -->
                 <MudTabPanel Text="RevenueCat Config" Icon="@Icons.Material.Filled.Subscriptions">
                     <MudStack Spacing="4" Class="mt-4">

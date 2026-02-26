@@ -172,6 +172,23 @@ public sealed class SendGridEmailService : IEmailNotificationService
         await SendAsync(sendGridApiKey, fromEmail, fromName, toEmail, customerName, subject, html, cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task SendStaffInvitationAsync(
+        string sendGridApiKey,
+        string fromEmail,
+        string fromName,
+        string toEmail,
+        string staffName,
+        string businessName,
+        string inviteLink,
+        DateTime expiresAt,
+        CancellationToken cancellationToken = default)
+    {
+        var html = EmailTemplates.StaffInvitation(staffName, businessName, inviteLink, expiresAt);
+        var subject = $"You're invited to join {businessName} on BookIt";
+        await SendAsync(sendGridApiKey, fromEmail, fromName, toEmail, staffName, subject, html, cancellationToken);
+    }
+
     // Placeholder helpers
 
     private static Dictionary<string, string> BuildPlaceholders(

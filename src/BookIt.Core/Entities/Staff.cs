@@ -6,10 +6,12 @@ public class Staff : BaseEntity
     public Tenant Tenant { get; set; } = null!;
     public Guid? UserId { get; set; }
     public ApplicationUser? User { get; set; }
+    public Guid? ClientId { get; set; }
+    public Client? Client { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
-    public string? Email { get; set; }
-    public string? Phone { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
     public string? PhotoUrl { get; set; }
     public string? Bio { get; set; }
     public bool IsActive { get; set; } = true;

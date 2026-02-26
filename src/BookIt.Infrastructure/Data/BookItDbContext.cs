@@ -15,6 +15,13 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         _tenantId = tenantContext?.TenantId;
     }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.ConfigureWarnings(warnings =>
+            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    }
+
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public new DbSet<ApplicationUser> Users => Set<ApplicationUser>();
     public DbSet<ServiceCategory> ServiceCategories => Set<ServiceCategory>();
@@ -37,6 +44,8 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Webhook> Webhooks => Set<Webhook>();
     public DbSet<WebhookDelivery> WebhookDeliveries => Set<WebhookDelivery>();
+    public DbSet<StaffInvitation> StaffInvitations => Set<StaffInvitation>();
+    public DbSet<Client> Clients => Set<Client>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,6 +73,8 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         modelBuilder.Entity<EmailTemplate>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Webhook>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Customer>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<StaffInvitation>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Client>().HasQueryFilter(e => !e.IsDeleted);
 
         // StaffService composite key
         modelBuilder.Entity<StaffService>().HasKey(ss => new { ss.StaffId, ss.ServiceId });
@@ -165,6 +176,73 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         {
             entity.HasIndex(c => c.Token).IsUnique();
             entity.HasIndex(c => new { c.TenantId, c.CandidateEmail });
+        });
+
+        // StaffInvitation
+        modelBuilder.Entity<StaffInvitation>(entity =>
+        {
+            entity.HasIndex(s => s.Token).IsUnique();
+            entity.HasIndex(s => new { s.TenantId, s.Email });
+            entity.HasOne(s => s.Staff)
+                  .WithMany()
+                  .HasForeignKey(s => s.StaffId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // StaffService - configure to handle filtered entities
+        modelBuilder.Entity<StaffService>(entity =>
+        {
+            entity.HasOne(ss => ss.Staff)
+                  .WithMany(s => s.Services)
+                  .HasForeignKey(ss => ss.StaffId)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(ss => ss.Service)
+                  .WithMany()
+                  .HasForeignKey(ss => ss.ServiceId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // StaffAvailability - configure relationship
+        modelBuilder.Entity<StaffAvailability>(entity =>
+        {
+            entity.HasOne(sa => sa.Staff)
+                  .WithMany(s => s.Availability)
+                  .HasForeignKey(sa => sa.StaffId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // InterviewSlot - configure relationship
+        modelBuilder.Entity<InterviewSlot>(entity =>
+        {
+            entity.HasOne(i => i.Service)
+                  .WithMany()
+                  .HasForeignKey(i => i.ServiceId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // WebhookDelivery - configure relationship
+        modelBuilder.Entity<WebhookDelivery>(entity =>
+        {
+            entity.HasOne(wd => wd.Webhook)
+                  .WithMany()
+                  .HasForeignKey(wd => wd.WebhookId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // Client
+        modelBuilder.Entity<Client>(entity =>
+        {
+            entity.HasIndex(c => new { c.TenantId, c.Email });
+            entity.Property(c => c.CompanyName).HasMaxLength(200).IsRequired();
+            entity.Property(c => c.ContactName).HasMaxLength(200).IsRequired();
+            entity.Property(c => c.Email).HasMaxLength(256).IsRequired();
+        });
+
+        // Customer
+        modelBuilder.Entity<Customer>(entity =>
+        {
+            entity.Property(c => c.TotalSpent).HasColumnType("decimal(18,2)");
         });
 
         // Seed data
