@@ -42,7 +42,9 @@
 | `BookIt.Payments.PayPal` | Class Library | `IPayPalProvider` — PayPal Orders v2 |
 | `BookIt.Payments.ApplePay` | Class Library | `IApplePayProvider` — Apple Pay via Stripe (isolated reusable DLL) |
 | `BookIt.Subscriptions.RevenueCat` | Class Library | `IRevenueCatProvider` — RevenueCat subscription management (isolated reusable DLL) |
-| `BookIt.Tests` | xUnit | Unit tests (24 passing) |
+| `BookIt.Notifications.Sms` | Class Library | `ISmsProvider` — ClickSend & Twilio SMS (isolated reusable DLL) |
+| `BookIt.Notifications.Email` | Class Library | `IEmailNotificationService` — SendGrid booking confirmations & reminders (isolated reusable DLL) |
+| `BookIt.Tests` | xUnit | Unit tests (31 passing) |
 
 ---
 
@@ -52,7 +54,14 @@
 - Public booking page per tenant (e.g. `/demo-barber/book`)
 - Full month/week calendar with availability management
 - Multi-staff support with individual schedules
-- Automatic confirmation emails
+- Automatic booking confirmation emails (SendGrid)
+
+### Notifications
+- **SMS** — ClickSend & Twilio providers, both in `BookIt.Notifications.Sms`; provider selected per tenant in Settings
+- **Email** — SendGrid booking confirmations, reminders, and cancellations via `BookIt.Notifications.Email`
+- **Reminder alerts** — iOS-calendar-style multi-selection (5 min · 10 min · 15 min · 30 min · 1 h · 2 h · … · 1 day · 2 days · 1 week)
+- Enable email reminders and/or SMS reminders independently per tenant
+- Scheduled via **Hangfire** background job manager (InMemory by default, SQLite/SQL Server in production)
 
 ### Payments
 - Stripe (Payment Intents v2) via `BookIt.Payments.Stripe`
@@ -217,6 +226,44 @@ var tiers = await _revenueCatProvider.GetOfferingsAsync(apiKey);
 > configured in the **Super Admin Console** at `/super-admin` → **RevenueCat Config** tab.
 > This section is only rendered for users with `UserRole.SuperAdmin`.
 
+### SMS Notifications (`BookIt.Notifications.Sms`)
+```csharp
+// Register both providers + factory
+builder.Services.AddSmsNotifications();
+
+// Use — factory selects ClickSend or Twilio based on tenant config
+var provider = _smsFactory.Get(tenant.SmsProvider.ToString());
+var result = await provider.SendAsync(toPhone, message, credentialString);
+// ClickSend credential: "USERNAME:API_KEY"
+// Twilio credential:    "ACCOUNT_SID:AUTH_TOKEN:FROM_NUMBER"
+```
+
+### Email Notifications (`BookIt.Notifications.Email`)
+```csharp
+// Register SendGrid email service
+builder.Services.AddSendGridEmail();
+
+// Use
+await _emailService.SendBookingConfirmationAsync(apiKey, fromEmail, fromName,
+    toEmail, customerName, businessName, serviceName, start, end, location, meetingLink, pin);
+
+await _emailService.SendAppointmentReminderAsync(apiKey, fromEmail, fromName,
+    toEmail, customerName, businessName, serviceName, start, minutesBefore, location, meetingLink);
+```
+
+### Reminder Scheduling (Hangfire)
+```csharp
+// Registered automatically via AddInfrastructure()
+// Schedule reminders when an appointment is created:
+_reminderScheduler.ScheduleReminders(appointmentId, tenantId, startTime, alertMinutes);
+
+// Cancel reminders when cancelled/rescheduled:
+_reminderScheduler.CancelReminders(appointmentId);
+```
+
+**Reminder alert options** (iOS Calendar-style, configurable per tenant):
+`5 min · 10 min · 15 min · 30 min · 1 h · 2 h · 3 h · 6 h · 12 h · 1 day · 2 days · 1 week`
+
 ---
 
 ## Database Migrations
@@ -244,6 +291,8 @@ BookIt.Payments.Stripe        ← IStripeProvider (isolated class library)
 BookIt.Payments.PayPal        ← IPayPalProvider (isolated class library)
 BookIt.Payments.ApplePay      ← IApplePayProvider (isolated — delegates to Stripe)
 BookIt.Subscriptions.RevenueCat ← IRevenueCatProvider (isolated class library)
+BookIt.Notifications.Sms      ← ISmsProvider / ClickSendSmsProvider / TwilioSmsProvider
+BookIt.Notifications.Email    ← IEmailNotificationService / SendGridEmailService
 
 BookIt.Blazor       ← Blazor Server front end (consumes BookIt.UI.Shared)
 BookIt.Web          ← ASP.NET Core MVC front end

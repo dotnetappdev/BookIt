@@ -1,3 +1,4 @@
+@using BookIt.Core.Enums
 @inject ISnackbar Snackbar
 @inject BookItApiService Api
 @inject BookItAuthState Auth
@@ -186,6 +187,132 @@
                         </MudCardContent>
                     </MudCard>
 
+                    <!-- SMS Notifications -->
+                    <MudCard Elevation="1" Class="mb-4">
+                        <MudCardHeader>
+                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.Sms" Color="Color.Primary" /></CardHeaderAvatar>
+                            <CardHeaderContent><MudText Typo="Typo.h6">SMS Notifications</MudText></CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudStack Spacing="3">
+                                <MudSwitch @bind-Value="_enableSms" Label="Enable SMS notifications" Color="Color.Primary" />
+                                @if (_enableSms)
+                                {
+                                    <MudSelect T="SmsProvider" @bind-Value="_smsProvider" Label="SMS Provider" Variant="Variant.Outlined">
+                                        <MudSelectItem T="SmsProvider" Value="SmsProvider.ClickSend">ClickSend</MudSelectItem>
+                                        <MudSelectItem T="SmsProvider" Value="SmsProvider.Twilio">Twilio</MudSelectItem>
+                                    </MudSelect>
+
+                                    @if (_smsProvider == SmsProvider.ClickSend)
+                                    {
+                                        <MudGrid>
+                                            <MudItem xs="12" sm="4">
+                                                <MudTextField @bind-Value="_clickSendUsername" Label="ClickSend Username"
+                                                              Variant="Variant.Outlined" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="4">
+                                                <MudTextField @bind-Value="_clickSendApiKey" Label="ClickSend API Key"
+                                                              InputType="InputType.Password" Variant="Variant.Outlined"
+                                                              Placeholder="Leave blank to keep" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="4">
+                                                <MudTextField @bind-Value="_clickSendFromNumber" Label="From Number / Name"
+                                                              Variant="Variant.Outlined" Placeholder="+447700900000" />
+                                            </MudItem>
+                                        </MudGrid>
+                                    }
+                                    else if (_smsProvider == SmsProvider.Twilio)
+                                    {
+                                        <MudGrid>
+                                            <MudItem xs="12" sm="4">
+                                                <MudTextField @bind-Value="_twilioAccountSid" Label="Twilio Account SID"
+                                                              Variant="Variant.Outlined" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="4">
+                                                <MudTextField @bind-Value="_twilioAuthToken" Label="Twilio Auth Token"
+                                                              InputType="InputType.Password" Variant="Variant.Outlined"
+                                                              Placeholder="Leave blank to keep" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="4">
+                                                <MudTextField @bind-Value="_twilioFromNumber" Label="Twilio From Number"
+                                                              Variant="Variant.Outlined" Placeholder="+447700900000" />
+                                            </MudItem>
+                                        </MudGrid>
+                                    }
+                                }
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+
+                    <!-- Email Notifications (SendGrid) -->
+                    <MudCard Elevation="1" Class="mb-4">
+                        <MudCardHeader>
+                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.Email" Color="Color.Primary" /></CardHeaderAvatar>
+                            <CardHeaderContent><MudText Typo="Typo.h6">Email Notifications (SendGrid)</MudText></CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudStack Spacing="3">
+                                <MudSwitch @bind-Value="_enableEmail" Label="Enable booking confirmation &amp; reminder emails" Color="Color.Primary" />
+                                @if (_enableEmail)
+                                {
+                                    <MudGrid>
+                                        <MudItem xs="12" sm="6">
+                                            <MudTextField @bind-Value="_sendGridApiKey" Label="SendGrid API Key"
+                                                          InputType="InputType.Password" Variant="Variant.Outlined"
+                                                          Placeholder="SG.xxxxx (leave blank to keep)" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="3">
+                                            <MudTextField @bind-Value="_sendGridFromEmail" Label="From Email"
+                                                          InputType="InputType.Email" Variant="Variant.Outlined"
+                                                          Placeholder="noreply@yourdomain.com" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="3">
+                                            <MudTextField @bind-Value="_sendGridFromName" Label="From Name"
+                                                          Variant="Variant.Outlined"
+                                                          Placeholder="Your Business Name" />
+                                        </MudItem>
+                                    </MudGrid>
+                                }
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+
+                    <!-- Reminder Alerts (iOS Calendar style) -->
+                    <MudCard Elevation="1" Class="mb-4">
+                        <MudCardHeader>
+                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.NotificationsActive" Color="Color.Primary" /></CardHeaderAvatar>
+                            <CardHeaderContent><MudText Typo="Typo.h6">Reminder Alerts</MudText></CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudStack Spacing="3">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Choose when to send reminders before each appointment. Multiple alerts can be set — just like iOS Calendar.
+                                </MudText>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudSwitch @bind-Value="_enableEmailReminders" Label="Email reminders" Color="Color.Primary" />
+                                    <MudSwitch @bind-Value="_enableSmsReminders" Label="SMS reminders" Color="Color.Primary" />
+                                </MudStack>
+                                <div>
+                                    <MudText Typo="Typo.subtitle2" Class="mb-2 fw-semibold">Alert times</MudText>
+                                    <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+                                        @foreach (var alert in _reminderAlertOptions)
+                                        {
+                                            var a = alert;
+                                            var selected = _selectedAlerts.Contains(a.Minutes);
+                                            <MudChip T="int" Color="@(selected ? Color.Primary : Color.Default)"
+                                                     Variant="@(selected ? Variant.Filled : Variant.Outlined)"
+                                                     OnClick="@(() => ToggleAlert(a.Minutes))"
+                                                     Icon="@(selected ? Icons.Material.Filled.NotificationsActive : Icons.Material.Outlined.Notifications)"
+                                                     Style="cursor:pointer;">
+                                                @a.Label
+                                            </MudChip>
+                                        }
+                                    </div>
+                                </div>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+
                     <!-- Accommodation Settings (B&B / Hotel only) -->
                     @if (_businessType == BusinessType.BedAndBreakfast || _businessType == BusinessType.Hotel)
                     {
@@ -288,6 +415,50 @@
     private int? _totalRooms;
     private List<string> _selectedAmenities = new();
 
+    // SMS notification fields
+    private bool _enableSms;
+    private SmsProvider _smsProvider = SmsProvider.ClickSend;
+    private string _clickSendUsername = "";
+    private string _clickSendApiKey = "";
+    private string _clickSendFromNumber = "";
+    private string _twilioAccountSid = "";
+    private string _twilioAuthToken = "";
+    private string _twilioFromNumber = "";
+
+    // Email notification fields
+    private bool _enableEmail;
+    private string _sendGridApiKey = "";
+    private string _sendGridFromEmail = "";
+    private string _sendGridFromName = "";
+
+    // Reminder alert fields
+    private bool _enableEmailReminders = true;
+    private bool _enableSmsReminders;
+    private List<int> _selectedAlerts = new() { 1440 };
+
+    private record ReminderAlertOption(int Minutes, string Label);
+    private static readonly ReminderAlertOption[] _reminderAlertOptions =
+    {
+        new(5,    "5 min"),
+        new(10,   "10 min"),
+        new(15,   "15 min"),
+        new(30,   "30 min"),
+        new(60,   "1 hour"),
+        new(120,  "2 hours"),
+        new(180,  "3 hours"),
+        new(360,  "6 hours"),
+        new(720,  "12 hours"),
+        new(1440, "1 day"),
+        new(2880, "2 days"),
+        new(10080,"1 week"),
+    };
+
+    private void ToggleAlert(int minutes)
+    {
+        if (_selectedAlerts.Contains(minutes)) _selectedAlerts.Remove(minutes);
+        else _selectedAlerts.Add(minutes);
+    }
+
     private static readonly string[] _allAmenities =
     {
         "En-suite Bathroom", "Shared Bathroom", "Shower", "Bath",
@@ -366,6 +537,26 @@
                 try { _selectedAmenities = System.Text.Json.JsonSerializer.Deserialize<List<string>>(_tenant.AmenitiesJson) ?? new(); }
                 catch { _selectedAmenities = new(); }
             }
+            // SMS
+            _enableSms = _tenant.EnableSmsNotifications;
+            _smsProvider = _tenant.SmsProvider;
+            _clickSendUsername = _tenant.ClickSendUsername ?? "";
+            _clickSendFromNumber = _tenant.ClickSendFromNumber ?? "";
+            _twilioAccountSid = _tenant.TwilioAccountSid ?? "";
+            _twilioFromNumber = _tenant.TwilioFromNumber ?? "";
+            // Email
+            _enableEmail = _tenant.EnableEmailNotifications;
+            _sendGridFromEmail = _tenant.SendGridFromEmail ?? "";
+            _sendGridFromName = _tenant.SendGridFromName ?? "";
+            // Reminders
+            _enableEmailReminders = _tenant.EnableEmailReminders;
+            _enableSmsReminders = _tenant.EnableSmsReminders;
+            if (!string.IsNullOrEmpty(_tenant.ReminderAlerts))
+            {
+                _selectedAlerts = _tenant.ReminderAlerts.Split(',')
+                    .Select(s => int.TryParse(s.Trim(), out var n) ? n : 0)
+                    .Where(n => n > 0).ToList();
+            }
         }
     }
 
@@ -401,6 +592,24 @@
             AllowedFileExtensions = string.IsNullOrWhiteSpace(_allowedFileExtensions) ? null : _allowedFileExtensions,
             TotalRooms = _totalRooms,
             AmenitiesJson = _selectedAmenities.Any() ? System.Text.Json.JsonSerializer.Serialize(_selectedAmenities) : null,
+            // SMS
+            SmsProvider = _smsProvider,
+            ClickSendUsername = _clickSendUsername,
+            ClickSendApiKey = string.IsNullOrEmpty(_clickSendApiKey) ? null : _clickSendApiKey,
+            ClickSendFromNumber = _clickSendFromNumber,
+            TwilioAccountSid = _twilioAccountSid,
+            TwilioAuthToken = string.IsNullOrEmpty(_twilioAuthToken) ? null : _twilioAuthToken,
+            TwilioFromNumber = _twilioFromNumber,
+            EnableSmsNotifications = _enableSms,
+            // Email
+            SendGridApiKey = string.IsNullOrEmpty(_sendGridApiKey) ? null : _sendGridApiKey,
+            SendGridFromEmail = _sendGridFromEmail,
+            SendGridFromName = _sendGridFromName,
+            EnableEmailNotifications = _enableEmail,
+            // Reminders
+            ReminderAlerts = _selectedAlerts.Any() ? string.Join(",", _selectedAlerts) : null,
+            EnableEmailReminders = _enableEmailReminders,
+            EnableSmsReminders = _enableSmsReminders,
         };
         var result = await Api.UpdateTenantAsync(TenantSlug, req);
         _saving = false;

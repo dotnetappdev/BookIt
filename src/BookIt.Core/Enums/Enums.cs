@@ -165,3 +165,10 @@ public enum TenantTheme
     Rose = 4,     // pink/rose
     Midnight = 5  // deep slate/navy
 }
+
+public enum SmsProvider
+{
+    None = 0,
+    ClickSend = 1,
+    Twilio = 2
+}

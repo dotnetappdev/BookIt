@@ -36,6 +36,21 @@ public class TenantResponse
     // Accommodation (B&B / Hotel)
     public int? TotalRooms { get; set; }
     public string? AmenitiesJson { get; set; }  // JSON array of amenity strings
+    // SMS notifications
+    public SmsProvider SmsProvider { get; set; } = SmsProvider.None;
+    public string? ClickSendUsername { get; set; }
+    public string? ClickSendFromNumber { get; set; }
+    public string? TwilioAccountSid { get; set; }
+    public string? TwilioFromNumber { get; set; }
+    public bool EnableSmsNotifications { get; set; }
+    // SendGrid email notifications
+    public string? SendGridFromEmail { get; set; }
+    public string? SendGridFromName { get; set; }
+    public bool EnableEmailNotifications { get; set; }
+    // Reminder settings
+    public string? ReminderAlerts { get; set; }
+    public bool EnableEmailReminders { get; set; }
+    public bool EnableSmsReminders { get; set; }
 }
 
 public class UpdateTenantRequest
@@ -82,4 +97,22 @@ public class UpdateTenantRequest
     // Accommodation (B&B / Hotel)
     public int? TotalRooms { get; set; }
     public string? AmenitiesJson { get; set; }
+    // SMS notifications
+    public SmsProvider SmsProvider { get; set; } = SmsProvider.None;
+    public string? ClickSendUsername { get; set; }
+    public string? ClickSendApiKey { get; set; }
+    public string? ClickSendFromNumber { get; set; }
+    public string? TwilioAccountSid { get; set; }
+    public string? TwilioAuthToken { get; set; }
+    public string? TwilioFromNumber { get; set; }
+    public bool EnableSmsNotifications { get; set; }
+    // SendGrid email notifications
+    public string? SendGridApiKey { get; set; }
+    public string? SendGridFromEmail { get; set; }
+    public string? SendGridFromName { get; set; }
+    public bool EnableEmailNotifications { get; set; }
+    // Reminder alerts
+    public string? ReminderAlerts { get; set; }
+    public bool EnableEmailReminders { get; set; }
+    public bool EnableSmsReminders { get; set; }
 }

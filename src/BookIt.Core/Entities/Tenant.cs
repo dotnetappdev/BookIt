@@ -54,6 +54,27 @@ public class Tenant : BaseEntity
     public string? VapiPublicKey { get; set; }
     public bool EnableAiChat { get; set; } = true;
 
+    // SMS notifications
+    public SmsProvider SmsProvider { get; set; } = SmsProvider.None;
+    public string? ClickSendUsername { get; set; }
+    public string? ClickSendApiKey { get; set; }
+    public string? ClickSendFromNumber { get; set; }
+    public string? TwilioAccountSid { get; set; }
+    public string? TwilioAuthToken { get; set; }
+    public string? TwilioFromNumber { get; set; }
+    public bool EnableSmsNotifications { get; set; } = false;
+
+    // SendGrid email notifications
+    public string? SendGridApiKey { get; set; }
+    public string? SendGridFromEmail { get; set; }
+    public string? SendGridFromName { get; set; }
+    public bool EnableEmailNotifications { get; set; } = false;
+
+    // Reminder alerts — comma-separated minutes before, e.g. "60,1440" = 1h + 1 day
+    public string? ReminderAlerts { get; set; } = "1440";
+    public bool EnableEmailReminders { get; set; } = true;
+    public bool EnableSmsReminders { get; set; } = false;
+
     // Navigation properties
     public ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
     public ICollection<Service> Services { get; set; } = new List<Service>();

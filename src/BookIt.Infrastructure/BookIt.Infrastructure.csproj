@@ -6,9 +6,14 @@
     <ProjectReference Include="..\BookIt.Payments.PayPal\BookIt.Payments.PayPal.csproj" />
     <ProjectReference Include="..\BookIt.Payments.ApplePay\BookIt.Payments.ApplePay.csproj" />
     <ProjectReference Include="..\BookIt.Subscriptions.RevenueCat\BookIt.Subscriptions.RevenueCat.csproj" />
+    <ProjectReference Include="..\BookIt.Notifications.Sms\BookIt.Notifications.Sms.csproj" />
+    <ProjectReference Include="..\BookIt.Notifications.Email\BookIt.Notifications.Email.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.20" />
+    <PackageReference Include="Hangfire.Core" Version="1.8.20" />
+    <PackageReference Include="Hangfire.InMemory" Version="0.8.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">

@@ -25,6 +25,8 @@
     <ProjectReference Include="..\..\src\BookIt.Infrastructure\BookIt.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\BookIt.Payments.ApplePay\BookIt.Payments.ApplePay.csproj" />
     <ProjectReference Include="..\..\src\BookIt.Subscriptions.RevenueCat\BookIt.Subscriptions.RevenueCat.csproj" />
+    <ProjectReference Include="..\..\src\BookIt.Notifications.Sms\BookIt.Notifications.Sms.csproj" />
+    <ProjectReference Include="..\..\src\BookIt.Notifications.Email\BookIt.Notifications.Email.csproj" />
   </ItemGroup>
 
 </Project>
