@@ -351,4 +351,40 @@ public class BookItApiClient
         var response = await _httpClient.DeleteAsync($"/api/tenants/{tenantSlug}/customers/{customerId}");
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<List<JsonElement>> GetClassSessionsAsync(string tenantSlug, int days = 90)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/class-sessions?days={days}");
+        if (!response.IsSuccessStatusCode) return new();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<JsonElement>>(content, _jsonOptions) ?? new();
+    }
+
+    public async Task<JsonElement?> CreateClassSessionAsync(string tenantSlug, object request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/class-sessions",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<JsonElement>(content, _jsonOptions);
+    }
+
+    public async Task<bool> UpdateClassSessionAsync(string tenantSlug, Guid sessionId, object request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PutAsync($"/api/tenants/{tenantSlug}/class-sessions/{sessionId}",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteClassSessionAsync(string tenantSlug, Guid sessionId)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.DeleteAsync($"/api/tenants/{tenantSlug}/class-sessions/{sessionId}");
+        return response.IsSuccessStatusCode;
+    }
 }

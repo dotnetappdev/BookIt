@@ -211,6 +211,26 @@ public class AdminController : Controller
         return View();
     }
 
+    public async Task<IActionResult> Classes(string tenantSlug)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var sessions = await _apiClient.GetClassSessionsAsync(tenantSlug, days: 365);
+        var staff = await _apiClient.GetAllStaffAsync(tenantSlug);
+        var services = await _apiClient.GetServicesAsync(tenantSlug);
+
+        ViewBag.Tenant = tenant;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.Sessions = sessions;
+        ViewBag.Staff = staff;
+        ViewBag.Services = services;
+        ViewBag.AccessToken = HttpContext.Session.GetString("AccessToken") ?? "";
+        return View();
+    }
+
     public async Task<IActionResult> Staff(string tenantSlug)    {
         if (!IsAuthenticated()) return RequireAuth(tenantSlug);
 

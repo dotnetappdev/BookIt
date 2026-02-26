@@ -51,8 +51,11 @@ public class ClassSessionsController : ControllerBase
             s.Status,
             s.Location,
             s.ClassType,
+            ServiceId = s.ServiceId,
             ServiceName = s.Service?.Name,
-            StaffName = s.Staff?.FullName
+            StaffId = s.StaffId,
+            StaffName = s.Staff?.FullName,
+            InstructorIds = s.InstructorIds
         }));
     }
 
@@ -89,7 +92,9 @@ public class ClassSessionsController : ControllerBase
             session.ClassType,
             ServiceId = session.ServiceId,
             ServiceName = session.Service?.Name,
+            StaffId = session.StaffId,
             StaffName = session.Staff?.FullName,
+            InstructorIds = session.InstructorIds,
             BookingsCount = session.Bookings.Count
         });
     }
@@ -113,7 +118,10 @@ public class ClassSessionsController : ControllerBase
         {
             TenantId = tenant.Id,
             ServiceId = request.ServiceId,
-            StaffId = request.StaffId,
+            StaffId = request.InstructorIds.Any() ? request.InstructorIds.First() : request.StaffId,
+            InstructorIdsJson = request.InstructorIds.Any()
+                ? System.Text.Json.JsonSerializer.Serialize(request.InstructorIds)
+                : null,
             Name = request.Name,
             Description = request.Description,
             SessionDate = request.SessionDate,
@@ -190,6 +198,42 @@ public class ClassSessionsController : ControllerBase
         });
     }
 
+    /// <summary>Update a class session (admin only)</summary>
+    [Authorize]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateSession(string tenantSlug, Guid id, [FromBody] UpdateClassSessionRequest request)
+    {
+        var tenant = await GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+        if (!_tenantService.IsValidTenantAccess(tenant.Id)) return Forbid();
+
+        var session = await _context.ClassSessions
+            .Include(cs => cs.Service)
+            .Include(cs => cs.Staff)
+            .FirstOrDefaultAsync(cs => cs.TenantId == tenant.Id && cs.Id == id && !cs.IsDeleted);
+
+        if (session == null) return NotFound();
+
+        session.Name = request.Name;
+        session.Description = request.Description;
+        session.SessionDate = request.SessionDate;
+        session.StartTime = request.StartTime;
+        session.DurationMinutes = request.DurationMinutes > 0 ? request.DurationMinutes : session.DurationMinutes;
+        session.MaxCapacity = request.MaxCapacity > 0 ? request.MaxCapacity : session.MaxCapacity;
+        session.Price = request.Price >= 0 ? request.Price : session.Price;
+        session.Location = request.Location;
+        if (request.ClassType.HasValue) session.ClassType = request.ClassType.Value;
+        if (request.InstructorIds.Any())
+        {
+            session.StaffId = request.InstructorIds.First();
+            session.InstructorIdsJson = System.Text.Json.JsonSerializer.Serialize(request.InstructorIds);
+        }
+        session.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { session.Id, session.Name, session.SessionDate, session.MaxCapacity, InstructorIds = session.InstructorIds });
+    }
+
     /// <summary>Cancel a class session (admin only)</summary>
     [Authorize]
     [HttpDelete("{id}")]
@@ -217,6 +261,7 @@ public class CreateClassSessionRequest
 {
     public Guid ServiceId { get; set; }
     public Guid? StaffId { get; set; }
+    public List<Guid> InstructorIds { get; set; } = new();
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public DateTime SessionDate { get; set; }
@@ -226,6 +271,20 @@ public class CreateClassSessionRequest
     public decimal Price { get; set; }
     public string? Location { get; set; }
     public ClassType? ClassType { get; set; }
+}
+
+public class UpdateClassSessionRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime SessionDate { get; set; }
+    public TimeOnly StartTime { get; set; }
+    public int DurationMinutes { get; set; }
+    public int MaxCapacity { get; set; }
+    public decimal Price { get; set; }
+    public string? Location { get; set; }
+    public ClassType? ClassType { get; set; }
+    public List<Guid> InstructorIds { get; set; } = new();
 }
 
 public class BookClassSessionRequest
