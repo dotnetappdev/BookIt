@@ -805,6 +805,18 @@ body {
     overflow-y: auto;
 }
 .auth-form-container { width: 100%; max-width: 420px; }
+/* Auth pages — ensure clear, readable text in all colour modes */
+.auth-form-container h1,
+.auth-form-container h2 { color: var(--text); }
+.auth-form-container .form-label { color: var(--text); }
+.auth-form-container .form-control,
+.auth-form-container .form-select { color: var(--text); }
+.auth-form-container .form-control::placeholder,
+.auth-form-container .form-select::placeholder { color: var(--text-muted); opacity: 1; } /* lighter than --text-secondary by design */
+.auth-form-container .input-group-text { color: var(--text-secondary); } /* slightly darker than placeholder */
+/* Setup / Register page */
+#setupForm .form-label { color: var(--text); }
+#setupForm h1 { color: var(--text); }
 
 /* ─── Confirmation ─── */
 .confirm-icon-wrap {
@@ -855,6 +867,25 @@ body {
 }
 .appointment-row { padding: 1rem 0; border-bottom: 1px solid var(--border); }
 .appointment-row:last-child { border-bottom: none; }
+
+/* ─── Admin modal form grid (2-column, works without Bootstrap CDN) ─── */
+.admin-form-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1rem;
+}
+/* Default: 2 per row (span 6 of 12) */
+.admin-form-grid > * { grid-column: span 6; }
+/* Explicit span overrides */
+.admin-form-grid > .afc-12 { grid-column: span 12; }
+.admin-form-grid > .afc-8  { grid-column: span 8; }
+.admin-form-grid > .afc-4  { grid-column: span 4; }
+/* Checkbox cells: centre vertically so they align with adjacent inputs */
+.admin-form-grid .admin-check-cell { display: flex; align-items: center; gap: .5rem; padding-top: .25rem; }
+/* Mobile: all fields full width */
+@media (max-width: 575.98px) {
+    .admin-form-grid > * { grid-column: span 12 !important; }
+}
 
 /* ─── Responsive booking steps (mobile) ─── */
 @media (max-width: 575.98px) {
@@ -998,6 +1029,8 @@ body {
     color: #dc2626;
 }
 .nav-profile-dropdown .dropdown-divider { border-color: var(--border, #e2e8f0); margin: .25rem .75rem; }
+/* Remove browser default bullets from all dropdown menus (fallback when Bootstrap CDN is unavailable) */
+.dropdown-menu, .dropdown-menu li { list-style: none; padding-left: 0; margin: 0; }
 .dropdown-header-user {
     display: flex;
     align-items: center;

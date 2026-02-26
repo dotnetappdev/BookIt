@@ -26,6 +26,34 @@
 
 ![BookIt Admin Dashboard](https://github.com/user-attachments/assets/88cc84d7-b714-4af7-add2-4d553073a2db)
 
+### Admin Panel — MVC Back End (new screens)
+
+**Admin sidebar** now includes: Services · **Staff** · **Classes** · **Customers** · Forms · Interviews — all available for every business type.
+
+#### Staff Management
+
+Add, edit, delete staff members and assign them to services. Works for any profession (barber, gym instructor, physio, consultant, etc.).
+
+![Admin Staff Page](https://github.com/user-attachments/assets/4bcb0bd6-c0b4-4949-ace5-f29098400170)
+
+#### Classes & Group Sessions
+
+Schedule group sessions with date, time, capacity, price, and **multiple instructors**. Any number of staff can be assigned as instructors per session.
+
+![Admin Classes Page](https://github.com/user-attachments/assets/e36dc566-8372-4b17-923d-842b6e111a4e)
+
+#### Customers CRM
+
+Full CRUD for customer profiles. Profiles are created automatically on every booking and can be managed manually by admins.
+
+![Admin Customers Page](https://github.com/user-attachments/assets/d760ca5c-f5fe-4333-828f-cb3809d1e3fe)
+
+#### Booking Forms (admin + mobile)
+
+Build and manage booking forms. The form builder is fully mobile-responsive (collapses to single column on screens < 992 px).
+
+![Admin Booking Forms Page](https://github.com/user-attachments/assets/ed361fb4-2b42-4b41-9f94-78355ee4e361)
+
 ### Admin Panel — New Screens (Blazor Dark Mode)
 
 #### Customers — Data Grid with Membership Number
@@ -343,6 +371,7 @@ The Settings page (`/{slug}/admin/settings`) now includes three new sections:
 - Public booking page per tenant (e.g. `/demo-barber/book`)
 - Full month/week calendar with availability management
 - Multi-staff support with individual schedules
+- **Staff picker on booking page** — customers choose "Any" or a preferred staff member; filters available slots
 - Automatic booking confirmation emails (SendGrid)
 
 ### Approve / Decline Bookings
@@ -351,10 +380,30 @@ The Settings page (`/{slug}/admin/settings`) now includes three new sections:
 - On decline: sends a branded `BookingDeclined` HTML email + fires `appointment.declined` webhook
 - API: `POST /api/tenants/{slug}/appointments/{id}/approve` and `.../decline`
 
+### Staff Management (all business types)
+- Full CRUD for staff members: name, email, phone, photo URL, bio, sort order, active flag
+- **Assign staff to services** — each staff member can be linked to specific services they perform
+- Works for every business type: barber, salon, gym, physio, spa, recruitment, hotel, etc.
+- API: `GET/POST/PUT/DELETE /api/tenants/{slug}/staff` + `PUT /staff/{id}/services`
+- Admin page at `/{slug}/admin/Staff` with card layout and three modals (Add / Edit / Assign Services)
+
+### Classes & Group Sessions (all business types)
+- Schedule group classes/sessions that multiple customers can book into
+- **Multiple instructors per session** — select any number of active staff as instructors
+- Fields: name, linked service, description, date, start time, duration, max capacity, price, location/room
+- Capacity indicator shows `booked / max` with red badge when full
+- Status tracking: Scheduled / In Progress / Completed / Cancelled / Full
+- API: `GET/POST/PUT/DELETE /api/tenants/{slug}/class-sessions`
+- Admin page at `/{slug}/admin/Classes` — searchable table, Add / Edit / Cancel modals
+- See [docs/Staff-and-Classes.md](docs/Staff-and-Classes.md) for full details
+
 ### Customer CRM
 - Dedicated `Customer` entity + table with full contact info and **Membership Number**
-- Admin data grid with search, edit, delete, marketing opt-in flags
-- `MembershipNumber` displayed in data grid and editable in Add/Edit dialog
+- **Auto-created on every booking** — first booking creates the profile; repeat bookings update contact details, increment `TotalBookings`, and refresh `LastVisit`
+- **Booking form pre-fill** — returning customers who type their email get their name and phone pre-filled ("Welcome back!" hint)
+- Admin CRUD page at `/{slug}/admin/Customers` — searchable table, full Add / Edit / Delete modals
+- Fields: name, email, phone, mobile, address, gender, membership number, tags, notes, marketing/SMS opt-ins
+- Public lookup endpoint: `GET /api/tenants/{slug}/customers/lookup?email=X`
 - Full REST API: `GET/POST/PUT/DELETE /api/tenants/{slug}/customers`
 - Webhook events: `customer.created`, `customer.updated`, `customer.deleted`
 
@@ -368,6 +417,7 @@ The Settings page (`/{slug}/admin/settings`) now includes three new sections:
 - Visual Form Builder with field toolbox (Text, Email, Phone, Number, Date, Dropdown, Radio, Checkboxes, File Upload, Rating, Signature, Heading, Paragraph, Services & Prices)
 - Forms data grid with **Settings ⚙ / Builder 🔨 / Delete 🗑** per form
 - **Settings dialog** — inline rename, description, welcome/confirmation messages, toggles, default flag
+- Fully **mobile-responsive** — builder collapses to single column on screens < 992 px
 - Full CRUD: `GET/POST/PUT/DELETE /api/tenants/{slug}/booking-forms`
 
 ### Interviews (Recruitment Module)
@@ -404,12 +454,13 @@ The Settings page (`/{slug}/admin/settings`) now includes three new sections:
   ```
 
 ### Admin Portal
-- Dark sidebar with grouped navigation (Main / Management / Account)
-- Stat cards with 10 px padding and colour-coded accent bars
+- Dark sidebar with grouped navigation: **Main Menu** (Dashboard, Calendar) · **Management** (Services, **Staff**, **Classes**, **Customers**, Forms, Interviews, Booking Page) · **Configuration** (Settings, Subscription)
+- Stat cards with colour-coded accent bars
 - Today's schedule with status dots and coloured chips
 - Quick-action panel
 - Profile dropdown (Dashboard, Settings, Subscription, Sign Out)
 - Dark / light mode toggle
+- Fully mobile-responsive (collapsible sidebar overlay on small screens)
 
 ### Super Admin Console (`/super-admin`)
 - Tenant management (list, search, delete, copy Tenant ID)
@@ -435,6 +486,21 @@ The Settings page (`/{slug}/admin/settings`) now includes three new sections:
 | Admin Settings | `/{slug}/admin/settings` |
 | Admin Subscriptions | `/{slug}/admin/subscriptions` |
 | Super Admin | `/super-admin` |
+
+### MVC Admin Pages (`BookIt.Web`)
+| Page | Route |
+|---|---|
+| Admin Dashboard | `/{slug}/admin` |
+| Admin Calendar | `/{slug}/admin/Calendar` |
+| Admin Services | `/{slug}/admin/Services` |
+| **Admin Staff** | `/{slug}/admin/Staff` |
+| **Admin Classes** | `/{slug}/admin/Classes` |
+| **Admin Customers** | `/{slug}/admin/Customers` |
+| Admin Booking Forms | `/{slug}/admin/Forms` |
+| Admin Form Builder | `/{slug}/admin/FormBuilder?formId={id}` |
+| Admin Interviews | `/{slug}/admin/Interviews` |
+| Admin Settings | `/{slug}/admin/Settings` |
+| Admin Subscriptions | `/{slug}/admin/Subscriptions` |
 
 ### MAUI Mobile App (`BookIt.Maui`)
 Cross-platform Blazor Hybrid app sharing `BookIt.UI.Shared` components.
@@ -657,6 +723,8 @@ var ics = _walletPassService.GenerateIcs(appointment, businessName, membershipNu
 See [docs/EF-Migrations.md](docs/EF-Migrations.md) for full migration instructions.
 
 See [docs/Notifications.md](docs/Notifications.md) for SMS, SendGrid email, and Hangfire reminder scheduler setup.
+
+See [docs/Staff-and-Classes.md](docs/Staff-and-Classes.md) for staff management, classes module, and customer pre-fill setup.
 
 ```bash
 cd src/BookIt.Infrastructure

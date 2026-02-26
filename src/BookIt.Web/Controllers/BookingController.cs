@@ -62,6 +62,7 @@ public class BookingController : Controller
         var tenant = await _apiClient.GetTenantAsync(tenantSlug);
         if (tenant == null) return NotFound();
 
+        var staff = await _apiClient.GetStaffAsync(tenantSlug);
         var slots = await _apiClient.GetAvailableSlotsAsync(tenantSlug, serviceId, staffId, selectedDate);
 
         ViewBag.Tenant = tenant;
@@ -69,6 +70,7 @@ public class BookingController : Controller
         ViewBag.StaffId = staffId;
         ViewBag.Date = selectedDate;
         ViewBag.Slots = slots;
+        ViewBag.Staff = staff;
         ViewBag.TenantSlug = tenantSlug;
         return View();
     }

@@ -48,6 +48,9 @@
                             <div class="col-md-6">
                                 <label for="customerEmail" class="form-label fw-semibold">Email Address <span class="text-danger" aria-hidden="true">*</span></label>
                                 <input type="email" class="form-control" id="customerEmail" name="CustomerEmail" required aria-required="true" autocomplete="email" />
+                                <div id="returningCustomerHint" class="form-text text-success d-none">
+                                    <i class="bi bi-check-circle me-1"></i>Welcome back! Your details have been pre-filled.
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label for="customerPhone" class="form-label fw-semibold">Phone Number</label>
@@ -116,3 +119,34 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+(function () {
+    const emailInput = document.getElementById('customerEmail');
+    const nameInput = document.getElementById('customerName');
+    const phoneInput = document.getElementById('customerPhone');
+    const hint = document.getElementById('returningCustomerHint');
+    const tenantSlug = '@tenantSlug';
+
+    let lookupTimer;
+    emailInput.addEventListener('blur', () => lookupCustomer(emailInput.value.trim()));
+    emailInput.addEventListener('input', function () {
+        clearTimeout(lookupTimer);
+        lookupTimer = setTimeout(() => lookupCustomer(emailInput.value.trim()), 600);
+    });
+
+    async function lookupCustomer(email) {
+        if (!email || !email.includes('@@')) return;
+        try {
+            const resp = await fetch(`/api/tenants/${tenantSlug}/customers/lookup?email=${encodeURIComponent(email)}`);
+            if (!resp.ok) return;
+            const data = await resp.json();
+            if (data.fullName && !nameInput.value) nameInput.value = data.fullName;
+            if (data.phone && !phoneInput.value) phoneInput.value = data.phone;
+            hint.classList.remove('d-none');
+        } catch { /* silently ignore network errors */ }
+    }
+}());
+</script>
+}

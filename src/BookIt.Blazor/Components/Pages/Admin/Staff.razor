@@ -1,0 +1,314 @@
+@page "/{tenantSlug}/admin/staff"
+@rendermode InteractiveServer
+@layout BookIt.UI.Shared.Components.Admin.AdminLayout
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<PageTitle>Staff — BookIt Admin</PageTitle>
+
+@if (!Auth.IsAuthenticated)
+{
+    <MudText>Redirecting…</MudText>
+}
+else
+{
+    <MudStack>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+            <div>
+                <MudText Typo="Typo.h5" Class="fw-bold">Staff</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Manage your team members and service assignments</MudText>
+            </div>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
+                       OnClick="OpenAddDialog">Add Staff Member</MudButton>
+        </MudStack>
+
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        }
+        else if (!_staff.Any())
+        {
+            <MudCard Elevation="1">
+                <MudCardContent>
+                    <MudStack AlignItems="AlignItems.Center" Class="py-8">
+                        <MudIcon Icon="@Icons.Material.Filled.PeopleOutline" Size="Size.Large" Style="opacity:.3;" />
+                        <MudText Typo="Typo.body1" Class="fw-medium">No staff members yet</MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog">Add First Staff Member</MudButton>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        }
+        else
+        {
+            <MudDataGrid T="StaffResponse" Items="_staff"
+                         Filterable="true" FilterMode="DataGridFilterMode.ColumnFilterRow"
+                         SortMode="SortMode.Multiple"
+                         RowsPerPage="20"
+                         Hover="true" Striped="false" Dense="false">
+                <Columns>
+                    <TemplateColumn Title="Name" Sortable="true" Filterable="false">
+                        <CellTemplate>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                @if (!string.IsNullOrEmpty(context.Item.PhotoUrl))
+                                {
+                                    <MudAvatar Image="@context.Item.PhotoUrl" Size="Size.Small" />
+                                }
+                                else
+                                {
+                                    <MudAvatar Color="Color.Primary" Size="Size.Small" Style="font-size:.7rem;font-weight:700;">
+                                        @Initials(context.Item)
+                                    </MudAvatar>
+                                }
+                                <div>
+                                    <MudText Typo="Typo.body2" Class="fw-medium">@context.Item.FullName</MudText>
+                                    @if (!string.IsNullOrEmpty(context.Item.Bio))
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@context.Item.Bio</MudText>
+                                    }
+                                </div>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.Email" Title="Email" />
+                    <PropertyColumn Property="x => x.Phone" Title="Phone" />
+                    <TemplateColumn Title="Services" Sortable="false" Filterable="false">
+                        <CellTemplate>
+                            @if (context.Item.Services.Any())
+                            {
+                                <MudStack Row="true" Spacing="1" Wrap="Wrap.Wrap">
+                                    @foreach (var svc in context.Item.Services)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary">@svc.Name</MudChip>
+                                    }
+                                </MudStack>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Tertiary">No services</MudText>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.SortOrder" Title="Order" />
+                    <TemplateColumn Title="Status" Sortable="true" Filterable="false">
+                        <CellTemplate>
+                            <MudChip T="string" Size="Size.Small"
+                                     Color="@(context.Item.IsActive ? Color.Success : Color.Default)"
+                                     Variant="Variant.Outlined">
+                                @(context.Item.IsActive ? "Active" : "Inactive")
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="" Sortable="false" Filterable="false">
+                        <CellTemplate>
+                            <MudStack Row="true" Spacing="0">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                               OnClick="@(() => OpenEditDialog(context.Item))" />
+                                @if (_pendingDeleteId == context.Item.Id)
+                                {
+                                    <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
+                                               OnClick="@(() => ConfirmDelete(context.Item))">Delete?</MudButton>
+                                    <MudButton Size="Size.Small" OnClick="@(() => _pendingDeleteId = null)">Cancel</MudButton>
+                                }
+                                else
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                   OnClick="@(() => _pendingDeleteId = context.Item.Id)" />
+                                }
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="StaffResponse" />
+                </PagerContent>
+            </MudDataGrid>
+        }
+    </MudStack>
+}
+
+<!-- Add / Edit Dialog -->
+<MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editStaff == null ? "Add Staff Member" : "Edit Staff Member")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_form.FirstName" Label="First Name" Required="true" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_form.LastName" Label="Last Name" Required="true" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_form.Email" Label="Email" InputType="InputType.Email" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_form.Phone" Label="Phone" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.PhotoUrl" Label="Photo URL" Placeholder="https://…" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Bio" Label="Bio" Lines="3" Placeholder="Short bio or role description…" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudNumericField @bind-Value="_form.SortOrder" Label="Sort Order" Min="0" />
+            </MudItem>
+            <MudItem xs="6" Class="d-flex align-items-center">
+                <MudSwitch @bind-Value="_form.IsActive" Color="Color.Primary" Label="Active" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveStaff" Disabled="_saving">
+            @(_saving ? "Saving…" : "Save")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+
+    private List<StaffResponse> _staff = new();
+    private bool _loading = true;
+    private Guid? _pendingDeleteId;
+
+    private bool _dialogOpen;
+    private bool _saving;
+    private StaffResponse? _editStaff;
+    private StaffFormModel _form = new();
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Small,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAuthenticated)
+            Nav.NavigateTo($"/login?returnUrl=/{TenantSlug}/admin/staff");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !Auth.IsAuthenticated) return;
+        Api.SetToken(Auth.AccessToken);
+        _staff = await Api.GetAllStaffAsync(TenantSlug) ?? new();
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private void OpenAddDialog()
+    {
+        _editStaff = null;
+        _form = new StaffFormModel();
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(StaffResponse s)
+    {
+        _editStaff = s;
+        _form = new StaffFormModel
+        {
+            FirstName = s.FirstName,
+            LastName = s.LastName,
+            Email = s.Email,
+            Phone = s.Phone,
+            PhotoUrl = s.PhotoUrl,
+            Bio = s.Bio,
+            IsActive = s.IsActive,
+            SortOrder = s.SortOrder
+        };
+        _dialogOpen = true;
+    }
+
+    private void CloseDialog() => _dialogOpen = false;
+
+    private async Task SaveStaff()
+    {
+        if (string.IsNullOrWhiteSpace(_form.FirstName))
+        {
+            Snackbar.Add("First name is required.", Severity.Warning);
+            return;
+        }
+        _saving = true;
+        Api.SetToken(Auth.AccessToken);
+
+        if (_editStaff == null)
+        {
+            var req = new CreateStaffRequest
+            {
+                FirstName = _form.FirstName,
+                LastName = _form.LastName ?? string.Empty,
+                Email = _form.Email,
+                Phone = _form.Phone,
+                PhotoUrl = _form.PhotoUrl,
+                Bio = _form.Bio,
+                IsActive = _form.IsActive,
+                SortOrder = _form.SortOrder
+            };
+            var created = await Api.CreateStaffAsync(TenantSlug, req);
+            if (created != null) { _staff.Add(created); Snackbar.Add("Staff member added.", Severity.Success); }
+            else Snackbar.Add("Failed to add staff member.", Severity.Error);
+        }
+        else
+        {
+            var req = new UpdateStaffRequest
+            {
+                FirstName = _form.FirstName,
+                LastName = _form.LastName ?? string.Empty,
+                Email = _form.Email,
+                Phone = _form.Phone,
+                PhotoUrl = _form.PhotoUrl,
+                Bio = _form.Bio,
+                IsActive = _form.IsActive,
+                SortOrder = _form.SortOrder
+            };
+            var updated = await Api.UpdateStaffAsync(TenantSlug, _editStaff.Id, req);
+            if (updated != null)
+            {
+                var idx = _staff.IndexOf(_editStaff);
+                if (idx >= 0) _staff[idx] = updated;
+                Snackbar.Add("Staff member updated.", Severity.Success);
+            }
+            else Snackbar.Add("Failed to update staff member.", Severity.Error);
+        }
+
+        _saving = false;
+        _dialogOpen = false;
+        StateHasChanged();
+    }
+
+    private async Task ConfirmDelete(StaffResponse s)
+    {
+        _pendingDeleteId = null;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteStaffAsync(TenantSlug, s.Id);
+        if (ok) { _staff.Remove(s); Snackbar.Add("Staff member removed.", Severity.Success); StateHasChanged(); }
+        else Snackbar.Add("Failed to remove staff member.", Severity.Error);
+    }
+
+    private static string Initials(StaffResponse s)
+    {
+        var f = string.IsNullOrEmpty(s.FirstName) ? "" : s.FirstName[0].ToString().ToUpper();
+        var l = string.IsNullOrEmpty(s.LastName) ? "" : s.LastName[0].ToString().ToUpper();
+        return $"{f}{l}";
+    }
+
+    private class StaffFormModel
+    {
+        public string FirstName { get; set; } = string.Empty;
+        public string? LastName { get; set; }
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        public string? PhotoUrl { get; set; }
+        public string? Bio { get; set; }
+        public bool IsActive { get; set; } = true;
+        public int SortOrder { get; set; }
+    }
+}

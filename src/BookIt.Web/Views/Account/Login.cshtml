@@ -33,20 +33,23 @@
             </p>
         </div>
         <div style="position:relative;z-index:1;">
-            <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1.25rem;">
-                <div class="d-flex gap-3 align-items-start mb-3">
-                    @foreach (var item in new[] {
-                        new { icon = "bi-calendar-check-fill", val = "24/7", label = "Online Bookings" },
-                        new { icon = "bi-credit-card-fill", val = "3", label = "Payment Options" },
-                        new { icon = "bi-people-fill", val = "∞", label = "Staff Accounts" }
-                    })
-                    {
-                        <div class="text-center flex-fill">
-                            <div style="color:var(--primary-light);font-size:1.5rem;font-weight:700;">@item.val</div>
-                            <div style="color:rgba(255,255,255,.5);font-size:.75rem;">@item.label</div>
+            <div style="display:flex;flex-direction:column;gap:.75rem;">
+                @foreach (var item in new[] {
+                    new { icon = "bi-calendar-check-fill", val = "24/7", label = "Online Bookings", desc = "Customers can book at any time" },
+                    new { icon = "bi-credit-card-fill", val = "3", label = "Payment Options", desc = "Stripe, PayPal & more" },
+                    new { icon = "bi-people-fill", val = "∞", label = "Staff Accounts", desc = "No limits on your team size" }
+                })
+                {
+                    <div style="display:flex;align-items:center;gap:1rem;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.85rem 1rem;">
+                        <div style="width:40px;height:40px;flex-shrink:0;background:rgba(255,255,255,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                            <i class="bi @item.icon" style="color:var(--primary-light);font-size:1.1rem;"></i>
                         </div>
-                    }
-                </div>
+                        <div>
+                            <div style="color:white;font-size:.95rem;font-weight:700;line-height:1.2;">@item.val &nbsp;<span style="font-weight:500;">@item.label</span></div>
+                            <div style="color:rgba(255,255,255,.5);font-size:.78rem;margin-top:.1rem;">@item.desc</div>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -63,8 +66,8 @@
             </a>
 
             <div class="mb-4">
-                <h1 style="font-size:1.75rem;font-weight:700;letter-spacing:-.03em;margin-bottom:.35rem;">Welcome back</h1>
-                <p class="text-muted" style="font-size:.9375rem;">
+                <h1 style="font-size:1.75rem;font-weight:700;letter-spacing:-.03em;margin-bottom:.35rem;color:var(--text);">Welcome back</h1>
+                <p style="font-size:.9375rem;color:var(--text-secondary);margin-bottom:0;">
                     @if (!string.IsNullOrEmpty(tenantSlug))
                     { <text>Signing in to <strong class="text-brand">@tenantSlug</strong></text> }
                     else

@@ -172,6 +172,35 @@ public class BookItApiService
     public Task<bool> DeleteCustomerAsync(string slug, Guid id) =>
         DeleteAsync($"/api/tenants/{slug}/customers/{id}");
 
+    // ── Staff ──
+    public Task<List<StaffResponse>?> GetAllStaffAsync(string slug) =>
+        GetAsync<List<StaffResponse>>($"/api/tenants/{slug}/staff/all");
+
+    public Task<StaffResponse?> CreateStaffAsync(string slug, CreateStaffRequest req) =>
+        PostAsync<StaffResponse>($"/api/tenants/{slug}/staff", req);
+
+    public Task<StaffResponse?> UpdateStaffAsync(string slug, Guid id, UpdateStaffRequest req) =>
+        PutAsync<StaffResponse>($"/api/tenants/{slug}/staff/{id}", req);
+
+    public Task<bool> DeleteStaffAsync(string slug, Guid id) =>
+        DeleteAsync($"/api/tenants/{slug}/staff/{id}");
+
+    public Task<bool> AssignStaffServicesAsync(string slug, Guid staffId, AssignStaffServicesRequest req) =>
+        PostBoolAsync($"/api/tenants/{slug}/staff/{staffId}/services", req);
+
+    // ── Class Sessions ──
+    public Task<List<ClassSessionResponse>?> GetClassSessionsAsync(string slug, int days = 365) =>
+        GetAsync<List<ClassSessionResponse>>($"/api/tenants/{slug}/class-sessions?days={days}");
+
+    public Task<ClassSessionResponse?> CreateClassSessionAsync(string slug, CreateClassSessionRequest req) =>
+        PostAsync<ClassSessionResponse>($"/api/tenants/{slug}/class-sessions", req);
+
+    public Task<ClassSessionResponse?> UpdateClassSessionAsync(string slug, Guid id, UpdateClassSessionRequest req) =>
+        PutAsync<ClassSessionResponse>($"/api/tenants/{slug}/class-sessions/{id}", req);
+
+    public Task<bool> CancelClassSessionAsync(string slug, Guid id) =>
+        DeleteAsync($"/api/tenants/{slug}/class-sessions/{id}");
+
     // ── Super Admin ──
     public Task<List<TenantListResponse>?> GetAllTenantsAsync() =>
         GetAsync<List<TenantListResponse>>("/api/admin/tenants");

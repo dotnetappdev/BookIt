@@ -1,0 +1,424 @@
+@using BookIt.Core.DTOs
+@{
+    ViewData["Title"] = "Customers";
+    Layout = "_AdminLayout";
+    var tenant = ViewBag.Tenant as TenantResponse;
+    var customers = ViewBag.Customers as List<CustomerResponse> ?? new();
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+    var accessToken = ViewBag.AccessToken as string ?? "";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Customers</h1>
+        <p class="page-subtitle">Manage customer profiles and booking form data</p>
+    </div>
+    <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addCustomerModal" aria-haspopup="dialog">
+        <i class="bi bi-person-plus me-2"></i>Add Customer
+    </button>
+</div>
+
+@if (!customers.Any())
+{
+    <div class="text-center py-5">
+        <i class="bi bi-people fs-1 text-muted d-block mb-3"></i>
+        <h5 class="text-muted">No customers yet</h5>
+        <p class="text-muted small">Customer profiles are created automatically when someone books an appointment, or you can add them manually.</p>
+        <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+            <i class="bi bi-person-plus me-2"></i>Add Customer
+        </button>
+    </div>
+}
+else
+{
+    <!-- Search/filter bar -->
+    <div class="mb-3">
+        <input type="text" class="form-control" id="customerSearch" placeholder="Search by name or email..." aria-label="Search customers" />
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="customersTable">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th class="text-center">Bookings</th>
+                    <th class="text-end">Total Spent</th>
+                    <th>Last Visit</th>
+                    <th>Tags</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in customers)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-brand text-white d-flex align-items-center justify-content-center fw-bold small"
+                                     style="width:34px;height:34px;flex-shrink:0;font-size:.7rem;">
+                                    @(c.FirstName.Length > 0 ? c.FirstName[0].ToString() : "")@(c.LastName.Length > 0 ? c.LastName[0].ToString() : "")
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">@c.FullName</div>
+                                    @if (!string.IsNullOrEmpty(c.MembershipNumber))
+                                    {
+                                        <div class="text-muted small">#@c.MembershipNumber</div>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                        <td><a href="mailto:@c.Email" class="text-decoration-none">@c.Email</a></td>
+                        <td>@(c.Phone ?? c.Mobile ?? "—")</td>
+                        <td class="text-center"><span class="badge bg-light text-dark border">@c.TotalBookings</span></td>
+                        <td class="text-end fw-semibold">£@c.TotalSpent.ToString("0.00")</td>
+                        <td>
+                            @if (c.LastVisit.HasValue)
+                            {
+                                <span title="@c.LastVisit.Value.ToString("f")">@c.LastVisit.Value.ToString("d MMM yyyy")</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(c.Tags))
+                            {
+                                foreach (var tag in c.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                {
+                                    <span class="badge bg-light text-dark border me-1">@tag</span>
+                                }
+                            }
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex gap-1 justify-content-end">
+                                <button class="btn btn-sm btn-outline-secondary"
+                                        data-customer-id="@c.Id"
+                                        data-first-name="@c.FirstName"
+                                        data-last-name="@c.LastName"
+                                        data-email="@c.Email"
+                                        data-phone="@(c.Phone ?? "")"
+                                        data-mobile="@(c.Mobile ?? "")"
+                                        data-address="@(c.Address ?? "")"
+                                        data-city="@(c.City ?? "")"
+                                        data-post-code="@(c.PostCode ?? "")"
+                                        data-country="@(c.Country ?? "")"
+                                        data-gender="@(c.Gender ?? "")"
+                                        data-membership-number="@(c.MembershipNumber ?? "")"
+                                        data-notes="@(c.Notes ?? "")"
+                                        data-tags="@(c.Tags ?? "")"
+                                        data-marketing-opt-in="@c.MarketingOptIn.ToString().ToLower()"
+                                        data-sms-opt-in="@c.SmsOptIn.ToString().ToLower()"
+                                        onclick="openEditModal(this)"
+                                        aria-label="Edit @c.FullName">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        onclick="deleteCustomer('@c.Id', '@c.FullName')"
+                                        aria-label="Delete @c.FullName">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- Add Customer Modal -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-brand text-white">
+                <h5 class="modal-title" id="addCustomerModalLabel"><i class="bi bi-person-plus me-2"></i>Add Customer</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addCustomerForm">
+                <div class="modal-body p-4">
+                    <div class="admin-form-grid">
+                        <div>
+                            <label for="addFirstName" class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="addFirstName" name="firstName" required aria-required="true" />
+                        </div>
+                        <div>
+                            <label for="addLastName" class="form-label fw-semibold">Last Name</label>
+                            <input type="text" class="form-control" id="addLastName" name="lastName" />
+                        </div>
+                        <div>
+                            <label for="addEmail" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="addEmail" name="email" required aria-required="true" />
+                        </div>
+                        <div>
+                            <label for="addPhone" class="form-label fw-semibold">Phone</label>
+                            <input type="tel" class="form-control" id="addPhone" name="phone" />
+                        </div>
+                        <div>
+                            <label for="addMobile" class="form-label fw-semibold">Mobile</label>
+                            <input type="tel" class="form-control" id="addMobile" name="mobile" />
+                        </div>
+                        <div>
+                            <label for="addGender" class="form-label fw-semibold">Gender</label>
+                            <select class="form-select" id="addGender" name="gender">
+                                <option value="">— Not specified —</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Non-binary">Non-binary</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div class="afc-12">
+                            <label for="addAddress" class="form-label fw-semibold">Address</label>
+                            <input type="text" class="form-control" id="addAddress" name="address" />
+                        </div>
+                        <div class="afc-4">
+                            <label for="addCity" class="form-label fw-semibold">City</label>
+                            <input type="text" class="form-control" id="addCity" name="city" />
+                        </div>
+                        <div class="afc-4">
+                            <label for="addPostCode" class="form-label fw-semibold">Post Code</label>
+                            <input type="text" class="form-control" id="addPostCode" name="postCode" />
+                        </div>
+                        <div class="afc-4">
+                            <label for="addCountry" class="form-label fw-semibold">Country</label>
+                            <input type="text" class="form-control" id="addCountry" name="country" />
+                        </div>
+                        <div>
+                            <label for="addMembershipNumber" class="form-label fw-semibold">Membership Number</label>
+                            <input type="text" class="form-control" id="addMembershipNumber" name="membershipNumber" />
+                        </div>
+                        <div>
+                            <label for="addTags" class="form-label fw-semibold">Tags</label>
+                            <input type="text" class="form-control" id="addTags" name="tags" placeholder="e.g. VIP, New Client" />
+                        </div>
+                        <div class="afc-12">
+                            <label for="addNotes" class="form-label fw-semibold">Notes</label>
+                            <textarea class="form-control" id="addNotes" name="notes" rows="3" placeholder="Internal notes about this customer..."></textarea>
+                        </div>
+                        <div class="admin-check-cell">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="addMarketingOptIn" name="marketingOptIn" />
+                                <label class="form-check-label fw-semibold" for="addMarketingOptIn">Marketing Opt-in</label>
+                            </div>
+                        </div>
+                        <div class="admin-check-cell">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="addSmsOptIn" name="smsOptIn" />
+                                <label class="form-check-label fw-semibold" for="addSmsOptIn">SMS Opt-in</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand"><i class="bi bi-check-circle me-2"></i>Save Customer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Customer Modal -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-brand text-white">
+                <h5 class="modal-title" id="editCustomerModalLabel"><i class="bi bi-pencil me-2"></i>Edit Customer</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editCustomerForm">
+                <input type="hidden" id="editCustomerId" />
+                <div class="modal-body p-4">
+                    <div class="admin-form-grid">
+                        <div>
+                            <label for="editFirstName" class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editFirstName" name="firstName" required aria-required="true" />
+                        </div>
+                        <div>
+                            <label for="editLastName" class="form-label fw-semibold">Last Name</label>
+                            <input type="text" class="form-control" id="editLastName" name="lastName" />
+                        </div>
+                        <div>
+                            <label for="editEmail" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="editEmail" name="email" required aria-required="true" />
+                        </div>
+                        <div>
+                            <label for="editPhone" class="form-label fw-semibold">Phone</label>
+                            <input type="tel" class="form-control" id="editPhone" name="phone" />
+                        </div>
+                        <div>
+                            <label for="editMobile" class="form-label fw-semibold">Mobile</label>
+                            <input type="tel" class="form-control" id="editMobile" name="mobile" />
+                        </div>
+                        <div>
+                            <label for="editGender" class="form-label fw-semibold">Gender</label>
+                            <select class="form-select" id="editGender" name="gender">
+                                <option value="">— Not specified —</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Non-binary">Non-binary</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div class="afc-12">
+                            <label for="editAddress" class="form-label fw-semibold">Address</label>
+                            <input type="text" class="form-control" id="editAddress" name="address" />
+                        </div>
+                        <div class="afc-4">
+                            <label for="editCity" class="form-label fw-semibold">City</label>
+                            <input type="text" class="form-control" id="editCity" name="city" />
+                        </div>
+                        <div class="afc-4">
+                            <label for="editPostCode" class="form-label fw-semibold">Post Code</label>
+                            <input type="text" class="form-control" id="editPostCode" name="postCode" />
+                        </div>
+                        <div class="afc-4">
+                            <label for="editCountry" class="form-label fw-semibold">Country</label>
+                            <input type="text" class="form-control" id="editCountry" name="country" />
+                        </div>
+                        <div>
+                            <label for="editMembershipNumber" class="form-label fw-semibold">Membership Number</label>
+                            <input type="text" class="form-control" id="editMembershipNumber" name="membershipNumber" />
+                        </div>
+                        <div>
+                            <label for="editTags" class="form-label fw-semibold">Tags</label>
+                            <input type="text" class="form-control" id="editTags" name="tags" placeholder="e.g. VIP, New Client" />
+                        </div>
+                        <div class="afc-12">
+                            <label for="editNotes" class="form-label fw-semibold">Notes</label>
+                            <textarea class="form-control" id="editNotes" name="notes" rows="3"></textarea>
+                        </div>
+                        <div class="admin-check-cell">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editMarketingOptIn" name="marketingOptIn" />
+                                <label class="form-check-label fw-semibold" for="editMarketingOptIn">Marketing Opt-in</label>
+                            </div>
+                        </div>
+                        <div class="admin-check-cell">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editSmsOptIn" name="smsOptIn" />
+                                <label class="form-check-label fw-semibold" for="editSmsOptIn">SMS Opt-in</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand"><i class="bi bi-check-circle me-2"></i>Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const token = '@accessToken';
+const tenantSlug = '@tenantSlug';
+const apiBase = `/api/tenants/${tenantSlug}/customers`;
+
+// Live search filter
+document.getElementById('customerSearch')?.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('#customersTable tbody tr').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(q) ? '' : 'none';
+    });
+});
+
+function collectForm(f) {
+    return {
+        firstName: f.firstName.value.trim(),
+        lastName: f.lastName.value.trim(),
+        email: f.email.value.trim(),
+        phone: f.phone.value.trim() || null,
+        mobile: f.mobile.value.trim() || null,
+        address: f.address.value.trim() || null,
+        city: f.city.value.trim() || null,
+        postCode: f.postCode.value.trim() || null,
+        country: f.country.value.trim() || null,
+        gender: f.gender.value || null,
+        membershipNumber: f.membershipNumber.value.trim() || null,
+        notes: f.notes.value.trim() || null,
+        tags: f.tags.value.trim() || null,
+        marketingOptIn: f.marketingOptIn.checked,
+        smsOptIn: f.smsOptIn.checked
+    };
+}
+
+// Add customer
+document.getElementById('addCustomerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const data = collectForm(e.target);
+    const resp = await fetch(apiBase, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(data)
+    });
+    if (resp.ok) {
+        location.reload();
+    } else {
+        const msg = await resp.text().catch(() => '');
+        alert(`Failed to add customer (${resp.status})${msg ? ': ' + msg : '.'}`);
+    }
+});
+
+// Open edit modal via data attributes
+function openEditModal(btn) {
+    const d = btn.dataset;
+    document.getElementById('editCustomerId').value = d.customerId;
+    document.getElementById('editFirstName').value = d.firstName;
+    document.getElementById('editLastName').value = d.lastName;
+    document.getElementById('editEmail').value = d.email;
+    document.getElementById('editPhone').value = d.phone;
+    document.getElementById('editMobile').value = d.mobile;
+    document.getElementById('editAddress').value = d.address;
+    document.getElementById('editCity').value = d.city;
+    document.getElementById('editPostCode').value = d.postCode;
+    document.getElementById('editCountry').value = d.country;
+    document.getElementById('editGender').value = d.gender;
+    document.getElementById('editMembershipNumber').value = d.membershipNumber;
+    document.getElementById('editNotes').value = d.notes;
+    document.getElementById('editTags').value = d.tags;
+    document.getElementById('editMarketingOptIn').checked = d.marketingOptIn === 'true';
+    document.getElementById('editSmsOptIn').checked = d.smsOptIn === 'true';
+    new bootstrap.Modal(document.getElementById('editCustomerModal')).show();
+}
+
+// Save edits
+document.getElementById('editCustomerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('editCustomerId').value;
+    const data = collectForm(e.target);
+    const resp = await fetch(`${apiBase}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(data)
+    });
+    if (resp.ok) {
+        location.reload();
+    } else {
+        const msg = await resp.text().catch(() => '');
+        alert(`Failed to update customer (${resp.status})${msg ? ': ' + msg : '.'}`);
+    }
+});
+
+// Delete
+async function deleteCustomer(id, name) {
+    if (!confirm(`Remove ${name} from your customer list?`)) return;
+    const resp = await fetch(`${apiBase}/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (resp.ok) {
+        location.reload();
+    } else {
+        const msg = await resp.text().catch(() => '');
+        alert(`Failed to delete customer (${resp.status})${msg ? ': ' + msg : '.'}`);
+    }
+}
+</script>
+}
