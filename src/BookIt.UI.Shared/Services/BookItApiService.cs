@@ -128,6 +128,9 @@ public class BookItApiService
     public Task<BookingFormResponse?> CreateFormAsync(string slug, CreateBookingFormRequest req) =>
         PostAsync<BookingFormResponse>($"/api/tenants/{slug}/booking-forms", req);
 
+    public Task<BookingFormResponse?> UpdateFormAsync(string slug, Guid formId, UpdateBookingFormRequest req) =>
+        PutAsync<BookingFormResponse>($"/api/tenants/{slug}/booking-forms/{formId}", req);
+
     public Task<bool> DeleteFormAsync(string slug, Guid id) =>
         DeleteAsync($"/api/tenants/{slug}/booking-forms/{id}");
 

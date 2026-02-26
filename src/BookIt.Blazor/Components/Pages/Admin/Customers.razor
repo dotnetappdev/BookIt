@@ -67,6 +67,7 @@ else
                         </CellTemplate>
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.Phone" Title="Phone" />
+                    <PropertyColumn Property="x => x.MembershipNumber" Title="Membership No." />
                     <PropertyColumn Property="x => x.City" Title="City" />
                     <TemplateColumn Title="Bookings" Sortable="false">
                         <CellTemplate>
@@ -172,6 +173,10 @@ else
                 <MudTextField @bind-Value="_form.Tags" Label="Tags (comma-separated)" Placeholder="VIP, Regular, New…" />
             </MudItem>
             <MudItem xs="12">
+                <MudTextField @bind-Value="_form.MembershipNumber" Label="Membership Number"
+                              HelperText="Gym / club / loyalty scheme membership number" />
+            </MudItem>
+            <MudItem xs="12">
                 <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="3" />
             </MudItem>
             <MudItem xs="6">
@@ -258,6 +263,7 @@ else
             Country = c.Country,
             Gender = c.Gender,
             Tags = c.Tags,
+            MembershipNumber = c.MembershipNumber,
             Notes = c.Notes,
             MarketingOptIn = c.MarketingOptIn,
             SmsOptIn = c.SmsOptIn
@@ -294,6 +300,7 @@ else
                 Gender = _form.Gender,
                 DateOfBirth = _dobDate,
                 Tags = _form.Tags,
+                MembershipNumber = _form.MembershipNumber,
                 Notes = _form.Notes,
                 MarketingOptIn = _form.MarketingOptIn,
                 SmsOptIn = _form.SmsOptIn
@@ -318,6 +325,7 @@ else
                 Gender = _form.Gender,
                 DateOfBirth = _dobDate,
                 Tags = _form.Tags,
+                MembershipNumber = _form.MembershipNumber,
                 Notes = _form.Notes,
                 MarketingOptIn = _form.MarketingOptIn,
                 SmsOptIn = _form.SmsOptIn
@@ -366,6 +374,7 @@ else
         public string? Country { get; set; }
         public string? Gender { get; set; }
         public string? Tags { get; set; }
+        public string? MembershipNumber { get; set; }
         public string? Notes { get; set; }
         public bool MarketingOptIn { get; set; }
         public bool SmsOptIn { get; set; }

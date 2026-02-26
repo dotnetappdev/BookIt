@@ -179,3 +179,16 @@ public enum EmailTemplateType
     AppointmentReminder = 1,
     BookingCancellation = 2
 }
+
+public enum VideoConferenceProvider
+{
+    None = 0,
+    MicrosoftTeams = 1,
+    Zoom = 2,
+    GoogleMeet = 3,
+    Webex = 4,
+    GoToMeeting = 5,
+    Jitsi = 6,
+    Whereby = 7,
+    Other = 8
+}

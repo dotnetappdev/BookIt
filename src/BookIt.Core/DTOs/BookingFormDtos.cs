@@ -43,6 +43,17 @@ public class CreateBookingFormRequest
     public bool CollectNotes { get; set; } = true;
 }
 
+public class UpdateBookingFormRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsDefault { get; set; }
+    public string? WelcomeMessage { get; set; }
+    public string? ConfirmationMessage { get; set; }
+    public bool CollectPhone { get; set; }
+    public bool CollectNotes { get; set; }
+}
+
 public class AddFormFieldRequest
 {
     public string Label { get; set; } = string.Empty;

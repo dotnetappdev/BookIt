@@ -125,6 +125,37 @@ public class BookingFormsController : ControllerBase
     }
 
     [Authorize]
+    [HttpPut("{formId}")]
+    public async Task<ActionResult<BookingFormResponse>> UpdateForm(string tenantSlug, Guid formId, [FromBody] UpdateBookingFormRequest request)
+    {
+        var tenant = await GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+        if (!_tenantService.IsValidTenantAccess(tenant.Id)) return Forbid();
+
+        var form = await _context.BookingForms.Include(f => f.Fields)
+            .FirstOrDefaultAsync(f => f.Id == formId && f.TenantId == tenant.Id && !f.IsDeleted);
+        if (form == null) return NotFound();
+
+        if (request.IsDefault && !form.IsDefault)
+        {
+            var existing = await _context.BookingForms.Where(f => f.TenantId == tenant.Id && f.IsDefault && !f.IsDeleted).ToListAsync();
+            existing.ForEach(f => { f.IsDefault = false; f.UpdatedAt = DateTime.UtcNow; });
+        }
+
+        form.Name = request.Name;
+        form.Description = request.Description;
+        form.IsDefault = request.IsDefault;
+        form.WelcomeMessage = request.WelcomeMessage;
+        form.ConfirmationMessage = request.ConfirmationMessage;
+        form.CollectPhone = request.CollectPhone;
+        form.CollectNotes = request.CollectNotes;
+        form.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return Ok(MapForm(form));
+    }
+
+    [Authorize]
     [HttpDelete("{formId}")]
     public async Task<IActionResult> DeleteForm(string tenantSlug, Guid formId)
     {
