@@ -1,0 +1,260 @@
+@page "/super-admin"
+@rendermode InteractiveServer
+@using MudBlazor
+@using BookIt.UI.Shared.Services
+@using BookIt.Core.DTOs
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject IJSRuntime Js
+
+<PageTitle>Super Admin — BookIt</PageTitle>
+
+<MudThemeProvider IsDarkMode="true" />
+<MudPopoverProvider />
+<MudSnackbarProvider />
+<MudDialogProvider />
+
+<div style="min-height:100vh;background:#07071a;color:white;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+
+    <!-- Top bar -->
+    <div style="background:#0d1117;border-bottom:1px solid rgba(255,255,255,.07);padding:14px 24px;
+                display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);
+                        display:flex;align-items:center;justify-content:center;">
+                <span style="font-size:.9rem;font-weight:700;">B</span>
+            </div>
+            <div>
+                <div style="font-size:1rem;font-weight:700;">BookIt Super Admin</div>
+                <div style="font-size:.72rem;color:rgba(255,255,255,.4);">Tenant Management Console</div>
+            </div>
+        </div>
+        <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.Logout"
+                   OnClick="@(() => Nav.NavigateTo("/login"))">Sign Out</MudButton>
+    </div>
+
+    <div style="max-width:1300px;margin:0 auto;padding:32px 24px;">
+
+        @if (!_authorized)
+        {
+            <MudCard Elevation="2" Style="max-width:400px;margin:80px auto;">
+                <MudCardContent>
+                    <MudStack AlignItems="AlignItems.Center" Spacing="3">
+                        <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Size="Size.Large" Color="Color.Warning" />
+                        <MudText Typo="Typo.h6">Super Admin Access Required</MudText>
+                        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
+                            Please sign in with a BookIt super-admin account.
+                        </MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   OnClick="@(() => Nav.NavigateTo("/login?returnUrl=/super-admin"))">
+                            Sign In
+                        </MudButton>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        }
+        else
+        {
+            <!-- Stats row -->
+            <MudGrid Spacing="3" Class="mb-4">
+                <MudItem xs="12" sm="3">
+                    <div style="background:#0d1117;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;border-top:3px solid #6c5ce7;">
+                        <div style="font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#6c5ce7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                            @_tenants.Count
+                        </div>
+                        <div style="font-size:.8rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;">Total Tenants</div>
+                    </div>
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <div style="background:#0d1117;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;border-top:3px solid #00b894;">
+                        <div style="font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#00b894,#55efc4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                            @_tenants.Count(t => t.IsActive)
+                        </div>
+                        <div style="font-size:.8rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;">Active Tenants</div>
+                    </div>
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <div style="background:#0d1117;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;border-top:3px solid #0984e3;">
+                        <div style="font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#0984e3,#74b9ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                            @_tenants.Sum(t => t.CustomerCount)
+                        </div>
+                        <div style="font-size:.8rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;">Total Customers</div>
+                    </div>
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <div style="background:#0d1117;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;border-top:3px solid #e17055;">
+                        <div style="font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#e17055,#fab1a0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                            @_tenants.Sum(t => t.AppointmentCount)
+                        </div>
+                        <div style="font-size:.8rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;">Total Bookings</div>
+                    </div>
+                </MudItem>
+            </MudGrid>
+
+            <!-- Header + New Tenant -->
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+                <div>
+                    <MudText Typo="Typo.h5" Style="color:white;font-weight:700;">Client Tenants</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Manage all BookIt client accounts and their tenant IDs</MudText>
+                </div>
+                <MudStack Row="true" Spacing="2">
+                    <MudTextField @bind-Value="_search" Placeholder="Search tenants…"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Variant="Variant.Outlined" Margin="Margin.Dense" Style="min-width:220px;" />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="OpenSetupPage">New Tenant</MudButton>
+                </MudStack>
+            </MudStack>
+
+            @if (_loading)
+            {
+                <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+            }
+            else if (!FilteredTenants.Any())
+            {
+                <div style="background:#0d1117;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:48px;text-align:center;">
+                    <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Large" Style="opacity:.3;" />
+                    <MudText Typo="Typo.body1" Style="margin-top:12px;opacity:.5;">No tenants found.</MudText>
+                </div>
+            }
+            else
+            {
+                <div style="background:#0d1117;border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;">
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr style="border-bottom:1px solid rgba(255,255,255,.07);">
+                                <th style="padding:12px 16px;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">Business</th>
+                                <th style="padding:12px 16px;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">Tenant ID</th>
+                                <th style="padding:12px 16px;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">Type</th>
+                                <th style="padding:12px 16px;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">Contact</th>
+                                <th style="padding:12px 16px;text-align:center;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">Customers</th>
+                                <th style="padding:12px 16px;text-align:center;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">Bookings</th>
+                                <th style="padding:12px 16px;text-align:center;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">Status</th>
+                                <th style="padding:12px 16px;text-align:right;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in FilteredTenants)
+                            {
+                                <tr style="border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;"
+                                    onmouseenter="this.style.background='rgba(108,92,231,.06)'"
+                                    onmouseleave="this.style.background='transparent'">
+                                    <td style="padding:14px 16px;">
+                                        <div style="font-weight:600;font-size:.9rem;">@t.Name</div>
+                                        <div style="font-size:.75rem;color:rgba(255,255,255,.4);">/@t.Slug</div>
+                                    </td>
+                                    <td style="padding:14px 16px;">
+                                        <code style="font-size:.72rem;background:rgba(255,255,255,.06);padding:3px 7px;border-radius:4px;color:#a29bfe;letter-spacing:.03em;">
+                                            @t.Id.ToString("D")
+                                        </code>
+                                    </td>
+                                    <td style="padding:14px 16px;">
+                                        <span style="font-size:.78rem;background:rgba(108,92,231,.15);color:#a29bfe;padding:3px 8px;border-radius:20px;">
+                                            @t.BusinessTypeName
+                                        </span>
+                                    </td>
+                                    <td style="padding:14px 16px;">
+                                        <div style="font-size:.82rem;">@(t.ContactEmail ?? "—")</div>
+                                        <div style="font-size:.75rem;color:rgba(255,255,255,.4);">@(t.ContactPhone ?? "")</div>
+                                    </td>
+                                    <td style="padding:14px 16px;text-align:center;font-size:.9rem;font-weight:600;">@t.CustomerCount</td>
+                                    <td style="padding:14px 16px;text-align:center;font-size:.9rem;font-weight:600;">@t.AppointmentCount</td>
+                                    <td style="padding:14px 16px;text-align:center;">
+                                        @if (t.IsActive)
+                                        {
+                                            <span style="font-size:.75rem;background:rgba(0,184,148,.15);color:#55efc4;padding:3px 9px;border-radius:20px;">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span style="font-size:.75rem;background:rgba(225,112,85,.15);color:#fab1a0;padding:3px 9px;border-radius:20px;">Inactive</span>
+                                        }
+                                    </td>
+                                    <td style="padding:14px 16px;text-align:right;">
+                                        <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small"
+                                                       Style="color:rgba(255,255,255,.5);"
+                                                       OnClick="@(() => Nav.NavigateTo($"/{t.Slug}/admin"))" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Size="Size.Small"
+                                                       Style="color:rgba(255,255,255,.5);"
+                                                       OnClick="@(() => CopyTenantId(t))" />
+                                        @if (_pendingDeleteId == t.Id)
+                                        {
+                                            <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
+                                                       OnClick="@(() => ConfirmDeleteTenant(t))">Delete?</MudButton>
+                                            <MudButton Size="Size.Small" Style="color:rgba(255,255,255,.5);"
+                                                       OnClick="@(() => _pendingDeleteId = null)">Cancel</MudButton>
+                                        }
+                                        else
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                           Style="color:#e17055;"
+                                                           OnClick="@(() => _pendingDeleteId = t.Id)" />
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private List<TenantListResponse> _tenants = new();
+    private bool _loading = true;
+    private bool _authorized;
+    private string _search = "";
+    private Guid? _pendingDeleteId;
+
+    private IEnumerable<TenantListResponse> FilteredTenants =>
+        string.IsNullOrWhiteSpace(_search)
+            ? _tenants
+            : _tenants.Where(t =>
+                t.Name.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                t.Slug.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                (t.ContactEmail ?? "").Contains(_search, StringComparison.OrdinalIgnoreCase));
+
+    protected override void OnInitialized()
+    {
+        // Allow access for SuperAdmin role or unauthenticated (show sign-in prompt)
+        _authorized = Auth.IsAuthenticated &&
+                      Auth.Role == BookIt.Core.Enums.UserRole.SuperAdmin;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        if (!_authorized)
+        {
+            _loading = false;
+            StateHasChanged();
+            return;
+        }
+        Api.SetToken(Auth.AccessToken);
+        _tenants = await Api.GetAllTenantsAsync() ?? new();
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private void OpenSetupPage() => Nav.NavigateTo("/setup");
+
+    private async Task ConfirmDeleteTenant(TenantListResponse t)
+    {
+        _pendingDeleteId = null;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.SuperAdminDeleteTenantAsync(t.Id);
+        if (ok) { _tenants.Remove(t); Snackbar.Add($"Tenant '{t.Name}' deleted.", Severity.Success); StateHasChanged(); }
+        else Snackbar.Add("Could not delete tenant.", Severity.Error);
+    }
+
+    private async Task CopyTenantId(TenantListResponse t)
+    {
+        await Js.InvokeVoidAsync("navigator.clipboard.writeText", t.Id.ToString("D"));
+        Snackbar.Add($"Tenant ID copied to clipboard.", Severity.Info);
+    }
+}

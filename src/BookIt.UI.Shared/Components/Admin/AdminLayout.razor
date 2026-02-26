@@ -106,9 +106,18 @@
             <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/services")"
                         Icon="@Icons.Material.Filled.Spa"
                         Style="color:rgba(255,255,255,.65);">Services</MudNavLink>
-            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/forms")"
-                        Icon="@Icons.Material.Filled.Assignment"
-                        Style="color:rgba(255,255,255,.65);">Booking Forms</MudNavLink>
+            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/customers")"
+                        Icon="@Icons.Material.Filled.People"
+                        Style="color:rgba(255,255,255,.65);">Customers</MudNavLink>
+            <MudNavGroup Title="Booking Forms" Icon="@Icons.Material.Filled.Assignment"
+                         Style="color:rgba(255,255,255,.65);">
+                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/forms")"
+                            Icon="@Icons.Material.Filled.List"
+                            Style="color:rgba(255,255,255,.65);">All Forms</MudNavLink>
+                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/forms/builder")"
+                            Icon="@Icons.Material.Filled.Build"
+                            Style="color:rgba(255,255,255,.65);">Form Builder</MudNavLink>
+            </MudNavGroup>
             <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/interviews")"
                         Icon="@Icons.Material.Filled.Groups"
                         Style="color:rgba(255,255,255,.65);">Interviews</MudNavLink>
@@ -163,7 +172,9 @@
         "admin"         => "Dashboard",
         "calendar"      => "Calendar",
         "services"      => "Services",
+        "customers"     => "Customers",
         "forms"         => "Booking Forms",
+        "builder"       => "Form Builder",
         "interviews"    => "Interviews",
         "settings"      => "Settings",
         "subscriptions" => "Subscription",

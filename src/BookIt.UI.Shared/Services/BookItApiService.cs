@@ -143,4 +143,30 @@ public class BookItApiService
 
     public Task<List<CandidateInvitationResponse>?> GetInterviewInvitationsAsync(string slug) =>
         GetAsync<List<CandidateInvitationResponse>>($"/api/tenants/{slug}/interviewslots/invitations");
+
+    // ── Customers ──
+    public Task<List<CustomerResponse>?> GetCustomersAsync(string slug) =>
+        GetAsync<List<CustomerResponse>>($"/api/tenants/{slug}/customers");
+
+    public Task<CustomerResponse?> GetCustomerAsync(string slug, Guid id) =>
+        GetAsync<CustomerResponse>($"/api/tenants/{slug}/customers/{id}");
+
+    public Task<CustomerResponse?> CreateCustomerAsync(string slug, CreateCustomerRequest req) =>
+        PostAsync<CustomerResponse>($"/api/tenants/{slug}/customers", req);
+
+    public Task<CustomerResponse?> UpdateCustomerAsync(string slug, Guid id, UpdateCustomerRequest req) =>
+        PutAsync<CustomerResponse>($"/api/tenants/{slug}/customers/{id}", req);
+
+    public Task<bool> DeleteCustomerAsync(string slug, Guid id) =>
+        DeleteAsync($"/api/tenants/{slug}/customers/{id}");
+
+    // ── Super Admin ──
+    public Task<List<TenantListResponse>?> GetAllTenantsAsync() =>
+        GetAsync<List<TenantListResponse>>("/api/admin/tenants");
+
+    public Task<TenantResponse?> SuperAdminUpdateTenantAsync(Guid tenantId, UpdateTenantRequest req) =>
+        PutAsync<TenantResponse>($"/api/admin/tenants/{tenantId}", req);
+
+    public Task<bool> SuperAdminDeleteTenantAsync(Guid tenantId) =>
+        DeleteAsync($"/api/admin/tenants/{tenantId}");
 }
