@@ -125,7 +125,7 @@
 </MudLayout>
 
 @code {
-    private bool _isDark = false;
+    private bool _isDark = true;
     private async Task ToggleDark()
     {
         _isDark = !_isDark;
@@ -135,7 +135,9 @@
     {
         if (!firstRender) return;
         var stored = await Js.InvokeAsync<string?>("localStorage.getItem", "bookit-theme");
-        if (stored == "dark") { _isDark = true; StateHasChanged(); }
+        // Default to dark unless the user has explicitly chosen light
+        var preferDark = stored != "light";
+        if (preferDark != _isDark) { _isDark = preferDark; StateHasChanged(); }
     }
     private void Logout() { Auth.Clear(); Nav.NavigateTo("/login"); }
 }

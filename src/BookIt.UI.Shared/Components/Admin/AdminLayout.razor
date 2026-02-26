@@ -1,10 +1,12 @@
 @using MudBlazor
 @using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.JSInterop
 @inherits LayoutComponentBase
 @implements IDisposable
 @inject BookItAuthState Auth
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
+@inject IJSRuntime Js
 
 <MudThemeProvider Theme="_theme" IsDarkMode="@_isDark" />
 <MudPopoverProvider />
@@ -183,7 +185,20 @@
 
     protected override void OnInitialized() => Auth.OnChange += StateHasChanged;
 
-    private void ToggleDark() => _isDark = !_isDark;
+    private async Task ToggleDark()
+    {
+        _isDark = !_isDark;
+        await Js.InvokeVoidAsync("localStorage.setItem", "bookit-theme", _isDark ? "dark" : "light");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var stored = await Js.InvokeAsync<string?>("localStorage.getItem", "bookit-theme");
+        // Default to dark unless the user has explicitly chosen light
+        var preferDark = stored != "light";
+        if (preferDark != _isDark) { _isDark = preferDark; StateHasChanged(); }
+    }
 
     private void Logout()
     {
