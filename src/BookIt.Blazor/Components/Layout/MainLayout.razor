@@ -126,7 +126,7 @@
 
 @code {
     private bool _isDark = false;
-    private async void ToggleDark()
+    private async Task ToggleDark()
     {
         _isDark = !_isDark;
         await Js.InvokeVoidAsync("localStorage.setItem", "bookit-theme", _isDark ? "dark" : "light");

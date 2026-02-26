@@ -127,7 +127,7 @@
                                 </MudStack>
                                 <MudStack Row="true" Justify="Justify.SpaceBetween">
                                     <MudText Color="Color.Secondary">Duration</MudText>
-                                    <MudText Class="fw-medium">@_requestedDurationMinutes min@(_requestedDurationMinutes != (_selectedService?.DurationMinutes ?? _requestedDurationMinutes) ? " (custom)" : "")</MudText>
+                                    <MudText Class="fw-medium">@_requestedDurationMinutes min@(IsCustomDuration ? " (custom)" : "")</MudText>
                                 </MudStack>
                                 @if (_selectedService != null && _selectedService.Price > 0)
                                 {
@@ -577,7 +577,7 @@
                             }
                             <MudItem xs="6">
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">Duration</MudText>
-                                <MudText Class="fw-medium">@_requestedDurationMinutes min@(_requestedDurationMinutes != (_selectedService?.DurationMinutes ?? _requestedDurationMinutes) ? " (custom)" : "")</MudText>
+                                <MudText Class="fw-medium">@_requestedDurationMinutes min@(IsCustomDuration ? " (custom)" : "")</MudText>
                             </MudItem>
                             @if (_selectedService != null && _selectedService.Price > 0)
                             {
@@ -772,7 +772,7 @@
             CustomerName = _customerName,
             CustomerEmail = _customerEmail,
             CustomerPhone = string.IsNullOrWhiteSpace(_customerPhone) ? null : _customerPhone,
-            CustomerNotes = _requestedDurationMinutes != (_selectedService?.DurationMinutes ?? _requestedDurationMinutes)
+            CustomerNotes = IsCustomDuration
                 ? $"[Requested duration: {_requestedDurationMinutes} min] {_customerNotes}".Trim()
                 : (string.IsNullOrWhiteSpace(_customerNotes) ? null : _customerNotes),
             CustomFormDataJson = formDataJson,
@@ -815,6 +815,10 @@
         "cash" => "Pay in cash",
         _ => "Pay online"
     };
+
+    private bool IsCustomDuration =>
+        _requestedDurationMinutes != (_selectedService?.DurationMinutes ?? 0) &&
+        _requestedDurationMinutes > 0;
 
     private List<int> DurationOptions()
     {
