@@ -5,6 +5,12 @@ using BookIt.Infrastructure.Data;
 using BookIt.Infrastructure.Repositories;
 using BookIt.Payments.Stripe;
 using BookIt.Payments.PayPal;
+using BookIt.Payments.ApplePay;
+using BookIt.Subscriptions.RevenueCat;
+using BookIt.Notifications.Sms;
+using BookIt.Notifications.Email;
+using Hangfire;
+using Hangfire.InMemory;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -53,11 +59,23 @@ public static class DependencyInjection
         services.AddScoped<IAppointmentService, BookIt.Infrastructure.Services.AppointmentService>();
         services.AddStripePayments();
         services.AddPayPalPayments();
+        services.AddApplePayPayments();
+        services.AddRevenueCat();
         services.AddScoped<IPaymentService, StripePaymentService>();
         services.AddScoped<IPayPalService, PayPalService>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IEmailService, ConsoleEmailService>();
         services.AddScoped<IChatService, BookingChatService>();
+
+        // Notification providers
+        services.AddSmsNotifications();
+        services.AddSendGridEmail();
+
+        // Hangfire background job scheduler
+        services.AddHangfire(config => config.UseInMemoryStorage());
+        services.AddHangfireServer();
+        services.AddScoped<IReminderScheduler, HangfireReminderScheduler>();
+        services.AddScoped<AppointmentReminderJob>();
 
         return services;
     }

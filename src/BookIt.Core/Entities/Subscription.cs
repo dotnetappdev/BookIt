@@ -10,6 +10,7 @@ public class Subscription : BaseEntity
     public SubscriptionStatus Status { get; set; } = SubscriptionStatus.Trialing;
     public string? ProviderSubscriptionId { get; set; }
     public string? ProviderCustomerId { get; set; }
+    public string? RevenueCatCustomerId { get; set; }
     public PaymentProvider? PaymentProvider { get; set; }
     public decimal MonthlyPrice { get; set; }
     public string Currency { get; set; } = "GBP";

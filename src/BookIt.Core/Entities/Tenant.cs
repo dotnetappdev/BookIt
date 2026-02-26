@@ -34,6 +34,10 @@ public class Tenant : BaseEntity
     public bool EnablePayPal { get; set; }
     public bool EnableApplePay { get; set; }
 
+    // RevenueCat subscription management
+    public string? RevenueCatApiKey { get; set; }
+    public string? RevenueCatEntitlementId { get; set; } = "premium";
+
     // Virtual meeting settings
     public string? ZoomApiKey { get; set; }
     public string? ZoomApiSecret { get; set; }
@@ -49,6 +53,32 @@ public class Tenant : BaseEntity
     public string? ElevenLabsVoiceId { get; set; }
     public string? VapiPublicKey { get; set; }
     public bool EnableAiChat { get; set; } = true;
+
+    // SMS notifications
+    public SmsProvider SmsProvider { get; set; } = SmsProvider.None;
+    public string? ClickSendUsername { get; set; }
+    public string? ClickSendApiKey { get; set; }
+    public string? ClickSendFromNumber { get; set; }
+    public string? TwilioAccountSid { get; set; }
+    public string? TwilioAuthToken { get; set; }
+    public string? TwilioFromNumber { get; set; }
+    public bool EnableSmsNotifications { get; set; } = false;
+
+    // SendGrid email notifications
+    public string? SendGridApiKey { get; set; }
+    public string? SendGridFromEmail { get; set; }
+    public string? SendGridFromName { get; set; }
+    public bool EnableEmailNotifications { get; set; } = false;
+
+    // Reminder alerts — comma-separated minutes before, e.g. "60,1440" = 1h + 1 day
+    public string? ReminderAlerts { get; set; } = "1440";
+    public bool EnableEmailReminders { get; set; } = true;
+    public bool EnableSmsReminders { get; set; } = false;
+
+    // Booking page branding
+    public string? BookingPageTitle { get; set; }
+    public string? BannerImageUrl { get; set; }
+    public TenantTheme Theme { get; set; } = TenantTheme.Indigo;
 
     // Navigation properties
     public ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
