@@ -129,36 +129,36 @@
             </div>
             <form id="addStaffForm">
                 <div class="modal-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-6">
+                    <div class="admin-form-grid">
+                        <div>
                             <label for="addFirstName" class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="addFirstName" name="firstName" required aria-required="true" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="addLastName" class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="addLastName" name="lastName" required aria-required="true" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="addEmail" class="form-label fw-semibold">Email</label>
                             <input type="email" class="form-control" id="addEmail" name="email" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="addPhone" class="form-label fw-semibold">Phone</label>
                             <input type="tel" class="form-control" id="addPhone" name="phone" />
                         </div>
-                        <div class="col-12">
+                        <div class="afc-12">
                             <label for="addPhotoUrl" class="form-label fw-semibold">Photo URL</label>
                             <input type="url" class="form-control" id="addPhotoUrl" name="photoUrl" placeholder="https://..." />
                         </div>
-                        <div class="col-12">
+                        <div class="afc-12">
                             <label for="addBio" class="form-label fw-semibold">Bio</label>
                             <textarea class="form-control" id="addBio" name="bio" rows="3" placeholder="Short bio or role description..."></textarea>
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="addSortOrder" class="form-label fw-semibold">Sort Order</label>
                             <input type="number" class="form-control" id="addSortOrder" name="sortOrder" value="0" min="0" />
                         </div>
-                        <div class="col-md-6 d-flex align-items-center pt-4">
+                        <div class="admin-check-cell">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="addIsActive" name="isActive" checked />
                                 <label class="form-check-label fw-semibold" for="addIsActive">Active</label>
@@ -188,36 +188,36 @@
             <form id="editStaffForm">
                 <input type="hidden" id="editStaffId" />
                 <div class="modal-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-6">
+                    <div class="admin-form-grid">
+                        <div>
                             <label for="editFirstName" class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="editFirstName" name="firstName" required aria-required="true" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="editLastName" class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="editLastName" name="lastName" required aria-required="true" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="editEmail" class="form-label fw-semibold">Email</label>
                             <input type="email" class="form-control" id="editEmail" name="email" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="editPhone" class="form-label fw-semibold">Phone</label>
                             <input type="tel" class="form-control" id="editPhone" name="phone" />
                         </div>
-                        <div class="col-12">
+                        <div class="afc-12">
                             <label for="editPhotoUrl" class="form-label fw-semibold">Photo URL</label>
                             <input type="url" class="form-control" id="editPhotoUrl" name="photoUrl" placeholder="https://..." />
                         </div>
-                        <div class="col-12">
+                        <div class="afc-12">
                             <label for="editBio" class="form-label fw-semibold">Bio</label>
                             <textarea class="form-control" id="editBio" name="bio" rows="3"></textarea>
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="editSortOrder" class="form-label fw-semibold">Sort Order</label>
                             <input type="number" class="form-control" id="editSortOrder" name="sortOrder" min="0" />
                         </div>
-                        <div class="col-md-6 d-flex align-items-center pt-4">
+                        <div class="admin-check-cell">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="editIsActive" name="isActive" />
                                 <label class="form-check-label fw-semibold" for="editIsActive">Active</label>

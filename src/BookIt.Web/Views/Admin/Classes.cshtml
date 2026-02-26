@@ -157,13 +157,13 @@ else
             </div>
             <form id="addClassForm">
                 <div class="modal-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-8">
+                    <div class="admin-form-grid">
+                        <div class="afc-8">
                             <label for="addName" class="form-label fw-semibold">Class Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="addName" name="name" required aria-required="true"
                                    placeholder="e.g. Morning Yoga, Spin Class, Swimming Lesson" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="addService" class="form-label fw-semibold">Service <span class="text-danger">*</span></label>
                             <select class="form-select" id="addService" name="serviceId" required aria-required="true">
                                 <option value="">— Select service —</option>
@@ -173,36 +173,36 @@ else
                                 }
                             </select>
                         </div>
-                        <div class="col-12">
+                        <div class="afc-12">
                             <label for="addDesc" class="form-label fw-semibold">Description</label>
                             <textarea class="form-control" id="addDesc" name="description" rows="2"
                                       placeholder="Brief description of the class..."></textarea>
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="addDate" class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="addDate" name="sessionDate" required aria-required="true" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="addTime" class="form-label fw-semibold">Start Time <span class="text-danger">*</span></label>
                             <input type="time" class="form-control" id="addTime" name="startTime" required aria-required="true" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="addDuration" class="form-label fw-semibold">Duration (minutes)</label>
                             <input type="number" class="form-control" id="addDuration" name="durationMinutes" min="5" placeholder="60" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="addCapacity" class="form-label fw-semibold">Max Capacity</label>
                             <input type="number" class="form-control" id="addCapacity" name="maxCapacity" min="1" placeholder="20" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="addPrice" class="form-label fw-semibold">Price (£)</label>
                             <input type="number" class="form-control" id="addPrice" name="price" min="0" step="0.01" placeholder="0.00" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="addLocation" class="form-label fw-semibold">Location / Room</label>
                             <input type="text" class="form-control" id="addLocation" name="location" placeholder="e.g. Studio 1, Pool, Room A" />
                         </div>
-                        <div class="col-12">
+                        <div class="afc-12">
                             <label class="form-label fw-semibold">Instructors / Staff</label>
                             <div class="row g-2" id="addInstructorList">
                                 @foreach (var s in staff.Where(s => s.IsActive))
@@ -243,12 +243,12 @@ else
             <form id="editClassForm">
                 <input type="hidden" id="editSessionId" />
                 <div class="modal-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-8">
+                    <div class="admin-form-grid">
+                        <div class="afc-8">
                             <label for="editName" class="form-label fw-semibold">Class Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="editName" name="name" required aria-required="true" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="editService" class="form-label fw-semibold">Service</label>
                             <select class="form-select" id="editService" name="serviceId">
                                 <option value="">— Select service —</option>
@@ -258,35 +258,35 @@ else
                                 }
                             </select>
                         </div>
-                        <div class="col-12">
+                        <div class="afc-12">
                             <label for="editDesc" class="form-label fw-semibold">Description</label>
                             <textarea class="form-control" id="editDesc" name="description" rows="2"></textarea>
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="editDate" class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="editDate" name="sessionDate" required aria-required="true" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="editTime" class="form-label fw-semibold">Start Time <span class="text-danger">*</span></label>
                             <input type="time" class="form-control" id="editTime" name="startTime" required aria-required="true" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="editDuration" class="form-label fw-semibold">Duration (minutes)</label>
                             <input type="number" class="form-control" id="editDuration" name="durationMinutes" min="5" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="editCapacity" class="form-label fw-semibold">Max Capacity</label>
                             <input type="number" class="form-control" id="editCapacity" name="maxCapacity" min="1" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="editPrice" class="form-label fw-semibold">Price (£)</label>
                             <input type="number" class="form-control" id="editPrice" name="price" min="0" step="0.01" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="editLocation" class="form-label fw-semibold">Location / Room</label>
                             <input type="text" class="form-control" id="editLocation" name="location" />
                         </div>
-                        <div class="col-12">
+                        <div class="afc-12">
                             <label class="form-label fw-semibold">Instructors / Staff</label>
                             <div class="row g-2" id="editInstructorList">
                                 @foreach (var s in staff.Where(s => s.IsActive))

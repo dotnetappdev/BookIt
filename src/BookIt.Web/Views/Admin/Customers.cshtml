@@ -139,28 +139,28 @@ else
             </div>
             <form id="addCustomerForm">
                 <div class="modal-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-6">
+                    <div class="admin-form-grid">
+                        <div>
                             <label for="addFirstName" class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="addFirstName" name="firstName" required aria-required="true" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="addLastName" class="form-label fw-semibold">Last Name</label>
                             <input type="text" class="form-control" id="addLastName" name="lastName" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="addEmail" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
                             <input type="email" class="form-control" id="addEmail" name="email" required aria-required="true" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="addPhone" class="form-label fw-semibold">Phone</label>
                             <input type="tel" class="form-control" id="addPhone" name="phone" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="addMobile" class="form-label fw-semibold">Mobile</label>
                             <input type="tel" class="form-control" id="addMobile" name="mobile" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="addGender" class="form-label fw-semibold">Gender</label>
                             <select class="form-select" id="addGender" name="gender">
                                 <option value="">— Not specified —</option>
@@ -170,41 +170,41 @@ else
                                 <option value="Prefer not to say">Prefer not to say</option>
                             </select>
                         </div>
-                        <div class="col-12">
+                        <div class="afc-12">
                             <label for="addAddress" class="form-label fw-semibold">Address</label>
                             <input type="text" class="form-control" id="addAddress" name="address" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="addCity" class="form-label fw-semibold">City</label>
                             <input type="text" class="form-control" id="addCity" name="city" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="addPostCode" class="form-label fw-semibold">Post Code</label>
                             <input type="text" class="form-control" id="addPostCode" name="postCode" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="addCountry" class="form-label fw-semibold">Country</label>
                             <input type="text" class="form-control" id="addCountry" name="country" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="addMembershipNumber" class="form-label fw-semibold">Membership Number</label>
                             <input type="text" class="form-control" id="addMembershipNumber" name="membershipNumber" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="addTags" class="form-label fw-semibold">Tags</label>
                             <input type="text" class="form-control" id="addTags" name="tags" placeholder="e.g. VIP, New Client" />
                         </div>
-                        <div class="col-12">
+                        <div class="afc-12">
                             <label for="addNotes" class="form-label fw-semibold">Notes</label>
                             <textarea class="form-control" id="addNotes" name="notes" rows="3" placeholder="Internal notes about this customer..."></textarea>
                         </div>
-                        <div class="col-md-6 d-flex align-items-center">
+                        <div class="admin-check-cell">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="addMarketingOptIn" name="marketingOptIn" />
                                 <label class="form-check-label fw-semibold" for="addMarketingOptIn">Marketing Opt-in</label>
                             </div>
                         </div>
-                        <div class="col-md-6 d-flex align-items-center">
+                        <div class="admin-check-cell">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="addSmsOptIn" name="smsOptIn" />
                                 <label class="form-check-label fw-semibold" for="addSmsOptIn">SMS Opt-in</label>
@@ -232,28 +232,28 @@ else
             <form id="editCustomerForm">
                 <input type="hidden" id="editCustomerId" />
                 <div class="modal-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-6">
+                    <div class="admin-form-grid">
+                        <div>
                             <label for="editFirstName" class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="editFirstName" name="firstName" required aria-required="true" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="editLastName" class="form-label fw-semibold">Last Name</label>
                             <input type="text" class="form-control" id="editLastName" name="lastName" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="editEmail" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
                             <input type="email" class="form-control" id="editEmail" name="email" required aria-required="true" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="editPhone" class="form-label fw-semibold">Phone</label>
                             <input type="tel" class="form-control" id="editPhone" name="phone" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="editMobile" class="form-label fw-semibold">Mobile</label>
                             <input type="tel" class="form-control" id="editMobile" name="mobile" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="editGender" class="form-label fw-semibold">Gender</label>
                             <select class="form-select" id="editGender" name="gender">
                                 <option value="">— Not specified —</option>
@@ -263,41 +263,41 @@ else
                                 <option value="Prefer not to say">Prefer not to say</option>
                             </select>
                         </div>
-                        <div class="col-12">
+                        <div class="afc-12">
                             <label for="editAddress" class="form-label fw-semibold">Address</label>
                             <input type="text" class="form-control" id="editAddress" name="address" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="editCity" class="form-label fw-semibold">City</label>
                             <input type="text" class="form-control" id="editCity" name="city" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="editPostCode" class="form-label fw-semibold">Post Code</label>
                             <input type="text" class="form-control" id="editPostCode" name="postCode" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="afc-4">
                             <label for="editCountry" class="form-label fw-semibold">Country</label>
                             <input type="text" class="form-control" id="editCountry" name="country" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="editMembershipNumber" class="form-label fw-semibold">Membership Number</label>
                             <input type="text" class="form-control" id="editMembershipNumber" name="membershipNumber" />
                         </div>
-                        <div class="col-md-6">
+                        <div>
                             <label for="editTags" class="form-label fw-semibold">Tags</label>
                             <input type="text" class="form-control" id="editTags" name="tags" placeholder="e.g. VIP, New Client" />
                         </div>
-                        <div class="col-12">
+                        <div class="afc-12">
                             <label for="editNotes" class="form-label fw-semibold">Notes</label>
                             <textarea class="form-control" id="editNotes" name="notes" rows="3"></textarea>
                         </div>
-                        <div class="col-md-6 d-flex align-items-center">
+                        <div class="admin-check-cell">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="editMarketingOptIn" name="marketingOptIn" />
                                 <label class="form-check-label fw-semibold" for="editMarketingOptIn">Marketing Opt-in</label>
                             </div>
                         </div>
-                        <div class="col-md-6 d-flex align-items-center">
+                        <div class="admin-check-cell">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="editSmsOptIn" name="smsOptIn" />
                                 <label class="form-check-label fw-semibold" for="editSmsOptIn">SMS Opt-in</label>
