@@ -1,4 +1,5 @@
 using BookIt.Core.DTOs;
+using BookIt.UI.Shared.Services;
 using System.Text;
 
 namespace BookIt.Maui.Services;
@@ -7,17 +8,93 @@ namespace BookIt.Maui.Services;
 /// Generates wallet-compatible pass files and coordinates device sharing/saving.
 /// 
 /// Platform support:
-/// - iOS: generates an ICS calendar event (opens in Calendar, visible in widgets)
-/// - Android: generates an ICS calendar event (opens in Google Calendar)
+/// - iOS: Apple Wallet PKPass via server-side signing; ICS calendar as fallback
+/// - Android: Google Wallet JWT save URL; ICS calendar as fallback
 /// - Both: native Share sheet for the QR image data URI
 ///
 /// Note: Full Apple PKPass (.pkpass) and Google Wallet JWT passes require
 /// platform developer certificates (Apple Developer Program / Google Pay & Wallet Console)
-/// and server-side signing. ICS is the cross-platform alternative that works without
-/// additional credentials.
+/// and server-side signing. When credentials are not configured on the server,
+/// falls back to ICS calendar export.
 /// </summary>
 public class WalletPassService
 {
+    private readonly BookItApiService _api;
+
+    public WalletPassService(BookItApiService api)
+    {
+        _api = api;
+    }
+
+    // ── Apple Wallet ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Downloads the .pkpass from the server and opens it in iOS Wallet app.
+    /// Falls back to ICS export when the server is not configured for Apple Wallet.
+    /// </summary>
+    public async Task AddToAppleWalletAsync(
+        AppointmentResponse appointment,
+        string tenantSlug,
+        string businessName,
+        string? membershipNumber = null)
+    {
+        try
+        {
+            var passBytes = await _api.GetAppleWalletPassAsync(tenantSlug, appointment.Id);
+            if (passBytes != null && passBytes.Length > 0)
+            {
+                var tempFile = Path.Combine(FileSystem.Current.CacheDirectory,
+                    $"bookit-{appointment.Id:N}.pkpass");
+                await File.WriteAllBytesAsync(tempFile, passBytes);
+                await Launcher.Default.OpenAsync(new OpenFileRequest
+                {
+                    File = new ReadOnlyFile(tempFile, "application/vnd.apple.pkpass"),
+                    Title = "Add to Apple Wallet"
+                });
+                return;
+            }
+        }
+        catch
+        {
+            // Server not configured — fall through to ICS
+        }
+
+        // Fallback: ICS calendar export
+        await AddToCalendarAsync(appointment, businessName, membershipNumber);
+    }
+
+    // ── Google Wallet ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Opens the Google Wallet "Add to Google Wallet" URL in the browser.
+    /// Falls back to ICS export when the server is not configured.
+    /// </summary>
+    public async Task AddToGoogleWalletAsync(
+        AppointmentResponse appointment,
+        string tenantSlug,
+        string businessName,
+        string? membershipNumber = null)
+    {
+        try
+        {
+            var saveUrl = await _api.GetGoogleWalletUrlAsync(tenantSlug, appointment.Id);
+            if (!string.IsNullOrEmpty(saveUrl))
+            {
+                await Launcher.Default.OpenAsync(new Uri(saveUrl));
+                return;
+            }
+        }
+        catch
+        {
+            // Server not configured — fall through to ICS
+        }
+
+        // Fallback: ICS calendar export
+        await AddToCalendarAsync(appointment, businessName, membershipNumber);
+    }
+
+    // ── ICS Calendar (cross-platform fallback) ────────────────────────────────
+
     /// <summary>
     /// Generates an ICS (iCalendar) calendar event string for an appointment.
     /// The event can be opened on both iOS and Android to add to the device calendar.
@@ -57,8 +134,6 @@ public class WalletPassService
         sb.AppendLine($"DTEND:{dtEnd}");
         sb.AppendLine($"SUMMARY:{EscapeIcs(services.Length > 0 ? $"{services} @ {businessName}" : $"Appointment @ {businessName}")}");
         sb.AppendLine($"DESCRIPTION:{EscapeIcs(string.Join("\\n", descParts))}");
-        if (!string.IsNullOrEmpty(appointment.Location))
-            sb.AppendLine($"LOCATION:{EscapeIcs(appointment.Location)}");
         sb.AppendLine("STATUS:CONFIRMED");
         sb.AppendLine("END:VEVENT");
         sb.AppendLine("END:VCALENDAR");
@@ -129,3 +204,4 @@ public class WalletPassService
     private static string EscapeIcs(string value)
         => value.Replace("\\", "\\\\").Replace(";", "\\;").Replace(",", "\\,").Replace("\n", "\\n");
 }
+

@@ -1,4 +1,5 @@
 using System.Text;
+using BookIt.API.Services;
 using BookIt.Core.Enums;
 using BookIt.Infrastructure;
 using BookIt.Infrastructure.Data;
@@ -46,6 +47,10 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
+
+// Wallet pass services (credentials configured via appsettings / user-secrets)
+builder.Services.AddSingleton<AppleWalletService>();
+builder.Services.AddSingleton<GoogleWalletService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

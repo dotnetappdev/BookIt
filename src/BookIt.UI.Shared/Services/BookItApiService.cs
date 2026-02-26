@@ -211,6 +211,22 @@ public class BookItApiService
     public Task<List<WebhookDeliveryResponse>?> GetWebhookDeliveriesAsync(string slug, Guid webhookId) =>
         GetAsync<List<WebhookDeliveryResponse>>($"/api/tenants/{slug}/webhooks/{webhookId}/deliveries");
 
+    // ── Wallet Passes ──
+    /// <summary>Downloads a signed .pkpass file for Apple Wallet (iOS).</summary>
+    public async Task<byte[]?> GetAppleWalletPassAsync(string slug, Guid appointmentId)
+    {
+        var r = await _http.GetAsync($"/api/tenants/{slug}/appointments/{appointmentId}/wallet/apple");
+        if (!r.IsSuccessStatusCode) return null;
+        return await r.Content.ReadAsByteArrayAsync();
+    }
+
+    /// <summary>Returns the Google Wallet "Add to Google Wallet" save URL (Android).</summary>
+    public async Task<string?> GetGoogleWalletUrlAsync(string slug, Guid appointmentId)
+    {
+        var r = await GetAsync<GoogleWalletUrlResponse>($"/api/tenants/{slug}/appointments/{appointmentId}/wallet/google");
+        return r?.Url;
+    }
+
     private async Task<bool> PostBoolAsync(string url, object body)
     {
         var r = await _http.PostAsync(url, Json(body));

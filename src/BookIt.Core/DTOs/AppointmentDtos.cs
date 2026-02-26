@@ -56,3 +56,8 @@ public class AvailableSlotsRequest
     public Guid? StaffId { get; set; }
     public DateOnly Date { get; set; }
 }
+
+public class GoogleWalletUrlResponse
+{
+    public string Url { get; set; } = string.Empty;
+}

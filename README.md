@@ -217,8 +217,16 @@ Sign Up tab adds: First name · Last name · **Membership number (optional)**.
 │  │  Generated 4 Mar 2026 · BookIt  │   │
 │  └─────────────────────────────────┘   │
 │                                         │
+│  ┌─────────────────────────────────┐   │
+│  │    🎫 Add to Apple Wallet       │   │  ← iOS only (black button)
+│  └─────────────────────────────────┘   │
+│  (or on Android:)                       │
+│  ┌─────────────────────────────────┐   │
+│  │  🎫 Add to Google Wallet        │   │  ← Android only (blue button)
+│  └─────────────────────────────────┘   │
+│                                         │
 │  ┌──────────────────┐ ┌─────────────┐  │
-│  │ 📅 Add to Calendar│ │ ↗ Share Pass│  │  ← wallet actions
+│  │ 📅 Add to Calendar│ │ ↗ Share Pass│  │  ← both platforms
 │  └──────────────────┘ └─────────────┘  │
 │                                         │
 │  2 more upcoming bookings               │
@@ -231,8 +239,10 @@ Sign Up tab adds: First name · Last name · **Membership number (optional)**.
 
 **QR code data**: `BOOKIT:{appointmentId}:{pin}:{startYYYYMMDDHHmm}:{membershipNumber|NONE}`
 
-**📅 Add to Calendar** → generates ICS event → opens iOS Calendar / Google Calendar
-**↗ Share Pass** → generates PNG QR → native share sheet (AirDrop / Messages / Save to Photos)
+**🎫 Add to Apple Wallet** (iOS) → server generates signed `.pkpass` → opened in iOS Wallet app
+**🎫 Add to Google Wallet** (Android) → server generates signed JWT → `pay.google.com/gp/v/save/{jwt}` opened in browser
+**📅 Add to Calendar** → ICS export → iOS Calendar / Google Calendar (fallback when wallet server is unconfigured)
+**↗ Share Pass** → QR PNG via native share sheet (AirDrop / Messages / Save to Photos)
 
 #### Profile Tab
 
@@ -452,7 +462,9 @@ Cross-platform Blazor Hybrid app sharing `BookIt.UI.Shared` components.
 - Branded wallet card (business logo, name, date/time, services, PIN)
 - **Membership number** shown on card and encoded in QR data
 - QR data: `BOOKIT:{id}:{pin}:{startYYYYMMDDHHmm}:{membershipNumber|NONE}`
-- **📅 Add to Calendar** — generates ICS calendar event (iOS Calendar / Google Calendar)
+- **🎫 Add to Apple Wallet** (iOS) — server generates signed `.pkpass` → iOS prompts "Add to Wallet"
+- **🎫 Add to Google Wallet** (Android) — server generates signed JWT → browser opens `pay.google.com/gp/v/save/{jwt}`
+- **📅 Add to Calendar** — ICS calendar event (iOS Calendar / Google Calendar; also fallback when wallet server is unconfigured)
 - **↗ Share Pass** — generates PNG QR image and opens native share sheet
 
 **Sign up** — optional Membership Number field, stored on user account and returned in all auth responses.
@@ -635,20 +647,46 @@ _reminderScheduler.CancelReminders(appointmentId);
 
 ### MAUI Wallet Pass (`BookIt.Maui.Services.WalletPassService`)
 ```csharp
-// Add to iOS Calendar / Google Calendar (ICS format)
+// Add to Apple Wallet (iOS) — server returns signed .pkpass, opens in iOS Wallet
+await _walletPassService.AddToAppleWalletAsync(appointment, tenantSlug, businessName, membershipNumber);
+
+// Add to Google Wallet (Android) — server returns JWT URL, opens in browser
+await _walletPassService.AddToGoogleWalletAsync(appointment, tenantSlug, businessName, membershipNumber);
+
+// Add to iOS Calendar / Google Calendar (ICS — cross-platform fallback)
 await _walletPassService.AddToCalendarAsync(appointment, businessName, membershipNumber);
 
 // Native share sheet — shares QR code as PNG image
 await _walletPassService.ShareQrPassAsync(appointment, businessName, qrDataUri);
-
-// Generate ICS string directly
-var ics = _walletPassService.GenerateIcs(appointment, businessName, membershipNumber);
 ```
 
-> **Note on Native Wallet Passes**: Full Apple PKPass (`.pkpass`) and Google Wallet JWT passes
-> require platform developer certificates (Apple Developer Program / Google Pay & Wallet Console)
-> and server-side signing. `WalletPassService` uses **ICS calendar events** as a
-> cross-platform alternative that works without additional credentials.
+### Apple Wallet Configuration
+Add to `appsettings.json` or user-secrets (obtained from Apple Developer Portal):
+```json
+{
+  "AppleWallet": {
+    "PassTypeIdentifier": "pass.com.yourdomain.bookit",
+    "TeamIdentifier": "ABCD1234EF",
+    "CertificateBase64": "<base64 of your .p12 pass type certificate>",
+    "CertificatePassword": "<p12 password>"
+  }
+}
+```
+
+### Google Wallet Configuration
+Add to `appsettings.json` or user-secrets (obtained from Google Pay & Wallet Console + service account):
+```json
+{
+  "GoogleWallet": {
+    "IssuerId": "3388000000012345678",
+    "ServiceAccountEmail": "bookit-wallet@your-project.iam.gserviceaccount.com",
+    "PrivateKeyPem": "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----"
+  }
+}
+```
+
+> When wallet credentials are not configured, both endpoints return **503** with setup instructions,
+> and the MAUI app automatically falls back to ICS calendar export.
 
 ---
 
