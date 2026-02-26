@@ -313,4 +313,42 @@ public class BookItApiClient
             new StringContent(json, Encoding.UTF8, "application/json"));
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<List<CustomerResponse>> GetCustomersAsync(string tenantSlug)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/customers");
+        if (!response.IsSuccessStatusCode) return new();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<CustomerResponse>>(content, _jsonOptions) ?? new();
+    }
+
+    public async Task<CustomerResponse?> CreateCustomerAsync(string tenantSlug, CreateCustomerRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/customers",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<CustomerResponse>(content, _jsonOptions);
+    }
+
+    public async Task<CustomerResponse?> UpdateCustomerAsync(string tenantSlug, Guid customerId, UpdateCustomerRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PutAsync($"/api/tenants/{tenantSlug}/customers/{customerId}",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<CustomerResponse>(content, _jsonOptions);
+    }
+
+    public async Task<bool> DeleteCustomerAsync(string tenantSlug, Guid customerId)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.DeleteAsync($"/api/tenants/{tenantSlug}/customers/{customerId}");
+        return response.IsSuccessStatusCode;
+    }
 }

@@ -92,6 +92,41 @@ public class AppointmentsController : ControllerBase
 
         var created = await _appointmentService.CreateAppointmentAsync(appointment);
 
+        // Upsert customer profile so each customer has their own unique record
+        if (!string.IsNullOrWhiteSpace(request.CustomerEmail))
+        {
+            var (firstName, lastName) = SplitFullName(request.CustomerName);
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => c.TenantId == tenant.Id && c.Email == request.CustomerEmail && !c.IsDeleted);
+
+            if (customer == null)
+            {
+                _context.Customers.Add(new Customer
+                {
+                    TenantId = tenant.Id,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Email = request.CustomerEmail,
+                    Phone = request.CustomerPhone,
+                    TotalBookings = 1,
+                    LastVisit = startTime,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+            else
+            {
+                customer.FirstName = firstName;
+                customer.LastName = lastName;
+                if (!string.IsNullOrWhiteSpace(request.CustomerPhone))
+                    customer.Phone = request.CustomerPhone;
+                customer.TotalBookings++;
+                customer.LastVisit = startTime;
+                customer.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
         return CreatedAtAction(nameof(GetAppointment), new { tenantSlug, id = created.Id },
             MapToResponse(created, services));
     }
@@ -242,5 +277,16 @@ public class AppointmentsController : ControllerBase
         var bytes = new byte[6];
         rng.GetBytes(bytes);
         return new string(bytes.Select(b => chars[b % chars.Length]).ToArray());
+    }
+
+    private static (string firstName, string lastName) SplitFullName(string? fullName)
+    {
+        var parts = (fullName ?? "").Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length switch
+        {
+            0 => ("", ""),
+            1 => (parts[0], ""),
+            _ => (parts[0], parts[1])
+        };
     }
 }

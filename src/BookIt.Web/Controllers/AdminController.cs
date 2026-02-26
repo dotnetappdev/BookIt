@@ -195,8 +195,23 @@ public class AdminController : Controller
         return RedirectToAction("Forms", new { tenantSlug });
     }
 
-    public async Task<IActionResult> Staff(string tenantSlug)
+    public async Task<IActionResult> Customers(string tenantSlug)
     {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var customers = await _apiClient.GetCustomersAsync(tenantSlug);
+
+        ViewBag.Tenant = tenant;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.Customers = customers;
+        ViewBag.AccessToken = HttpContext.Session.GetString("AccessToken") ?? "";
+        return View();
+    }
+
+    public async Task<IActionResult> Staff(string tenantSlug)    {
         if (!IsAuthenticated()) return RequireAuth(tenantSlug);
 
         var tenant = await _apiClient.GetTenantAsync(tenantSlug);

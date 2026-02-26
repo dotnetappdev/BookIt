@@ -27,9 +27,31 @@ public class CustomersController : ControllerBase
     private async Task<Tenant?> GetTenantAsync(string tenantSlug)
         => await _context.Tenants.FirstOrDefaultAsync(t => t.Slug == tenantSlug && !t.IsDeleted);
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<CustomerResponse>>> GetCustomers(string tenantSlug)
+    /// <summary>Public endpoint: look up a customer by email for pre-filling the booking form.</summary>
+    [AllowAnonymous]
+    [HttpGet("lookup")]
+    public async Task<IActionResult> LookupByEmail(string tenantSlug, [FromQuery] string email)
     {
+        if (string.IsNullOrWhiteSpace(email)) return BadRequest();
+        var tenant = await GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var customer = await _context.Customers
+            .FirstOrDefaultAsync(c => c.TenantId == tenant.Id && c.Email == email && !c.IsDeleted);
+
+        if (customer == null) return NotFound();
+
+        return Ok(new
+        {
+            customer.FirstName,
+            customer.LastName,
+            FullName = $"{customer.FirstName} {customer.LastName}".Trim(),
+            customer.Phone
+        });
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<CustomerResponse>>> GetCustomers(string tenantSlug)    {
         var tenant = await GetTenantAsync(tenantSlug);
         if (tenant == null) return NotFound();
         if (!_tenantService.IsValidTenantAccess(tenant.Id)) return Forbid();
