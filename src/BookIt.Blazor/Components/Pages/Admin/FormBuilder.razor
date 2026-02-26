@@ -1,0 +1,425 @@
+@page "/{tenantSlug}/admin/forms/builder"
+@rendermode InteractiveServer
+@layout BookIt.UI.Shared.Components.Admin.AdminLayout
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@using System.Text.Json
+
+<PageTitle>Form Builder — BookIt Admin</PageTitle>
+
+<style>
+    .builder-wrap   { display: grid; grid-template-columns: 1fr 268px; gap: 1.25rem; align-items: start; }
+    @@media (max-width: 900px) { .builder-wrap { grid-template-columns: 1fr; } }
+    .toolbox-sticky { position: sticky; top: 80px; }
+    .toolbox-item {
+        display: flex; align-items: center; gap: .55rem;
+        padding: .55rem .8rem; border-radius: 8px;
+        border: 1.5px solid var(--mud-palette-divider);
+        background: var(--mud-palette-surface);
+        cursor: pointer; font-size: .82rem; font-weight: 500;
+        color: var(--mud-palette-text-primary);
+        transition: .15s; width: 100%; text-align: left; margin-bottom: 5px;
+    }
+    .toolbox-item:hover { border-color: var(--mud-palette-primary); color: var(--mud-palette-primary);
+                          background: rgba(var(--mud-palette-primary-rgb),.07); }
+    .field-card {
+        background: var(--mud-palette-surface);
+        border: 1.5px solid var(--mud-palette-divider);
+        border-radius: 10px; padding: .9rem 1rem;
+        margin-bottom: .6rem; transition: .15s;
+    }
+    .field-card:hover { border-color: var(--mud-palette-primary); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .field-type-badge {
+        font-size: .68rem; font-weight: 700; padding: .15rem .45rem;
+        border-radius: 99px; background: rgba(var(--mud-palette-primary-rgb),.12);
+        color: var(--mud-palette-primary); text-transform: uppercase; letter-spacing: .05em;
+    }
+    .empty-canvas {
+        border: 2px dashed var(--mud-palette-divider); border-radius: 12px;
+        padding: 3.5rem 2rem; text-align: center; color: var(--mud-palette-text-secondary);
+    }
+</style>
+
+@if (!Auth.IsAuthenticated)
+{
+    <MudText>Redirecting…</MudText>
+}
+else if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <MudStack Spacing="2">
+        <!-- Toolbar -->
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <div>
+                <MudText Typo="Typo.h5" Class="fw-bold">Form Builder</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@_form?.Name — @_fields.Count field(s)</MudText>
+            </div>
+            <MudStack Row="true" Spacing="1">
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.ArrowBack"
+                           Href="@($"/{TenantSlug}/admin/forms")">Forms</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Check" OnClick="Done">Done</MudButton>
+            </MudStack>
+        </MudStack>
+
+        <div class="builder-wrap">
+            <!-- Canvas -->
+            <div>
+                @if (!_fields.Any())
+                {
+                    <div class="empty-canvas">
+                        <MudIcon Icon="@Icons.Material.Filled.DragIndicator" Size="Size.Large" Style="opacity:.25;display:block;margin:0 auto .75rem;" />
+                        <MudText Typo="Typo.body1" Class="fw-medium">Your form is empty</MudText>
+                        <MudText Typo="Typo.body2">Click a field type in the toolbox to add it</MudText>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var (field, idx) in _fields.Select((f, i) => (f, i)))
+                    {
+                        <div class="field-card">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <!-- reorder -->
+                                <MudStack Spacing="0">
+                                    <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowUp" Size="Size.Small"
+                                                   Disabled="idx == 0" OnClick="@(() => MoveUp(idx))" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown" Size="Size.Small"
+                                                   Disabled="idx == _fields.Count-1" OnClick="@(() => MoveDown(idx))" />
+                                </MudStack>
+                                <MudStack Style="flex:1;" Spacing="1">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                        <span class="field-type-badge">@FieldTypeLabel(field.FieldType)</span>
+                                        @if (field.IsRequired)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Error" Label="true" Style="font-size:.65rem;height:18px;">Required</MudChip>
+                                        }
+                                    </MudStack>
+                                    @if (field.FieldType == BookingFormFieldType.Heading || field.FieldType == BookingFormFieldType.Paragraph)
+                                    {
+                                        <MudTextField @bind-Value="field.Label"
+                                                      Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                      Label="@(field.FieldType == BookingFormFieldType.Heading ? "Heading text" : "Paragraph text")"
+                                                      Lines="@(field.FieldType == BookingFormFieldType.Paragraph ? 2 : 1)" />
+                                    }
+                                    else
+                                    {
+                                        <MudGrid Spacing="1">
+                                            <MudItem xs="12" sm="5">
+                                                <MudTextField @bind-Value="field.Label" Label="Label" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="5">
+                                                <MudTextField @bind-Value="field.Placeholder" Label="Placeholder" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="2" Style="display:flex;align-items:center;">
+                                                <MudCheckBox @bind-Value="field.IsRequired" Label="Req." Color="Color.Primary" />
+                                            </MudItem>
+                                        </MudGrid>
+                                        @if (field.FieldType is BookingFormFieldType.Select or BookingFormFieldType.Radio or BookingFormFieldType.Checkbox)
+                                        {
+                                            <MudTextField @bind-Value="field.OptionsRaw" Label="Options (comma-separated)"
+                                                          Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                          Placeholder="e.g. Option 1, Option 2, Option 3" />
+                                        }
+                                        @if (field.FieldType == BookingFormFieldType.Rating)
+                                        {
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">★ ★ ★ ★ ★ — star rating 1–5</MudText>
+                                        }
+                                    }
+                                </MudStack>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                                               OnClick="@(() => RemoveField(idx))" />
+                            </MudStack>
+                        </div>
+                    }
+                }
+
+                <!-- Save bar -->
+                @if (_fields.Any())
+                {
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Save" OnClick="Save" Disabled="_saving">
+                            @(_saving ? "Saving…" : "Save Form")
+                        </MudButton>
+                    </MudStack>
+                }
+            </div>
+
+            <!-- Toolbox -->
+            <div class="toolbox-sticky">
+                <MudCard Elevation="1">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.subtitle2" Class="fw-bold" Style="letter-spacing:.04em;text-transform:uppercase;font-size:.72rem;">
+                                Field Toolbox
+                            </MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent Style="padding:.5rem .75rem;">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1" Style="display:block;">Basic</MudText>
+                        @foreach (var t in _basicTools)
+                        {
+                            var tool = t;
+                            <button class="toolbox-item" @onclick="@(() => AddField(tool.Type))">
+                                <MudIcon Icon="@tool.Icon" Size="Size.Small" />
+                                @tool.Label
+                            </button>
+                        }
+                        <MudDivider Class="my-2" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1" Style="display:block;">Choice</MudText>
+                        @foreach (var t in _choiceTools)
+                        {
+                            var tool = t;
+                            <button class="toolbox-item" @onclick="@(() => AddField(tool.Type))">
+                                <MudIcon Icon="@tool.Icon" Size="Size.Small" />
+                                @tool.Label
+                            </button>
+                        }
+                        <MudDivider Class="my-2" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1" Style="display:block;">Advanced</MudText>
+                        @foreach (var t in _advancedTools)
+                        {
+                            var tool = t;
+                            <button class="toolbox-item" @onclick="@(() => AddField(tool.Type))">
+                                <MudIcon Icon="@tool.Icon" Size="Size.Small" />
+                                @tool.Label
+                            </button>
+                        }
+                        <MudDivider Class="my-2" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1" Style="display:block;">Layout</MudText>
+                        @foreach (var t in _layoutTools)
+                        {
+                            var tool = t;
+                            <button class="toolbox-item" @onclick="@(() => AddField(tool.Type))">
+                                <MudIcon Icon="@tool.Icon" Size="Size.Small" />
+                                @tool.Label
+                            </button>
+                        }
+                    </MudCardContent>
+                </MudCard>
+
+                <!-- Form settings mini card -->
+                @if (_form != null)
+                {
+                    <MudCard Elevation="1" Class="mt-3">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.subtitle2" Class="fw-bold" Style="letter-spacing:.04em;text-transform:uppercase;font-size:.72rem;">Form Settings</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent Style="padding:.5rem .75rem 1rem;">
+                            <MudTextField @bind-Value="_formName" Label="Form Name" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-2" />
+                            <MudTextField @bind-Value="_welcomeMsg" Label="Welcome Message" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" Class="mb-2" />
+                            <MudTextField @bind-Value="_confirmMsg" Label="Confirmation Message" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
+                        </MudCardContent>
+                    </MudCard>
+                }
+            </div>
+        </div>
+    </MudStack>
+}
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+    [SupplyParameterFromQuery] public Guid? FormId { get; set; }
+
+    private BookingFormResponse? _form;
+    private bool _loading = true;
+    private bool _saving;
+    private string _formName = "";
+    private string _welcomeMsg = "";
+    private string _confirmMsg = "";
+
+    // Local editable field model
+    private class FieldDraft
+    {
+        public Guid? Id { get; set; }
+        public BookingFormFieldType FieldType { get; set; }
+        public string Label { get; set; } = "";
+        public string Placeholder { get; set; } = "";
+        public bool IsRequired { get; set; }
+        public string OptionsRaw { get; set; } = "";
+        public int SortOrder { get; set; }
+        public bool IsNew { get; set; } = true;
+    }
+
+    private List<FieldDraft> _fields = new();
+
+    // ── Toolbox definitions ──
+    private record Tool(BookingFormFieldType Type, string Label, string Icon);
+
+    private static readonly Tool[] _basicTools =
+    {
+        new(BookingFormFieldType.Text,     "Short Text",  Icons.Material.Filled.ShortText),
+        new(BookingFormFieldType.TextArea, "Long Text",   Icons.Material.Filled.Subject),
+        new(BookingFormFieldType.Email,    "Email",       Icons.Material.Filled.Email),
+        new(BookingFormFieldType.Phone,    "Phone",       Icons.Material.Filled.Phone),
+        new(BookingFormFieldType.Number,   "Number",      Icons.Material.Filled.Numbers),
+        new(BookingFormFieldType.Date,     "Date",        Icons.Material.Filled.CalendarToday),
+    };
+    private static readonly Tool[] _choiceTools =
+    {
+        new(BookingFormFieldType.Select,   "Dropdown",    Icons.Material.Filled.ArrowDropDownCircle),
+        new(BookingFormFieldType.Radio,    "Multiple Choice", Icons.Material.Filled.RadioButtonChecked),
+        new(BookingFormFieldType.Checkbox, "Checkboxes",  Icons.Material.Filled.CheckBox),
+    };
+    private static readonly Tool[] _advancedTools =
+    {
+        new(BookingFormFieldType.FileUpload, "File Upload", Icons.Material.Filled.Upload),
+        new(BookingFormFieldType.Rating,     "Star Rating", Icons.Material.Filled.Star),
+        new(BookingFormFieldType.Signature,  "Signature",   Icons.Material.Filled.Draw),
+    };
+    private static readonly Tool[] _layoutTools =
+    {
+        new(BookingFormFieldType.Heading,   "Heading",     Icons.Material.Filled.Title),
+        new(BookingFormFieldType.Paragraph, "Paragraph",   Icons.Material.Filled.Notes),
+    };
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAuthenticated)
+            Nav.NavigateTo($"/login?returnUrl=/{TenantSlug}/admin/forms");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !Auth.IsAuthenticated) return;
+        Api.SetToken(Auth.AccessToken);
+        if (FormId.HasValue)
+        {
+            _form = await Api.GetFormAsync(TenantSlug, FormId.Value);
+            if (_form != null)
+            {
+                _formName = _form.Name;
+                _welcomeMsg = _form.WelcomeMessage ?? "";
+                _confirmMsg = _form.ConfirmationMessage ?? "";
+                _fields = _form.Fields.OrderBy(f => f.SortOrder).Select(f => new FieldDraft
+                {
+                    Id = f.Id,
+                    FieldType = f.FieldType,
+                    Label = f.Label,
+                    Placeholder = f.Placeholder ?? "",
+                    IsRequired = f.IsRequired,
+                    OptionsRaw = string.Join(", ", f.Options),
+                    SortOrder = f.SortOrder,
+                    IsNew = false
+                }).ToList();
+            }
+        }
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private void AddField(BookingFormFieldType type)
+    {
+        _fields.Add(new FieldDraft
+        {
+            FieldType = type,
+            Label = DefaultLabel(type),
+            SortOrder = _fields.Count,
+            IsNew = true
+        });
+    }
+
+    private void RemoveField(int idx) => _fields.RemoveAt(idx);
+
+    private void MoveUp(int idx)
+    {
+        if (idx <= 0) return;
+        (_fields[idx], _fields[idx - 1]) = (_fields[idx - 1], _fields[idx]);
+    }
+
+    private void MoveDown(int idx)
+    {
+        if (idx >= _fields.Count - 1) return;
+        (_fields[idx], _fields[idx + 1]) = (_fields[idx + 1], _fields[idx]);
+    }
+
+    private async Task Save()
+    {
+        if (_form == null || !FormId.HasValue) return;
+        _saving = true;
+        Api.SetToken(Auth.AccessToken);
+
+        // Sync new fields
+        for (int i = 0; i < _fields.Count; i++)
+        {
+            var f = _fields[i];
+            f.SortOrder = i;
+            if (f.IsNew)
+            {
+                var opts = string.IsNullOrWhiteSpace(f.OptionsRaw) ? null
+                    : JsonSerializer.Serialize(f.OptionsRaw.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList());
+
+                var saved = await Api.AddFormFieldAsync(TenantSlug, FormId.Value, new AddFormFieldRequest
+                {
+                    Label = string.IsNullOrWhiteSpace(f.Label) ? DefaultLabel(f.FieldType) : f.Label,
+                    FieldName = f.Label.ToLowerInvariant().Replace(" ", "_"),
+                    FieldType = f.FieldType,
+                    IsRequired = f.IsRequired,
+                    Placeholder = f.Placeholder,
+                    OptionsJson = opts,
+                    SortOrder = f.SortOrder
+                });
+                if (saved != null) { f.Id = saved.Id; f.IsNew = false; }
+            }
+        }
+
+        // Reorder
+        var ids = _fields.Where(f => f.Id.HasValue).Select(f => f.Id!.Value).ToList();
+        if (ids.Any())
+            await Api.ReorderFormFieldsAsync(TenantSlug, FormId.Value, new ReorderFieldsRequest { FieldIds = ids });
+
+        _saving = false;
+        Snackbar.Add("Form saved!", Severity.Success);
+    }
+
+    private async Task Done()
+    {
+        await Save();
+        Nav.NavigateTo($"/{TenantSlug}/admin/forms");
+    }
+
+    private static string DefaultLabel(BookingFormFieldType t) => t switch
+    {
+        BookingFormFieldType.Text      => "Short Answer",
+        BookingFormFieldType.TextArea  => "Long Answer",
+        BookingFormFieldType.Email     => "Email Address",
+        BookingFormFieldType.Phone     => "Phone Number",
+        BookingFormFieldType.Number    => "Number",
+        BookingFormFieldType.Date      => "Date",
+        BookingFormFieldType.Select    => "Choose One",
+        BookingFormFieldType.Radio     => "Multiple Choice",
+        BookingFormFieldType.Checkbox  => "Checkboxes",
+        BookingFormFieldType.FileUpload=> "File Upload",
+        BookingFormFieldType.Rating    => "Rating",
+        BookingFormFieldType.Signature => "Signature",
+        BookingFormFieldType.Heading   => "Section Heading",
+        BookingFormFieldType.Paragraph => "Paragraph Text",
+        _ => "Field"
+    };
+
+    private static string FieldTypeLabel(BookingFormFieldType t) => t switch
+    {
+        BookingFormFieldType.Text      => "Text",
+        BookingFormFieldType.TextArea  => "Textarea",
+        BookingFormFieldType.Email     => "Email",
+        BookingFormFieldType.Phone     => "Phone",
+        BookingFormFieldType.Number    => "Number",
+        BookingFormFieldType.Date      => "Date",
+        BookingFormFieldType.Select    => "Dropdown",
+        BookingFormFieldType.Radio     => "Radio",
+        BookingFormFieldType.Checkbox  => "Checkbox",
+        BookingFormFieldType.FileUpload=> "File",
+        BookingFormFieldType.Rating    => "Rating",
+        BookingFormFieldType.Signature => "Signature",
+        BookingFormFieldType.Heading   => "Heading",
+        BookingFormFieldType.Paragraph => "Paragraph",
+        _ => t.ToString()
+    };
+}

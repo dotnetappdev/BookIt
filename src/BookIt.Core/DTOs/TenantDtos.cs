@@ -20,13 +20,17 @@ public class TenantResponse
     public string? Website { get; set; }
     public string? TimeZone { get; set; }
     public string? Currency { get; set; }
+    public decimal VatRate { get; set; }
     public bool AllowOnlineBooking { get; set; }
     public bool RequirePaymentUpfront { get; set; }
+    public bool AllowPayAtShop { get; set; }
+    public bool AllowPayInCash { get; set; }
     public bool EnableStripe { get; set; }
     public bool EnablePayPal { get; set; }
     public bool EnableApplePay { get; set; }
     public string? StripePublishableKey { get; set; }
     public string? PayPalClientId { get; set; }
+    public TenantTheme Theme { get; set; } = TenantTheme.Indigo;
 }
 
 public class UpdateTenantRequest
@@ -45,8 +49,11 @@ public class UpdateTenantRequest
     public string? Website { get; set; }
     public string? TimeZone { get; set; }
     public string? Currency { get; set; }
+    public decimal VatRate { get; set; }
     public bool AllowOnlineBooking { get; set; }
     public bool RequirePaymentUpfront { get; set; }
+    public bool AllowPayAtShop { get; set; }
+    public bool AllowPayInCash { get; set; }
     public bool SendReminders { get; set; }
     public int ReminderHoursBefore { get; set; }
     public bool EnableStripe { get; set; }
@@ -64,4 +71,5 @@ public class UpdateTenantRequest
     public string? ElevenLabsVoiceId { get; set; }
     public string? VapiPublicKey { get; set; }
     public bool EnableAiChat { get; set; } = true;
+    public TenantTheme Theme { get; set; } = TenantTheme.Indigo;
 }

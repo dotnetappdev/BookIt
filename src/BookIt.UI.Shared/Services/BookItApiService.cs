@@ -48,6 +48,12 @@ public class BookItApiService
         return JsonSerializer.Deserialize<T>(await r.Content.ReadAsStringAsync(), _json);
     }
 
+    private async Task<bool> PutAsync(string url, object body)
+    {
+        var r = await _http.PutAsync(url, Json(body));
+        return r.IsSuccessStatusCode;
+    }
+
     private async Task<bool> DeleteAsync(string url)
     {
         var r = await _http.DeleteAsync(url);
@@ -107,11 +113,23 @@ public class BookItApiService
     public Task<List<BookingFormResponse>?> GetFormsAsync(string slug) =>
         GetAsync<List<BookingFormResponse>>($"/api/tenants/{slug}/booking-forms");
 
+    public Task<BookingFormResponse?> GetFormAsync(string slug, Guid formId) =>
+        GetAsync<BookingFormResponse>($"/api/tenants/{slug}/booking-forms/{formId}");
+
     public Task<BookingFormResponse?> CreateFormAsync(string slug, CreateBookingFormRequest req) =>
         PostAsync<BookingFormResponse>($"/api/tenants/{slug}/booking-forms", req);
 
     public Task<bool> DeleteFormAsync(string slug, Guid id) =>
         DeleteAsync($"/api/tenants/{slug}/booking-forms/{id}");
+
+    public Task<BookingFormFieldResponse?> AddFormFieldAsync(string slug, Guid formId, AddFormFieldRequest req) =>
+        PostAsync<BookingFormFieldResponse>($"/api/tenants/{slug}/booking-forms/{formId}/fields", req);
+
+    public Task<bool> DeleteFormFieldAsync(string slug, Guid formId, Guid fieldId) =>
+        DeleteAsync($"/api/tenants/{slug}/booking-forms/{formId}/fields/{fieldId}");
+
+    public Task<bool> ReorderFormFieldsAsync(string slug, Guid formId, ReorderFieldsRequest req) =>
+        PutAsync($"/api/tenants/{slug}/booking-forms/{formId}/fields/reorder", req);
 
     // ── Interview Slots ──
     public Task<List<InterviewSlotResponse>?> GetInterviewSlotsAsync(string slug) =>

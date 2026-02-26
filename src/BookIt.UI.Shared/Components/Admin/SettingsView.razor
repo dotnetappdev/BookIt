@@ -61,11 +61,15 @@
                                 </MudItem>
                                 <MudItem xs="12" sm="6">
                                     <MudSelect T="string" @bind-Value="_currency" Label="Currency" Variant="Variant.Outlined">
-                                        @foreach (var (code, label) in _currencies)
+                                        @foreach (var (code, flag, label) in _currencies)
                                         {
-                                            <MudSelectItem T="string" Value="code">@label</MudSelectItem>
+                                            <MudSelectItem T="string" Value="code">@flag @label</MudSelectItem>
                                         }
                                     </MudSelect>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField @bind-Value="_vatRate" Label="VAT / Tax Rate (%)" Variant="Variant.Outlined"
+                                                  Adornment="Adornment.End" AdornmentText="%" />
                                 </MudItem>
                             </MudGrid>
                         </MudCardContent>
@@ -75,17 +79,35 @@
                     <MudCard Elevation="1" Class="mb-4">
                         <MudCardHeader>
                             <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.Palette" Color="Color.Primary" /></CardHeaderAvatar>
-                            <CardHeaderContent><MudText Typo="Typo.h6">Branding &amp; Appearance</MudText></CardHeaderContent>
+                            <CardHeaderContent><MudText Typo="Typo.h6">Branding &amp; Theme</MudText></CardHeaderContent>
                         </MudCardHeader>
                         <MudCardContent>
                             <MudGrid>
                                 <MudItem xs="12" sm="6">
-                                    <MudTextField @bind-Value="_primaryColor" Label="Primary Colour" Variant="Variant.Outlined"
+                                    <MudTextField @bind-Value="_primaryColor" Label="Primary Colour (hex)" Variant="Variant.Outlined"
                                                   Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Circle"
                                                   AdornmentColor="Color.Primary" />
                                 </MudItem>
                                 <MudItem xs="12" sm="6">
                                     <MudTextField @bind-Value="_logoUrl" Label="Logo URL" Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudText Typo="Typo.subtitle2" Class="mb-2 fw-semibold">Booking Page Theme</MudText>
+                                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.75rem;">
+                                        @foreach (var t in _themes)
+                                        {
+                                            var theme = t;
+                                            <div @onclick="@(() => _selectedTheme = theme.Value)"
+                                                 style="@($"border:2px solid {((_selectedTheme == theme.Value) ? "var(--mud-palette-primary)" : "var(--mud-palette-divider)")};border-radius:12px;padding:.75rem;cursor:pointer;text-align:center;transition:.15s;background:var(--mud-palette-surface);")">
+                                                <div style="@($"width:36px;height:36px;border-radius:50%;margin:0 auto .5rem;background:linear-gradient(135deg,{theme.Primary},{theme.Secondary});")"></div>
+                                                <div style="font-size:.78rem;font-weight:600;">@theme.Label</div>
+                                                @if (_selectedTheme == theme.Value)
+                                                {
+                                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" Style="margin-top:4px;" />
+                                                }
+                                            </div>
+                                        }
+                                    </div>
                                 </MudItem>
                             </MudGrid>
                         </MudCardContent>
@@ -99,8 +121,15 @@
                         </MudCardHeader>
                         <MudCardContent>
                             <MudStack Spacing="3">
-                                <MudSwitch @bind-Value="_requirePayment" Label="Require Payment at Booking" Color="Color.Primary" />
+                                <MudSwitch @bind-Value="_requirePayment" Label="Require payment at booking" Color="Color.Primary" />
                                 <MudDivider />
+                                <MudText Typo="Typo.subtitle2" Class="fw-semibold">In-Person Payment Options</MudText>
+                                <MudStack Row="true" Spacing="4">
+                                    <MudSwitch @bind-Value="_allowPayAtShop" Label="Pay at shop / reception" Color="Color.Primary" />
+                                    <MudSwitch @bind-Value="_allowPayInCash" Label="Pay in cash" Color="Color.Primary" />
+                                </MudStack>
+                                <MudDivider />
+                                <MudText Typo="Typo.subtitle2" Class="fw-semibold">Online Payment Providers</MudText>
                                 <MudSwitch @bind-Value="_enableStripe" Label="Enable Stripe" Color="Color.Primary" />
                                 @if (_enableStripe)
                                 {
@@ -181,22 +210,46 @@
     private string _country = "";
     private string _website = "";
     private string _currency = "GBP";
+    private decimal _vatRate = 0;
     private string _primaryColor = "#6c5ce7";
     private string _logoUrl = "";
     private bool _requirePayment;
+    private bool _allowPayAtShop;
+    private bool _allowPayInCash;
     private bool _enableStripe;
     private bool _enablePaypal;
     private string _stripeKey = "";
     private string _stripeSecret = "";
     private string _paypalClientId = "";
     private string _paypalSecret = "";
+    private TenantTheme _selectedTheme = TenantTheme.Indigo;
 
     private string BookingUrl => $"{HostUrl}/{TenantSlug}/book";
 
-    private static readonly (string code, string label)[] _currencies =
+    private static readonly (string code, string flag, string label)[] _currencies =
     {
-        ("GBP", "GBP (£)"), ("USD", "USD ($)"), ("EUR", "EUR (€)"),
-        ("AUD", "AUD (A$)"), ("CAD", "CAD (C$)")
+        ("GBP", "🇬🇧", "GBP — British Pound (£)"),
+        ("USD", "🇺🇸", "USD — US Dollar ($)"),
+        ("EUR", "🇪🇺", "EUR — Euro (€)"),
+        ("AUD", "🇦🇺", "AUD — Australian Dollar (A$)"),
+        ("CAD", "🇨🇦", "CAD — Canadian Dollar (C$)"),
+        ("NZD", "🇳🇿", "NZD — New Zealand Dollar (NZ$)"),
+        ("SGD", "🇸🇬", "SGD — Singapore Dollar (S$)"),
+        ("CHF", "🇨🇭", "CHF — Swiss Franc (Fr)"),
+        ("JPY", "🇯🇵", "JPY — Japanese Yen (¥)"),
+        ("ZAR", "🇿🇦", "ZAR — South African Rand (R)"),
+    };
+
+    private record ThemeDef(TenantTheme Value, string Label, string Primary, string Secondary);
+
+    private static readonly ThemeDef[] _themes =
+    {
+        new(TenantTheme.Indigo,   "Indigo",   "#6c5ce7", "#a29bfe"),
+        new(TenantTheme.Ocean,    "Ocean",    "#0ea5e9", "#38bdf8"),
+        new(TenantTheme.Forest,   "Forest",   "#16a34a", "#4ade80"),
+        new(TenantTheme.Sunset,   "Sunset",   "#f97316", "#fb923c"),
+        new(TenantTheme.Rose,     "Rose",     "#e11d48", "#fb7185"),
+        new(TenantTheme.Midnight, "Midnight", "#334155", "#64748b"),
     };
 
     protected override async Task OnInitializedAsync()
@@ -215,13 +268,17 @@
             _country = _tenant.Country ?? "";
             _website = _tenant.Website ?? "";
             _currency = _tenant.Currency ?? "GBP";
+            _vatRate = _tenant.VatRate;
             _primaryColor = _tenant.PrimaryColor ?? "#6c5ce7";
             _logoUrl = _tenant.LogoUrl ?? "";
             _requirePayment = _tenant.RequirePaymentUpfront;
+            _allowPayAtShop = _tenant.AllowPayAtShop;
+            _allowPayInCash = _tenant.AllowPayInCash;
             _enableStripe = _tenant.EnableStripe;
             _enablePaypal = _tenant.EnablePayPal;
             _stripeKey = _tenant.StripePublishableKey ?? "";
             _paypalClientId = _tenant.PayPalClientId ?? "";
+            _selectedTheme = _tenant.Theme;
         }
     }
 
@@ -241,15 +298,19 @@
             Country = _country,
             Website = _website,
             Currency = _currency,
+            VatRate = _vatRate,
             PrimaryColor = _primaryColor,
             LogoUrl = _logoUrl,
             RequirePaymentUpfront = _requirePayment,
+            AllowPayAtShop = _allowPayAtShop,
+            AllowPayInCash = _allowPayInCash,
             EnableStripe = _enableStripe,
             EnablePayPal = _enablePaypal,
             StripePublishableKey = _stripeKey,
             StripeSecretKey = string.IsNullOrEmpty(_stripeSecret) ? null : _stripeSecret,
             PayPalClientId = _paypalClientId,
             PayPalClientSecret = string.IsNullOrEmpty(_paypalSecret) ? null : _paypalSecret,
+            Theme = _selectedTheme,
         };
         var result = await Api.UpdateTenantAsync(TenantSlug, req);
         _saving = false;

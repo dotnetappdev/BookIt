@@ -93,7 +93,12 @@ public enum BookingFormFieldType
     Checkbox = 6,
     Date = 7,
     Number = 8,
-    Radio = 9
+    Radio = 9,
+    FileUpload = 10,
+    Rating = 11,
+    Signature = 12,
+    Heading = 13,
+    Paragraph = 14
 }
 
 public enum ClassType
@@ -139,4 +144,14 @@ public enum SubscriptionStatus
     PastDue = 3,
     Cancelled = 4,
     Expired = 5
+}
+
+public enum TenantTheme
+{
+    Indigo = 0,   // default purple/indigo
+    Ocean = 1,    // teal/cyan
+    Forest = 2,   // green
+    Sunset = 3,   // orange/amber
+    Rose = 4,     // pink/rose
+    Midnight = 5  // deep slate/navy
 }
