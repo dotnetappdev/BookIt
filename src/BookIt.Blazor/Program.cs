@@ -26,6 +26,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseSession();
+// UseStaticFiles is required to serve _content/ paths from RCL packages (MudBlazor CSS/JS)
+app.UseStaticFiles();
 app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

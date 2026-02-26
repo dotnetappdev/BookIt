@@ -3,27 +3,32 @@
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 
-<MudGrid Justify="Justify.Center" Style="min-height:100vh;">
-    <MudItem xs="12" sm="8" md="5" lg="4">
-        <MudCard Elevation="4">
-            <MudCardContent Class="pa-8">
-                <!-- Brand -->
-                <MudStack AlignItems="AlignItems.Center" Class="mb-6">
-                    <MudAvatar Color="Color.Primary" Size="Size.Large" Style="border-radius:12px;">
-                        <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Large" />
-                    </MudAvatar>
-                    <MudText Typo="Typo.h5" Class="fw-bold mt-2">Sign in to BookIt</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Enter your business slug and credentials</MudText>
-                </MudStack>
+<div class="login-bg">
+    <div style="width:100%;max-width:420px;">
+        <!-- Brand mark -->
+        <div style="text-align:center;margin-bottom:2rem;">
+            <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);margin-bottom:1rem;box-shadow:0 8px 32px rgba(108,92,231,.4);">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Medium" Style="color:white;" />
+            </div>
+            <h2 style="color:white;font-size:1.5rem;font-weight:800;letter-spacing:-.04em;margin:0 0 .375rem;">
+                Welcome back
+            </h2>
+            <p style="color:rgba(255,255,255,.45);font-size:.875rem;margin:0;">
+                Enter your business slug and credentials to continue
+            </p>
+        </div>
 
+        <!-- Card -->
+        <MudCard Elevation="0" Style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(20px);border-radius:20px !important;">
+            <MudCardContent Style="padding:2rem !important;">
                 <MudForm @ref="_form" @bind-IsValid="_valid">
                     <MudStack Spacing="3">
                         <MudTextField @bind-Value="_slug" Label="Business Slug" Variant="Variant.Outlined"
                                       Placeholder="e.g. my-barber-shop" Required="true"
                                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Store" />
-                        <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
+                        <MudTextField @bind-Value="_email" Label="Email Address" Variant="Variant.Outlined"
                                       InputType="InputType.Email" Required="true"
-                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
+                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" />
                         <MudTextField @bind-Value="_password" Label="Password" Variant="Variant.Outlined"
                                       InputType="@(_showPw ? InputType.Text : InputType.Password)" Required="true"
                                       Adornment="Adornment.End"
@@ -32,25 +37,28 @@
 
                         @if (!string.IsNullOrEmpty(_error))
                         {
-                            <MudAlert Severity="Severity.Error" Dense="true">@_error</MudAlert>
+                            <MudAlert Severity="Severity.Error" Dense="true" Style="border-radius:10px;">@_error</MudAlert>
                         }
 
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
-                                   Size="Size.Large" OnClick="DoLogin" Disabled="_busy">
+                                   Size="Size.Large" OnClick="DoLogin" Disabled="_busy"
+                                   Style="font-weight:700;border-radius:10px;padding:.75rem;">
                             @(_busy ? "Signing in…" : "Sign In")
                         </MudButton>
-
-                        <MudDivider />
-                        <MudText Typo="Typo.body2" Align="Align.Center">
-                            New here?
-                            <MudLink Href="/setup">Create your account</MudLink>
-                        </MudText>
                     </MudStack>
                 </MudForm>
             </MudCardContent>
         </MudCard>
-    </MudItem>
-</MudGrid>
+
+        <!-- Register link -->
+        <div style="text-align:center;margin-top:1.5rem;">
+            <span style="color:rgba(255,255,255,.4);font-size:.875rem;">
+                New here?
+                <a href="/setup" style="color:rgba(162,155,254,.9);font-weight:600;text-decoration:none;">Create your account</a>
+            </span>
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter] public string? ReturnUrl { get; set; }
@@ -85,7 +93,7 @@
         }
         else
         {
-            _error = "Invalid credentials. Please try again.";
+            _error = "Invalid credentials. Please check your slug and password.";
         }
     }
 }
