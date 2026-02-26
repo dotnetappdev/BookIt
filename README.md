@@ -26,7 +26,237 @@
 
 ![BookIt Admin Dashboard](https://github.com/user-attachments/assets/88cc84d7-b714-4af7-add2-4d553073a2db)
 
-### Admin Settings — Notifications (new)
+### Admin Panel — New Screens (Blazor Dark Mode)
+
+#### Customers — Data Grid with Membership Number
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Customers                               [+ Add Customer]    │
+│ All customers for this business                             │
+├─────────────────────────────────────────────────────────────┤
+│ 🔍 [Search by name, email or phone…]                       │
+├────────┬──────────────┬────────────┬───────┬───────┬───────┤
+│Customer│    Phone     │Membership  │ City  │Bookings│Spent  │
+├────────┼──────────────┼────────────┼───────┼────────┼───────┤
+│ JD     │07700 900 123 │MBR-001     │London │  [5]   │£320   │
+│Jane Doe│jane@ex.com   │            │       │        │       │
+├────────┼──────────────┼────────────┼───────┼────────┼───────┤
+│ JS     │07700 900 456 │GYM-2024    │Bristol│  [2]   │£85    │
+└────────┴──────────────┴────────────┴───────┴────────┴───────┘
+```
+
+Add/Edit dialog includes a **Membership Number** field for gym / club / loyalty schemes.
+
+#### Booking Forms — Full CRUD Data Grid
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Booking Forms                           [+ New Form]        │
+├──────────────┬────────┬─────────┬───────────────────────── │
+│ Form Name    │ Fields │ Default │ Actions                   │
+├──────────────┼────────┼─────────┼───────────────────────── │
+│ Default Form │  [8]   │[Default]│ ⚙ Settings  🔨 Builder 🗑 │
+│ Intake Form  │  [5]   │         │ ⚙ Settings  🔨 Builder 🗑 │
+│ Consultation │  [12]  │         │ ⚙ Settings  🔨 Builder 🗑 │
+└──────────────┴────────┴─────────┴───────────────────────── │
+```
+
+**⚙ Settings dialog** for inline rename/metadata editing without navigating to the builder:
+```
+┌──────────────────────────────────────────┐
+│  Edit Form Settings                      │
+├──────────────────────────────────────────┤
+│  Form Name      [Default Booking Form   ]│
+│  Description    [Standard intake…      ]│
+│  Welcome Msg    [Welcome! Please fill…  ]│
+│  Confirm Msg    [Thank you! We'll see…  ]│
+│  ● Collect phone      ● Collect notes   │
+│  ● Set as default form                  │
+│             [Cancel]  [Save Changes]    │
+└──────────────────────────────────────────┘
+```
+
+#### Booking Form (Dark Mode)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  ◀ Back                     Book Appointment           🌙   │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  💈  My Salon · 123 High Street, London             │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Services          ✓ Haircut £25    Beard Trim £15          │
+│                                                             │
+│  Select a date                                              │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │    March 2026                          ‹  ›          │   │
+│  │  Mo  Tu  We  Th  Fr  Sa  Su                          │   │
+│  │                         [4]  5   6   7   8           │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Available times:  [9:00] [10:00] [11:00] [14:00] [15:00]  │
+│                                                             │
+│  Your details                                               │
+│  Full name [Jane Smith    ]  Email [jane@example.com    ]   │
+│  Phone     [07700 900 123 ]  Notes [Any special requests]   │
+│                                                             │
+│         [ Book Appointment →                  £25.00 ]      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+Toggle the moon/sun icon (top-right) to switch light/dark — saved to `localStorage`.
+
+#### Interviews — Add Slot with Video Conference
+
+```
+┌──────────────────────────────────────────────┐
+│  Add Interview Slot                          │
+├──────────────────────────────────────────────┤
+│  Date [04/03/2026]    Time [10:00 am]        │
+│  Duration [60 min]                           │
+│  Interviewer Name [Jane Smith              ] │
+│  Location [Head Office, Room 3A            ] │
+│                                              │
+│  ──── 📹 Video Conference ─────────────      │
+│  Provider [Microsoft Teams ▼]               │
+│  (Teams / Zoom / Google Meet / Webex / ...)  │
+│  Meeting URL   [https://teams.microsoft.com] │
+│  Meeting ID    [123 456 7890               ] │
+│  Password/PIN  [abc123                     ] │
+│  Host URL      [https://teams.…/host       ] │
+│  Dial-In       [+44 20 1234 5678           ] │
+│                                              │
+│                  [Cancel]  [Create Slot]     │
+└──────────────────────────────────────────────┘
+```
+
+---
+
+### MAUI Mobile App Screens
+
+#### Login / Sign Up (Light + Dark)
+
+```
+┌─────────────────────────────────────────┐
+│           📅  BookIt                    │
+│   Sign in to manage your bookings       │
+│                                         │
+│   [ Sign In ]  [ Sign Up ]              │
+│                                         │
+│  Email    [jane@example.com          ]  │
+│  Password [•••••••••••••            ] 👁 │
+│  Org code [my-salon                  ]  │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │          Sign In →              │   │
+│  └─────────────────────────────────┘   │
+└─────────────────────────────────────────┘
+```
+
+Sign Up tab adds: First name · Last name · **Membership number (optional)**.
+
+#### Dashboard Tab
+
+```
+┌─────────────────────────────────────────┐
+│  Dashboard                        [JD]  │
+│  ┌────────┐  ┌─────────┐  ┌─────────┐  │
+│  │Today  3│  │Week  14 │  │Rev £420 │  │
+│  └────────┘  └─────────┘  └─────────┘  │
+│  Today's Schedule                       │
+│  🟣 10:00  Jane Doe — Haircut           │
+│  🟡 11:30  Bob S. — Beard Trim          │
+│  🟢 14:00  Alice J. — Colour            │
+├────────┬────────┬────────┬──────┬──────┤
+│Dashboard│Calendar│Bookings│Wallet│Profile│
+└────────┴────────┴────────┴──────┴──────┘
+```
+
+#### My Bookings Tab
+
+```
+┌─────────────────────────────────────────┐
+│  My Bookings                            │
+│  ┌───────────────────────────────────┐  │
+│  │ ┌────┐  Haircut + Beard Trim     │  │
+│  │ │ 4  │  10:00 am – 11:30 am     │  │
+│  │ │MAR │  · Jane Smith             │  │
+│  │ └────┘  [Confirmed ✓]  [QR]     │  │
+│  │                        £40.00    │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+```
+
+#### QR Wallet Tab
+
+```
+┌─────────────────────────────────────────┐
+│  Wallet · Your upcoming booking pass    │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │ ┌────┐  My Salon               │   │  ← branded header
+│  │ │ B  │  Booking Confirmation   │   │
+│  │ └────┘                         │   │
+│  │─────────────────────────────────│   │
+│  │  Jane Doe                       │   │
+│  │  Wed, 4 March 2026              │   │
+│  │  10:00 am – 11:00 am            │   │
+│  │  Haircut, Beard Trim            │   │
+│  │                                 │   │
+│  │  ┌─────────────────────────┐    │   │
+│  │  │  ▓▓▓▓ ░░░ ▓▓▓▓ ░░░░    │    │   │
+│  │  │  ░░░░ ▓▓▓ ░░░░ ▓▓▓▓    │    │   │  ← QR code
+│  │  │  ▓▓▓▓ ░░░ ▓▓▓▓ ░░░░    │    │   │
+│  │  └─────────────────────────┘    │   │
+│  │                                 │   │
+│  │  BOOKING PIN:    4 8 2 9        │   │
+│  │  MEMBERSHIP NO:  MBR-001        │   │  ← membership number
+│  │─────────────────────────────────│   │
+│  │  Generated 4 Mar 2026 · BookIt  │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  ┌──────────────────┐ ┌─────────────┐  │
+│  │ 📅 Add to Calendar│ │ ↗ Share Pass│  │  ← wallet actions
+│  └──────────────────┘ └─────────────┘  │
+│                                         │
+│  2 more upcoming bookings               │
+│  Thu 5 Mar · 2:00 pm  Haircut  [Confirmed] [📅] │
+│  Mon 9 Mar · 10:00 am Colour   [Pending ]  [📅] │
+├────────┬────────┬────────┬──────┬──────┤
+│Dashboard│Calendar│Bookings│Wallet│Profile│
+└────────┴────────┴────────┴──────┴──────┘
+```
+
+**QR code data**: `BOOKIT:{appointmentId}:{pin}:{startYYYYMMDDHHmm}:{membershipNumber|NONE}`
+
+**📅 Add to Calendar** → generates ICS event → opens iOS Calendar / Google Calendar
+**↗ Share Pass** → generates PNG QR → native share sheet (AirDrop / Messages / Save to Photos)
+
+#### Profile Tab
+
+```
+┌─────────────────────────────────────────┐
+│            ┌────┐                       │
+│            │ JD │  Jane Doe             │
+│            └────┘  jane@example.com     │
+│                    [Customer]           │
+│  ─────────────────────────────────      │
+│  Organisation     my-salon              │
+│  Role             Customer              │
+│  ─────────────────────────────────      │
+│  🔔 Notification preferences            │
+│  🔒 Change password                     │
+│  🗑 Delete account                       │
+│                                         │
+│  [ Sign Out ]                           │
+└─────────────────────────────────────────┘
+```
+
+---
+
+### Admin Settings — Notifications
 
 The Settings page (`/{slug}/admin/settings`) now includes three new sections:
 
@@ -90,11 +320,12 @@ The Settings page (`/{slug}/admin/settings`) now includes three new sections:
 
 | Project | Type | Description |
 |---|---|---|
-| `BookIt.API` | ASP.NET Core Web API | REST API — auth, appointments, tenants, payments |
+| `BookIt.API` | ASP.NET Core Web API | REST API — auth, appointments, tenants, customers, webhooks |
 | `BookIt.Core` | Class Library | Entities, DTOs, enums, interfaces, feature flags |
 | `BookIt.Infrastructure` | Class Library | EF Core, repositories, background services |
 | `BookIt.Web` | ASP.NET Core MVC | Original Razor/MVC front end with dark-mode SCSS theme |
-| `BookIt.Blazor` | Blazor Server | Second front end — MudBlazor 9, dark/light mode |
+| `BookIt.Blazor` | Blazor Server | Admin + public front end — MudBlazor 9, dark/light mode |
+| `BookIt.Maui` | .NET MAUI Blazor Hybrid | iOS / Android / macOS / Windows mobile app |
 | `BookIt.UI.Shared` | Razor Class Library | Shared MudBlazor components for Blazor + MAUI |
 | `BookIt.Payments.Stripe` | Class Library | `IStripeProvider` — Stripe Payment Intents v2 |
 | `BookIt.Payments.PayPal` | Class Library | `IPayPalProvider` — PayPal Orders v2 |
@@ -113,6 +344,37 @@ The Settings page (`/{slug}/admin/settings`) now includes three new sections:
 - Full month/week calendar with availability management
 - Multi-staff support with individual schedules
 - Automatic booking confirmation emails (SendGrid)
+
+### Approve / Decline Bookings
+- Admin can **Approve** or **Decline** any pending appointment from the Calendar or Dashboard
+- On approval: sends a branded `BookingApproved` HTML email (SendGrid) + fires `appointment.approved` webhook
+- On decline: sends a branded `BookingDeclined` HTML email + fires `appointment.declined` webhook
+- API: `POST /api/tenants/{slug}/appointments/{id}/approve` and `.../decline`
+
+### Customer CRM
+- Dedicated `Customer` entity + table with full contact info and **Membership Number**
+- Admin data grid with search, edit, delete, marketing opt-in flags
+- `MembershipNumber` displayed in data grid and editable in Add/Edit dialog
+- Full REST API: `GET/POST/PUT/DELETE /api/tenants/{slug}/customers`
+- Webhook events: `customer.created`, `customer.updated`, `customer.deleted`
+
+### Webhooks
+- `Webhook` + `WebhookDelivery` entities (soft-delete, per-tenant, EF-stored)
+- HMAC-SHA256 signed JSON envelope to all matching active endpoints
+- Events: `appointment.created` · `appointment.cancelled` · `appointment.approved` · `appointment.declined` · `customer.created` · `customer.updated` · `customer.deleted`
+- Full CRUD + `/deliveries` history
+
+### Booking Forms
+- Visual Form Builder with field toolbox (Text, Email, Phone, Number, Date, Dropdown, Radio, Checkboxes, File Upload, Rating, Signature, Heading, Paragraph, Services & Prices)
+- Forms data grid with **Settings ⚙ / Builder 🔨 / Delete 🗑** per form
+- **Settings dialog** — inline rename, description, welcome/confirmation messages, toggles, default flag
+- Full CRUD: `GET/POST/PUT/DELETE /api/tenants/{slug}/booking-forms`
+
+### Interviews (Recruitment Module)
+- Create interview slots with staff assignment
+- **Video conference integration** — Teams / Zoom / Google Meet / Webex / GoTo / Jitsi / Whereby / Other
+- Stores: meeting ID, password, join URL, host URL, dial-in — all included in confirmation email
+- Candidate invitation flow via unique token link
 
 ### Notifications
 - **SMS** — ClickSend & Twilio providers, both in `BookIt.Notifications.Sms`; provider selected per tenant in Settings
@@ -155,19 +417,47 @@ The Settings page (`/{slug}/admin/settings`) now includes three new sections:
   - Platform API key and entitlement identifier
   - Per-tier pricing (monthly & annual) and RevenueCat product IDs for all four plans
 
-### Blazor Front End
+### Blazor Front End Pages
 | Page | Route |
 |---|---|
 | Home | `/` |
 | Login | `/login` |
 | Pricing | `/pricing` |
+| Book Appointment | `/{slug}/book` |
 | Admin Dashboard | `/{slug}/admin` |
 | Admin Calendar | `/{slug}/admin/calendar` |
 | Admin Services | `/{slug}/admin/services` |
+| Admin Customers | `/{slug}/admin/customers` |
 | Admin Forms | `/{slug}/admin/forms` |
+| Admin Form Builder | `/{slug}/admin/forms/builder?formId={id}` |
 | Admin Interviews | `/{slug}/admin/interviews` |
+| Admin Email Templates | `/{slug}/admin/email-templates` |
 | Admin Settings | `/{slug}/admin/settings` |
 | Admin Subscriptions | `/{slug}/admin/subscriptions` |
+| Super Admin | `/super-admin` |
+
+### MAUI Mobile App (`BookIt.Maui`)
+Cross-platform Blazor Hybrid app sharing `BookIt.UI.Shared` components.
+
+**5-tab bottom navigation:**
+| Tab | Route | Description |
+|---|---|---|
+| Dashboard | `/dashboard` | Stat cards + today's schedule |
+| Calendar | `/calendar` | Month calendar + slot availability |
+| Bookings | `/appointments` | Upcoming bookings with per-item QR button |
+| Wallet | `/wallet` | Branded pass card with QR, calendar export, share |
+| Profile | `/profile` | User info, sign out |
+
+**QR Wallet features:**
+- Branded wallet card (business logo, name, date/time, services, PIN)
+- **Membership number** shown on card and encoded in QR data
+- QR data: `BOOKIT:{id}:{pin}:{startYYYYMMDDHHmm}:{membershipNumber|NONE}`
+- **📅 Add to Calendar** — generates ICS calendar event (iOS Calendar / Google Calendar)
+- **↗ Share Pass** — generates PNG QR image and opens native share sheet
+
+**Sign up** — optional Membership Number field, stored on user account and returned in all auth responses.
+
+**Offline**: `MauiSyncService` caches data to on-device SQLite (sqlite-net-pcl). Tokens in OS `SecureStorage`.
 
 ### MAUI-Ready Shared Library (`BookIt.UI.Shared`)
 All UI logic is in a Razor Class Library so the same components work in Blazor Server, WASM and **.NET MAUI**:
@@ -180,9 +470,11 @@ builder.Services.AddBookItUI("https://api.bookit.app");
 Components available:
 - `AdminLayout` — full dark sidebar + topbar + profile dropdown
 - `DashboardView`, `ServicesView`, `SettingsView`, `SubscriptionsView`
+- `AppointmentQrCard` — wallet-style branded QR pass card (membership number, PIN, QR encoded with date/time)
+- `ChatModerationView` — admin AI chat settings panel (system prompt, blocked phrases, flagged message review)
 - `LoginView`, `PricingView`
 - `BookItApiService` — stateless HTTP client (no `IHttpContextAccessor`)
-- `BookItAuthState` — scoped auth state with initials helper
+- `BookItAuthState` — scoped auth state with initials + `MembershipNumber`
 - `BookItTheme` — custom MudBlazor theme (brand colours, light + dark palettes)
 
 ---
@@ -218,6 +510,22 @@ dotnet run
 cd src/BookIt.Web
 dotnet run
 # → https://localhost:5002
+```
+
+### Build the MAUI App (requires .NET MAUI workload)
+```bash
+# Install MAUI workload (once)
+dotnet workload install maui
+
+# Android
+cd src/BookIt.Maui
+dotnet build -f net10.0-android
+
+# iOS (macOS only)
+dotnet build -f net10.0-ios
+
+# Windows
+dotnet build -f net10.0-windows10.0.19041.0
 ```
 
 ### Run Tests
@@ -325,6 +633,23 @@ _reminderScheduler.CancelReminders(appointmentId);
 **Reminder alert options** (iOS Calendar-style, configurable per tenant):
 `5 min · 10 min · 15 min · 30 min · 1 h · 2 h · 3 h · 6 h · 12 h · 1 day · 2 days · 1 week`
 
+### MAUI Wallet Pass (`BookIt.Maui.Services.WalletPassService`)
+```csharp
+// Add to iOS Calendar / Google Calendar (ICS format)
+await _walletPassService.AddToCalendarAsync(appointment, businessName, membershipNumber);
+
+// Native share sheet — shares QR code as PNG image
+await _walletPassService.ShareQrPassAsync(appointment, businessName, qrDataUri);
+
+// Generate ICS string directly
+var ics = _walletPassService.GenerateIcs(appointment, businessName, membershipNumber);
+```
+
+> **Note on Native Wallet Passes**: Full Apple PKPass (`.pkpass`) and Google Wallet JWT passes
+> require platform developer certificates (Apple Developer Program / Google Pay & Wallet Console)
+> and server-side signing. `WalletPassService` uses **ICS calendar events** as a
+> cross-platform alternative that works without additional credentials.
+
 ---
 
 ## Database Migrations
@@ -344,22 +669,27 @@ dotnet ef database update --startup-project ../BookIt.API
 ## Architecture
 
 ```
-BookIt.API          ← HTTP entry point, controllers, middleware
+BookIt.API             ← HTTP entry point, controllers, middleware
     ↓
-BookIt.Infrastructure  ← EF Core, repos, services (delegates payments to providers)
+BookIt.Infrastructure  ← EF Core, repos, services (delegates to providers)
     ↓
-BookIt.Core         ← Entities, DTOs, interfaces, enums, FeatureFlags
+BookIt.Core            ← Entities, DTOs, interfaces, enums, FeatureFlags
     ↓
-BookIt.Payments.Stripe        ← IStripeProvider (isolated class library)
-BookIt.Payments.PayPal        ← IPayPalProvider (isolated class library)
-BookIt.Payments.ApplePay      ← IApplePayProvider (isolated — delegates to Stripe)
+BookIt.Payments.Stripe          ← IStripeProvider (isolated class library)
+BookIt.Payments.PayPal          ← IPayPalProvider (isolated class library)
+BookIt.Payments.ApplePay        ← IApplePayProvider (isolated — delegates to Stripe)
 BookIt.Subscriptions.RevenueCat ← IRevenueCatProvider (isolated class library)
-BookIt.Notifications.Sms      ← ISmsProvider / ClickSendSmsProvider / TwilioSmsProvider
-BookIt.Notifications.Email    ← IEmailNotificationService / SendGridEmailService
+BookIt.Notifications.Sms        ← ISmsProvider / ClickSendSmsProvider / TwilioSmsProvider
+BookIt.Notifications.Email      ← IEmailNotificationService / SendGridEmailService
 
 BookIt.Blazor       ← Blazor Server front end (consumes BookIt.UI.Shared)
+BookIt.Maui         ← .NET MAUI Blazor Hybrid (iOS/Android/macOS/Windows)
 BookIt.Web          ← ASP.NET Core MVC front end
-BookIt.UI.Shared    ← Razor Class Library (Blazor + MAUI compatible)
+BookIt.UI.Shared    ← Razor Class Library (shared Blazor + MAUI components)
+    ↑ AppointmentQrCard  (membership QR, wallet-style pass card)
+    ↑ ChatModerationView (AI chat admin panel)
+    ↑ BookItAuthState    (stores MembershipNumber from auth response)
+    ↑ BookItApiService   (full REST client for API)
 ```
 
 ---

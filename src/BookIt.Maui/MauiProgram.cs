@@ -32,6 +32,7 @@ public static class MauiProgram
         // MAUI-specific services
         builder.Services.AddSingleton<MauiSyncService>();
         builder.Services.AddSingleton<QrCodeService>();
+        builder.Services.AddSingleton<WalletPassService>();
         builder.Services.AddScoped<MauiTokenService>();
 
 #if DEBUG

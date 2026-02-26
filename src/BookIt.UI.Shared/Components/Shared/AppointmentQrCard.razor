@@ -95,6 +95,13 @@
                     <div style="font-size:26px;font-weight:900;letter-spacing:6px;">@Appointment.BookingPin</div>
                 </div>
             }
+            @if (!string.IsNullOrEmpty(MembershipNumber))
+            {
+                <div style="text-align:center;margin-top:8px;">
+                    <div style="font-size:10px;opacity:.7;letter-spacing:.08em;text-transform:uppercase;">Membership No.</div>
+                    <div style="font-size:16px;font-weight:800;letter-spacing:3px;">@MembershipNumber</div>
+                </div>
+            }
         }
         else
         {
@@ -112,6 +119,8 @@
     [Parameter] public AppointmentResponse? Appointment { get; set; }
     [Parameter] public string? BusinessName { get; set; }
     [Parameter] public string? LogoUrl { get; set; }
+    /// <summary>Customer membership number — included in the QR code data when provided.</summary>
+    [Parameter] public string? MembershipNumber { get; set; }
     [Inject] private IJSRuntime JS { get; set; } = default!;
 
     private readonly string _canvasId = Guid.NewGuid().ToString("N")[..8];
@@ -133,6 +142,8 @@
     private string BuildQrData()
     {
         if (Appointment == null) return "";
-        return $"BOOKIT:{Appointment.Id}:{Appointment.BookingPin}:{Appointment.StartTime:yyyyMMddHHmm}";
+        // Format: BOOKIT:{id}:{pin}:{startYYYYMMDDHHmm}:{membershipNumber|NONE}
+        var membership = string.IsNullOrWhiteSpace(MembershipNumber) ? "NONE" : MembershipNumber;
+        return $"BOOKIT:{Appointment.Id}:{Appointment.BookingPin}:{Appointment.StartTime:yyyyMMddHHmm}:{membership}";
     }
 }

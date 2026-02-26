@@ -24,7 +24,33 @@
         }
         else
         {
-            <AppointmentQrCard Appointment="_nextAppointment" BusinessName="@_tenantName" LogoUrl="@_logoUrl" />
+            <AppointmentQrCard Appointment="_nextAppointment"
+                               BusinessName="@_tenantName"
+                               LogoUrl="@_logoUrl"
+                               MembershipNumber="@Auth.MembershipNumber" />
+
+            <!-- Wallet action buttons -->
+            <MudStack Row="true" Spacing="2" Justify="Justify.Center">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.CalendarMonth"
+                           OnClick="AddToCalendar"
+                           Disabled="_actionBusy"
+                           Style="border-radius:12px;font-weight:700;flex:1;">
+                    Add to Calendar
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Share"
+                           OnClick="SharePass"
+                           Disabled="_actionBusy"
+                           Style="border-radius:12px;font-weight:700;flex:1;">
+                    Share Pass
+                </MudButton>
+            </MudStack>
+
+            @if (!string.IsNullOrEmpty(_actionMessage))
+            {
+                <MudAlert Severity="@_alertSeverity" Dense="true" Class="mt-1">@_actionMessage</MudAlert>
+            }
 
             @if (_appointments.Count > 1)
             {
@@ -43,7 +69,14 @@
                                         @apt.StartTime.ToString("ddd d MMM") · @apt.StartTime.ToString("h:mm tt")
                                     </div>
                                 </div>
-                                <MudChip T="string" Size="Size.Small" Color="@StatusColor(apt.Status)" Label="true">@apt.Status</MudChip>
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                    <MudChip T="string" Size="Size.Small" Color="@StatusColor(apt.Status)" Label="true">@apt.Status</MudChip>
+                                    <MudIconButton Icon="@Icons.Material.Filled.CalendarMonth"
+                                                   Size="Size.Small"
+                                                   Color="Color.Primary"
+                                                   OnClick="@(() => AddAppointmentToCalendar(apt))"
+                                                   Title="Add to calendar" />
+                                </MudStack>
                             </div>
                         </MudCardContent>
                     </MudCard>
@@ -56,10 +89,15 @@
 @code {
     [Inject] private BookItApiService Api { get; set; } = default!;
     [Inject] private BookItAuthState Auth { get; set; } = default!;
+    [Inject] private QrCodeService QrCode { get; set; } = default!;
+    [Inject] private WalletPassService WalletPass { get; set; } = default!;
 
     private List<AppointmentResponse> _appointments = new();
     private AppointmentResponse? _nextAppointment;
     private bool _loading = true;
+    private bool _actionBusy;
+    private string? _actionMessage;
+    private Severity _alertSeverity = Severity.Success;
     private string _tenantName = "BookIt";
     private string? _logoUrl;
 
@@ -82,6 +120,65 @@
         _loading = false;
     }
 
+    private async Task AddToCalendar()
+    {
+        if (_nextAppointment == null) return;
+        _actionBusy = true;
+        _actionMessage = null;
+        try
+        {
+            await WalletPass.AddToCalendarAsync(_nextAppointment, _tenantName, Auth.MembershipNumber);
+            _actionMessage = "Calendar event opened — tap 'Add' to save.";
+            _alertSeverity = Severity.Success;
+        }
+        catch (Exception ex)
+        {
+            _actionMessage = $"Could not open calendar: {ex.Message}";
+            _alertSeverity = Severity.Error;
+        }
+        finally
+        {
+            _actionBusy = false;
+        }
+    }
+
+    private async Task AddAppointmentToCalendar(AppointmentResponse apt)
+    {
+        try
+        {
+            await WalletPass.AddToCalendarAsync(apt, _tenantName, Auth.MembershipNumber);
+        }
+        catch (Exception ex)
+        {
+            _actionMessage = $"Could not open calendar: {ex.Message}";
+            _alertSeverity = Severity.Warning;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SharePass()
+    {
+        if (_nextAppointment == null) return;
+        _actionBusy = true;
+        _actionMessage = null;
+        try
+        {
+            // Generate QR image using the server-side QrCodeService
+            var qrContent = $"BOOKIT:{_nextAppointment.Id}:{_nextAppointment.BookingPin}:{_nextAppointment.StartTime:yyyyMMddHHmm}:{Auth.MembershipNumber ?? "NONE"}";
+            var qrDataUri = QrCode.GenerateQrDataUri(qrContent);
+            await WalletPass.ShareQrPassAsync(_nextAppointment, _tenantName, qrDataUri);
+        }
+        catch (Exception ex)
+        {
+            _actionMessage = $"Could not share pass: {ex.Message}";
+            _alertSeverity = Severity.Error;
+        }
+        finally
+        {
+            _actionBusy = false;
+        }
+    }
+
     private static Color StatusColor(AppointmentStatus s) => s switch
     {
         AppointmentStatus.Confirmed => Color.Success,
@@ -90,3 +187,4 @@
         _                           => Color.Default
     };
 }
+

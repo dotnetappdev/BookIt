@@ -15,6 +15,7 @@ public class BookItAuthState
     public string? UserEmail { get; private set; }
     public UserRole? Role { get; private set; }
     public Guid? TenantId { get; private set; }
+    public string? MembershipNumber { get; private set; }
 
     public bool IsAuthenticated => !string.IsNullOrEmpty(AccessToken);
 
@@ -38,6 +39,7 @@ public class BookItAuthState
         UserEmail = auth.Email;
         Role = auth.Role;
         TenantId = auth.TenantId;
+        MembershipNumber = auth.MembershipNumber;
         OnChange?.Invoke();
     }
 
@@ -49,6 +51,7 @@ public class BookItAuthState
         UserEmail = null;
         Role = null;
         TenantId = null;
+        MembershipNumber = null;
         OnChange?.Invoke();
     }
 }

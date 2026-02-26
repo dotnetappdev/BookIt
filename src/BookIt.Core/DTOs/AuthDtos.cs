@@ -31,6 +31,7 @@ public class AuthResponse
     public UserRole Role { get; set; }
     public Guid TenantId { get; set; }
     public string TenantSlug { get; set; } = string.Empty;
+    public string? MembershipNumber { get; set; }
 }
 
 public class TenantSetupRequest
