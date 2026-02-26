@@ -1,3 +1,5 @@
+using BookIt.Core.Enums;
+
 namespace BookIt.Core.DTOs;
 
 public class InterviewSlotResponse
@@ -11,6 +13,11 @@ public class InterviewSlotResponse
     public bool IsBooked { get; set; }
     public string? Location { get; set; }
     public string? MeetingLink { get; set; }
+    public VideoConferenceProvider VideoConferenceProvider { get; set; }
+    public string? ConferenceMeetingId { get; set; }
+    public string? ConferencePassword { get; set; }
+    public string? ConferenceHostUrl { get; set; }
+    public string? ConferenceDialIn { get; set; }
 }
 
 public class CreateInterviewSlotRequest
@@ -22,6 +29,11 @@ public class CreateInterviewSlotRequest
     public int DurationMinutes { get; set; } = 60;
     public string? Location { get; set; }
     public string? MeetingLink { get; set; }
+    public VideoConferenceProvider VideoConferenceProvider { get; set; } = VideoConferenceProvider.None;
+    public string? ConferenceMeetingId { get; set; }
+    public string? ConferencePassword { get; set; }
+    public string? ConferenceHostUrl { get; set; }
+    public string? ConferenceDialIn { get; set; }
 }
 
 public class SendInvitationRequest

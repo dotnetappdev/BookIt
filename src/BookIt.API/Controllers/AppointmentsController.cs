@@ -165,6 +165,34 @@ public class AppointmentsController : ControllerBase
     }
 
     [Authorize]
+    [HttpPost("{id}/approve")]
+    public async Task<IActionResult> ApproveAppointment(string tenantSlug, Guid id)
+    {
+        var tenant = await GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        if (!_tenantService.IsValidTenantAccess(tenant.Id))
+            return Forbid();
+
+        await _appointmentService.ApproveAppointmentAsync(tenant.Id, id);
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpPost("{id}/decline")]
+    public async Task<IActionResult> DeclineAppointment(string tenantSlug, Guid id, [FromBody] DeclineAppointmentRequest? request)
+    {
+        var tenant = await GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        if (!_tenantService.IsValidTenantAccess(tenant.Id))
+            return Forbid();
+
+        await _appointmentService.DeclineAppointmentAsync(tenant.Id, id, request?.Reason);
+        return NoContent();
+    }
+
+    [Authorize]
     [HttpPost("{id}/confirm")]
     public async Task<IActionResult> ConfirmAppointment(string tenantSlug, Guid id)
     {

@@ -67,6 +67,9 @@ public class BookItApiService
     public Task<AuthResponse?> LoginAsync(LoginRequest req) =>
         PostAsync<AuthResponse>("/api/auth/login", req);
 
+    public Task<AuthResponse?> RegisterAsync(RegisterRequest req) =>
+        PostAsync<AuthResponse>("/api/auth/register", req);
+
     public Task<AuthResponse?> SetupTenantAsync(TenantSetupRequest req) =>
         PostAsync<AuthResponse>("/api/auth/setup", req);
 
@@ -102,6 +105,12 @@ public class BookItApiService
     public Task<AppointmentResponse?> CreateAppointmentAsync(string slug, CreateAppointmentRequest req) =>
         PostAsync<AppointmentResponse>($"/api/tenants/{slug}/appointments", req);
 
+    public Task<bool> ApproveAppointmentAsync(string slug, Guid id) =>
+        PostBoolAsync($"/api/tenants/{slug}/appointments/{id}/approve", new { });
+
+    public Task<bool> DeclineAppointmentAsync(string slug, Guid id, string? reason = null) =>
+        PostBoolAsync($"/api/tenants/{slug}/appointments/{id}/decline", new { Reason = reason });
+
     public Task<List<DateTime>?> GetAvailableSlotsAsync(string slug, Guid serviceId, Guid? staffId, DateOnly date)
     {
         var url = $"/api/tenants/{slug}/appointments/slots?serviceId={serviceId}&date={date:yyyy-MM-dd}";
@@ -118,6 +127,9 @@ public class BookItApiService
 
     public Task<BookingFormResponse?> CreateFormAsync(string slug, CreateBookingFormRequest req) =>
         PostAsync<BookingFormResponse>($"/api/tenants/{slug}/booking-forms", req);
+
+    public Task<BookingFormResponse?> UpdateFormAsync(string slug, Guid formId, UpdateBookingFormRequest req) =>
+        PutAsync<BookingFormResponse>($"/api/tenants/{slug}/booking-forms/{formId}", req);
 
     public Task<bool> DeleteFormAsync(string slug, Guid id) =>
         DeleteAsync($"/api/tenants/{slug}/booking-forms/{id}");
@@ -182,4 +194,26 @@ public class BookItApiService
 
     public Task<bool> DeleteEmailTemplateAsync(string slug, Guid id) =>
         DeleteAsync($"/api/tenants/{slug}/email-templates/{id}");
+
+    // ── Webhooks ──
+    public Task<List<WebhookResponse>?> GetWebhooksAsync(string slug) =>
+        GetAsync<List<WebhookResponse>>($"/api/tenants/{slug}/webhooks");
+
+    public Task<WebhookResponse?> CreateWebhookAsync(string slug, CreateWebhookRequest req) =>
+        PostAsync<WebhookResponse>($"/api/tenants/{slug}/webhooks", req);
+
+    public Task<WebhookResponse?> UpdateWebhookAsync(string slug, Guid id, UpdateWebhookRequest req) =>
+        PutAsync<WebhookResponse>($"/api/tenants/{slug}/webhooks/{id}", req);
+
+    public Task<bool> DeleteWebhookAsync(string slug, Guid id) =>
+        DeleteAsync($"/api/tenants/{slug}/webhooks/{id}");
+
+    public Task<List<WebhookDeliveryResponse>?> GetWebhookDeliveriesAsync(string slug, Guid webhookId) =>
+        GetAsync<List<WebhookDeliveryResponse>>($"/api/tenants/{slug}/webhooks/{webhookId}/deliveries");
+
+    private async Task<bool> PostBoolAsync(string url, object body)
+    {
+        var r = await _http.PostAsync(url, Json(body));
+        return r.IsSuccessStatusCode;
+    }
 }

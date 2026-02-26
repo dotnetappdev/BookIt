@@ -1,0 +1,182 @@
+@page "/login"
+@page "/"
+
+<MudContainer MaxWidth="MaxWidth.Small" Style="padding:48px 24px;">
+    <div style="text-align:center;margin-bottom:32px;">
+        <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
+            <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Style="color:white;font-size:36px;" />
+        </div>
+        <MudText Typo="Typo.h4" Style="font-weight:800;letter-spacing:-.03em;">BookIt</MudText>
+        <MudText Color="Color.Secondary">Sign in to manage your bookings</MudText>
+    </div>
+
+    <MudTabs Elevation="0" Centered="true">
+        <!-- Sign In Tab -->
+        <MudTabPanel Text="Sign In">
+            <MudStack Spacing="3" Style="margin-top:24px;">
+                <MudTextField @bind-Value="_loginEmail" Label="Email" Variant="Variant.Outlined"
+                              InputType="InputType.Email" Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Email" />
+                <MudTextField @bind-Value="_loginPassword" Label="Password" Variant="Variant.Outlined"
+                              InputType="@(_showPwd ? InputType.Text : InputType.Password)"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@(_showPwd ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                              OnAdornmentClick="@(() => _showPwd = !_showPwd)" />
+                <MudTextField @bind-Value="_tenantSlug" Label="Organisation code" Variant="Variant.Outlined"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Business"
+                              HelperText="Your business short name, e.g. 'my-salon'" />
+
+                @if (!string.IsNullOrEmpty(_error))
+                {
+                    <MudAlert Severity="Severity.Error">@_error</MudAlert>
+                }
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                           OnClick="SignIn" Disabled="_loading" Style="height:48px;font-weight:700;">
+                    @if (_loading)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="margin-right:8px;" />
+                    }
+                    Sign In
+                </MudButton>
+            </MudStack>
+        </MudTabPanel>
+
+        <!-- Sign Up Tab -->
+        <MudTabPanel Text="Sign Up">
+            <MudStack Spacing="3" Style="margin-top:24px;">
+                <MudGrid Spacing="2">
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="_regFirstName" Label="First name" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="_regLastName" Label="Last name" Variant="Variant.Outlined" />
+                    </MudItem>
+                </MudGrid>
+                <MudTextField @bind-Value="_regEmail" Label="Email" Variant="Variant.Outlined"
+                              InputType="InputType.Email" />
+                <MudTextField @bind-Value="_regPassword" Label="Password" Variant="Variant.Outlined"
+                              InputType="InputType.Password" />
+                <MudTextField @bind-Value="_regMembershipNumber" Label="Membership number (optional)"
+                              Variant="Variant.Outlined"
+                              HelperText="Enter your gym/club membership number if applicable" />
+                <MudTextField @bind-Value="_tenantSlug" Label="Organisation code" Variant="Variant.Outlined" />
+
+                @if (!string.IsNullOrEmpty(_regError))
+                {
+                    <MudAlert Severity="Severity.Error">@_regError</MudAlert>
+                }
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                           OnClick="SignUp" Disabled="_loading" Style="height:48px;font-weight:700;">
+                    Create Account
+                </MudButton>
+            </MudStack>
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
+
+@code {
+    [Inject] private BookItApiService Api { get; set; } = default!;
+    [Inject] private BookItAuthState Auth { get; set; } = default!;
+    [Inject] private MauiTokenService TokenService { get; set; } = default!;
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+
+    private string _loginEmail = "";
+    private string _loginPassword = "";
+    private string _tenantSlug = "";
+    private bool _showPwd;
+    private bool _loading;
+    private string? _error;
+
+    private string _regFirstName = "";
+    private string _regLastName = "";
+    private string _regEmail = "";
+    private string _regPassword = "";
+    private string _regMembershipNumber = "";
+    private string? _regError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var saved = await TokenService.GetSavedAuthAsync();
+        if (saved != null)
+        {
+            Auth.SetUser(saved);
+            Api.SetToken(saved.AccessToken);
+            Nav.NavigateTo("/dashboard");
+        }
+    }
+
+    private async Task SignIn()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            var result = await Api.LoginAsync(new LoginRequest
+            {
+                Email = _loginEmail,
+                Password = _loginPassword,
+                TenantSlug = _tenantSlug
+            });
+
+            if (result != null)
+            {
+                Auth.SetUser(result);
+                Api.SetToken(result.AccessToken);
+                await TokenService.SaveAuthAsync(result);
+                Nav.NavigateTo("/dashboard");
+            }
+            else
+            {
+                _error = "Invalid credentials. Please check your email and password.";
+            }
+        }
+        catch
+        {
+            _error = "Unable to connect. Please check your internet connection.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SignUp()
+    {
+        _loading = true;
+        _regError = null;
+        try
+        {
+            var result = await Api.RegisterAsync(new RegisterRequest
+            {
+                Email = _regEmail,
+                Password = _regPassword,
+                FirstName = _regFirstName,
+                LastName = _regLastName,
+                MembershipNumber = string.IsNullOrWhiteSpace(_regMembershipNumber) ? null : _regMembershipNumber,
+                TenantSlug = _tenantSlug
+            });
+
+            if (result != null)
+            {
+                Auth.SetUser(result);
+                Api.SetToken(result.AccessToken);
+                await TokenService.SaveAuthAsync(result);
+                Nav.NavigateTo("/dashboard");
+            }
+            else
+            {
+                _regError = "Registration failed. Please check your details.";
+            }
+        }
+        catch
+        {
+            _regError = "Unable to connect. Please check your internet connection.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

@@ -34,6 +34,9 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
     public DbSet<InterviewSlot> InterviewSlots => Set<InterviewSlot>();
     public DbSet<CandidateInvitation> CandidateInvitations => Set<CandidateInvitation>();
     public DbSet<EmailTemplate> EmailTemplates => Set<EmailTemplate>();
+    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<Webhook> Webhooks => Set<Webhook>();
+    public DbSet<WebhookDelivery> WebhookDeliveries => Set<WebhookDelivery>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -59,6 +62,8 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         modelBuilder.Entity<BookingForm>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<BookingFormField>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<EmailTemplate>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Webhook>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Customer>().HasQueryFilter(e => !e.IsDeleted);
 
         // StaffService composite key
         modelBuilder.Entity<StaffService>().HasKey(ss => new { ss.StaffId, ss.ServiceId });

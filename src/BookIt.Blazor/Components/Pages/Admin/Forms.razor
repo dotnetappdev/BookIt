@@ -21,7 +21,7 @@ else
                 <MudText Typo="Typo.body2" Color="Color.Secondary">Custom pre-booking question forms</MudText>
             </div>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
-                       OnClick="CreateForm">New Form</MudButton>
+                       OnClick="OpenCreateDialog">New Form</MudButton>
         </MudStack>
 
         @if (_loading)
@@ -35,35 +35,139 @@ else
                     <MudStack AlignItems="AlignItems.Center" Class="py-8">
                         <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="Size.Large" Style="opacity:.3;" />
                         <MudText Typo="Typo.body1" Class="fw-medium">No forms yet</MudText>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateForm">Create a Form</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateDialog">Create a Form</MudButton>
                     </MudStack>
                 </MudCardContent>
             </MudCard>
         }
         else
         {
-            <MudDataGrid T="BookingFormResponse" Items="_forms" Filterable="false" SortMode="SortMode.None">
+            <MudDataGrid T="BookingFormResponse" Items="_forms" Filterable="false" SortMode="SortMode.None" Hover="true">
                 <Columns>
-                    <PropertyColumn Property="x => x.Name" Title="Form Name" />
-                    <PropertyColumn Property="x => x.Fields.Count" Title="Fields" />
-                    <TemplateColumn Title="Actions">
+                    <TemplateColumn Title="Form Name">
                         <CellTemplate>
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
-                                           Href="@($"/{TenantSlug}/admin/forms/builder?formId={context.Item.Id}")" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
-                                           OnClick="@(() => DeleteForm(context.Item))" />
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.body2" Style="font-weight:600;">@context.Item.Name</MudText>
+                                @if (!string.IsNullOrEmpty(context.Item.Description))
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Item.Description</MudText>
+                                }
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Fields">
+                        <CellTemplate>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">@context.Item.Fields.Count</MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Default">
+                        <CellTemplate>
+                            @if (context.Item.IsDefault)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Label="true">Default</MudChip>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Actions" Sortable="false">
+                        <CellTemplate>
+                            <MudStack Row="true" Spacing="0">
+                                <MudTooltip Text="Edit settings">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Settings" Size="Size.Small" Color="Color.Default"
+                                                   OnClick="@(() => OpenEditDialog(context.Item))" />
+                                </MudTooltip>
+                                <MudTooltip Text="Open form builder">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Build" Size="Size.Small" Color="Color.Primary"
+                                                   Href="@($"/{TenantSlug}/admin/forms/builder?formId={context.Item.Id}")" />
+                                </MudTooltip>
+                                @if (_pendingDeleteId == context.Item.Id)
+                                {
+                                    <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
+                                               OnClick="@(() => ConfirmDelete(context.Item))">Delete?</MudButton>
+                                    <MudButton Size="Size.Small" OnClick="@(() => _pendingDeleteId = null)">Cancel</MudButton>
+                                }
+                                else
+                                {
+                                    <MudTooltip Text="Delete form">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                       OnClick="@(() => _pendingDeleteId = context.Item.Id)" />
+                                    </MudTooltip>
+                                }
+                            </MudStack>
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="BookingFormResponse" />
+                </PagerContent>
             </MudDataGrid>
         }
     </MudStack>
 }
 
+<!-- Create / Edit Form Dialog -->
+<MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6" Style="font-weight:700;">@(_editForm == null ? "New Form" : "Edit Form Settings")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_formName" Label="Form Name" Required="true"
+                              HelperText="A descriptive name for this booking form" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_formDescription" Label="Description (optional)" Lines="2" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_welcomeMsg" Label="Welcome Message"
+                              Lines="2" HelperText="Shown at the top of the form" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_confirmMsg" Label="Confirmation Message"
+                              Lines="2" HelperText="Shown after the form is submitted" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudSwitch @bind-Value="_collectPhone" Color="Color.Primary" Label="Collect phone number" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudSwitch @bind-Value="_collectNotes" Color="Color.Primary" Label="Collect notes" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSwitch @bind-Value="_isDefault" Color="Color.Success" Label="Set as default form" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveForm" Disabled="_saving">
+            @(_saving ? "Saving…" : (_editForm == null ? "Create" : "Save Changes"))
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
 @code {
     [Parameter] public string TenantSlug { get; set; } = "";
     private List<BookingFormResponse> _forms = new();
     private bool _loading = true;
+    private Guid? _pendingDeleteId;
+
+    private bool _dialogOpen;
+    private bool _saving;
+    private BookingFormResponse? _editForm;
+    private string _formName = "";
+    private string? _formDescription;
+    private string? _welcomeMsg;
+    private string? _confirmMsg;
+    private bool _collectPhone = true;
+    private bool _collectNotes = true;
+    private bool _isDefault;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Small,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
 
     protected override void OnInitialized()
     {
@@ -80,18 +184,102 @@ else
         StateHasChanged();
     }
 
-    private async Task CreateForm()
+    private void OpenCreateDialog()
     {
-        Api.SetToken(Auth.AccessToken);
-        var form = await Api.CreateFormAsync(TenantSlug, new CreateBookingFormRequest { Name = "New Form" });
-        if (form != null)
-            Nav.NavigateTo($"/{TenantSlug}/admin/forms/builder?formId={form.Id}");
+        _editForm = null;
+        _formName = "";
+        _formDescription = null;
+        _welcomeMsg = null;
+        _confirmMsg = null;
+        _collectPhone = true;
+        _collectNotes = true;
+        _isDefault = false;
+        _dialogOpen = true;
     }
 
-    private async Task DeleteForm(BookingFormResponse form)
+    private void OpenEditDialog(BookingFormResponse form)
     {
+        _editForm = form;
+        _formName = form.Name;
+        _formDescription = form.Description;
+        _welcomeMsg = form.WelcomeMessage;
+        _confirmMsg = form.ConfirmationMessage;
+        _collectPhone = form.CollectPhone;
+        _collectNotes = form.CollectNotes;
+        _isDefault = form.IsDefault;
+        _dialogOpen = true;
+    }
+
+    private void CloseDialog() => _dialogOpen = false;
+
+    private async Task SaveForm()
+    {
+        if (string.IsNullOrWhiteSpace(_formName))
+        {
+            Snackbar.Add("Form name is required.", Severity.Warning);
+            return;
+        }
+        _saving = true;
+        Api.SetToken(Auth.AccessToken);
+
+        if (_editForm == null)
+        {
+            // Create and navigate to builder
+            var created = await Api.CreateFormAsync(TenantSlug, new CreateBookingFormRequest
+            {
+                Name = _formName,
+                Description = _formDescription,
+                WelcomeMessage = _welcomeMsg,
+                ConfirmationMessage = _confirmMsg,
+                CollectPhone = _collectPhone,
+                CollectNotes = _collectNotes,
+                IsDefault = _isDefault
+            });
+            _saving = false;
+            if (created != null)
+            {
+                _dialogOpen = false;
+                Nav.NavigateTo($"/{TenantSlug}/admin/forms/builder?formId={created.Id}");
+            }
+            else
+            {
+                Snackbar.Add("Failed to create form.", Severity.Error);
+            }
+        }
+        else
+        {
+            var updated = await Api.UpdateFormAsync(TenantSlug, _editForm.Id, new UpdateBookingFormRequest
+            {
+                Name = _formName,
+                Description = _formDescription,
+                WelcomeMessage = _welcomeMsg,
+                ConfirmationMessage = _confirmMsg,
+                CollectPhone = _collectPhone,
+                CollectNotes = _collectNotes,
+                IsDefault = _isDefault
+            });
+            _saving = false;
+            if (updated != null)
+            {
+                var idx = _forms.IndexOf(_editForm);
+                if (idx >= 0) _forms[idx] = updated;
+                _dialogOpen = false;
+                Snackbar.Add("Form updated.", Severity.Success);
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add("Failed to update form.", Severity.Error);
+            }
+        }
+    }
+
+    private async Task ConfirmDelete(BookingFormResponse form)
+    {
+        _pendingDeleteId = null;
         Api.SetToken(Auth.AccessToken);
         var ok = await Api.DeleteFormAsync(TenantSlug, form.Id);
-        if (ok) { _forms.Remove(form); Snackbar.Add("Form deleted.", Severity.Success); }
+        if (ok) { _forms.Remove(form); Snackbar.Add("Form deleted.", Severity.Success); StateHasChanged(); }
+        else Snackbar.Add("Failed to delete form.", Severity.Error);
     }
 }

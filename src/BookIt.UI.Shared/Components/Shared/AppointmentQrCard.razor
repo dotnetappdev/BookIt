@@ -1,0 +1,149 @@
+@using BookIt.Core.DTOs
+
+<style>
+    .qr-wallet-card {
+        max-width: 340px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+        border-radius: 20px;
+        padding: 0;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(108,92,231,.35);
+        color: white;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .qr-wallet-header {
+        padding: 20px 24px 12px;
+        border-bottom: 1px solid rgba(255,255,255,.2);
+    }
+    .qr-wallet-logo {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        object-fit: cover;
+        background: rgba(255,255,255,.15);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .qr-wallet-body {
+        padding: 16px 24px;
+        background: rgba(0,0,0,.12);
+    }
+    .qr-code-area {
+        background: white;
+        border-radius: 12px;
+        padding: 12px;
+        margin: 12px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .qr-wallet-footer {
+        padding: 12px 24px 20px;
+        font-size: 11px;
+        opacity: .75;
+        text-align: center;
+    }
+</style>
+
+<div class="qr-wallet-card">
+    <!-- Header -->
+    <div class="qr-wallet-header">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            @if (!string.IsNullOrEmpty(LogoUrl))
+            {
+                <img src="@LogoUrl" alt="Logo" class="qr-wallet-logo" />
+            }
+            else
+            {
+                <div class="qr-wallet-logo">
+                    <span style="font-size:20px;font-weight:800;">B</span>
+                </div>
+            }
+            <div>
+                <div style="font-size:16px;font-weight:800;letter-spacing:-.01em;">@BusinessName</div>
+                <div style="font-size:11px;opacity:.8;">Booking Confirmation</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Body -->
+    <div class="qr-wallet-body">
+        @if (Appointment != null)
+        {
+            <div style="font-size:18px;font-weight:800;margin-bottom:4px;">@Appointment.CustomerName</div>
+            <div style="font-size:13px;opacity:.9;margin-bottom:12px;">
+                @Appointment.StartTime.ToString("dddd, d MMMM yyyy")
+                <span style="margin:0 6px;opacity:.5;">·</span>
+                @Appointment.StartTime.ToString("h:mm tt") – @Appointment.EndTime.ToString("h:mm tt")
+            </div>
+
+            @if (Appointment.Services.Any())
+            {
+                <div style="font-size:12px;opacity:.8;margin-bottom:12px;">
+                    @string.Join(", ", Appointment.Services.Select(s => s.Name))
+                </div>
+            }
+
+            <!-- QR Code (generated via JS interop) -->
+            <div class="qr-code-area">
+                <canvas id="qr-canvas-@_canvasId" width="180" height="180"></canvas>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Appointment.BookingPin))
+            {
+                <div style="text-align:center;margin-top:4px;">
+                    <div style="font-size:10px;opacity:.7;letter-spacing:.08em;text-transform:uppercase;">Booking PIN</div>
+                    <div style="font-size:26px;font-weight:900;letter-spacing:6px;">@Appointment.BookingPin</div>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(MembershipNumber))
+            {
+                <div style="text-align:center;margin-top:8px;">
+                    <div style="font-size:10px;opacity:.7;letter-spacing:.08em;text-transform:uppercase;">Membership No.</div>
+                    <div style="font-size:16px;font-weight:800;letter-spacing:3px;">@MembershipNumber</div>
+                </div>
+            }
+        }
+        else
+        {
+            <div style="text-align:center;padding:24px;opacity:.6;">No appointment selected</div>
+        }
+    </div>
+
+    <!-- Footer -->
+    <div class="qr-wallet-footer">
+        Generated @DateTime.Now.ToString("d MMM yyyy 'at' h:mm tt") · Powered by BookIt
+    </div>
+</div>
+
+@code {
+    [Parameter] public AppointmentResponse? Appointment { get; set; }
+    [Parameter] public string? BusinessName { get; set; }
+    [Parameter] public string? LogoUrl { get; set; }
+    /// <summary>Customer membership number — included in the QR code data when provided.</summary>
+    [Parameter] public string? MembershipNumber { get; set; }
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    private readonly string _canvasId = Guid.NewGuid().ToString("N")[..8];
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Appointment == null) return;
+        var qrData = BuildQrData();
+        try
+        {
+            await JS.InvokeVoidAsync("BookItQR.render", $"qr-canvas-{_canvasId}", qrData);
+        }
+        catch
+        {
+            // QR library not loaded — canvas stays blank
+        }
+    }
+
+    private string BuildQrData()
+    {
+        if (Appointment == null) return "";
+        // Format: BOOKIT:{id}:{pin}:{startYYYYMMDDHHmm}:{membershipNumber|NONE}
+        var membership = string.IsNullOrWhiteSpace(MembershipNumber) ? "NONE" : MembershipNumber;
+        return $"BOOKIT:{Appointment.Id}:{Appointment.BookingPin}:{Appointment.StartTime:yyyyMMddHHmm}:{membership}";
+    }
+}

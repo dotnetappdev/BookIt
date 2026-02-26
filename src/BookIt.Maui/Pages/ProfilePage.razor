@@ -1,0 +1,80 @@
+@page "/profile"
+@attribute [Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="pa-4">
+    <MudStack Spacing="3" AlignItems="AlignItems.Center">
+
+        <!-- Avatar -->
+        <MudAvatar Size="Size.Large" Style="width:80px;height:80px;font-size:28px;background:var(--mud-palette-primary);color:white;">
+            @Auth.Initials
+        </MudAvatar>
+
+        <div style="text-align:center;">
+            <MudText Typo="Typo.h6" Style="font-weight:800;">@Auth.UserName</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@Auth.UserEmail</MudText>
+            @if (Auth.Role.HasValue)
+            {
+                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Label="true" Class="mt-1">@Auth.Role</MudChip>
+            }
+        </div>
+
+        <MudDivider Style="width:100%;" />
+
+        <!-- Profile info -->
+        <MudCard Elevation="1" Style="width:100%;border-radius:12px;">
+            <MudCardContent>
+                <MudStack Spacing="2">
+                    <div style="display:flex;justify-content:space-between;">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Organisation</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">@Auth.TenantSlug</MudText>
+                    </div>
+                    <MudDivider />
+                    <div style="display:flex;justify-content:space-between;">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Role</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">@Auth.Role</MudText>
+                    </div>
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Elevation="1" Style="width:100%;border-radius:12px;">
+            <MudCardContent>
+                <MudStack Spacing="2">
+                    <MudButton Variant="Variant.Text" FullWidth="true" StartIcon="@Icons.Material.Filled.Notifications"
+                               Style="justify-content:flex-start;">
+                        Notification preferences
+                    </MudButton>
+                    <MudDivider />
+                    <MudButton Variant="Variant.Text" FullWidth="true" StartIcon="@Icons.Material.Filled.Lock"
+                               Style="justify-content:flex-start;">
+                        Change password
+                    </MudButton>
+                    <MudDivider />
+                    <MudButton Variant="Variant.Text" FullWidth="true" StartIcon="@Icons.Material.Filled.Delete"
+                               Color="Color.Error" Style="justify-content:flex-start;">
+                        Delete account
+                    </MudButton>
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+
+        <MudButton Variant="Variant.Outlined" Color="Color.Error" FullWidth="true"
+                   StartIcon="@Icons.Material.Filled.Logout"
+                   OnClick="SignOut" Style="border-radius:12px;height:48px;font-weight:700;">
+            Sign Out
+        </MudButton>
+    </MudStack>
+</MudContainer>
+
+@code {
+    [Inject] private BookItAuthState Auth { get; set; } = default!;
+    [Inject] private MauiTokenService TokenService { get; set; } = default!;
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+
+    private async Task SignOut()
+    {
+        Auth.Clear();
+        await TokenService.ClearAsync();
+        Nav.NavigateTo("/login");
+    }
+}

@@ -59,4 +59,28 @@ public interface IEmailNotificationService
         string? reason,
         CustomEmailTemplate? customTemplate = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Sends a booking approval notification email to the customer.</summary>
+    Task SendBookingApprovedAsync(
+        string sendGridApiKey,
+        string fromEmail,
+        string fromName,
+        string toEmail,
+        string customerName,
+        string businessName,
+        DateTime appointmentStart,
+        string? confirmationToken,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Sends a booking decline notification email to the customer.</summary>
+    Task SendBookingDeclinedAsync(
+        string sendGridApiKey,
+        string fromEmail,
+        string fromName,
+        string toEmail,
+        string customerName,
+        string businessName,
+        DateTime appointmentStart,
+        string? reason,
+        CancellationToken cancellationToken = default);
 }

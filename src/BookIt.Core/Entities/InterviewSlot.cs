@@ -1,3 +1,5 @@
+using BookIt.Core.Enums;
+
 namespace BookIt.Core.Entities;
 
 public class InterviewSlot : BaseEntity
@@ -14,5 +16,12 @@ public class InterviewSlot : BaseEntity
     public bool IsBooked { get; set; } = false;
     public string? Location { get; set; }        // "Video call", "Room 3A", etc.
     public string? MeetingLink { get; set; }
+
+    // Video conference configuration
+    public VideoConferenceProvider VideoConferenceProvider { get; set; } = VideoConferenceProvider.None;
+    public string? ConferenceMeetingId { get; set; }
+    public string? ConferencePassword { get; set; }
+    public string? ConferenceHostUrl { get; set; }
+    public string? ConferenceDialIn { get; set; }
     public Guid? BookedByInvitationId { get; set; }
 }

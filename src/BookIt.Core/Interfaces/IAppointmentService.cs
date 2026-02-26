@@ -10,6 +10,9 @@ public interface IAppointmentService
     Task CancelAppointmentAsync(Guid tenantId, Guid appointmentId, string? reason);
     Task ConfirmAppointmentAsync(Guid tenantId, Guid appointmentId);
 
+    Task ApproveAppointmentAsync(Guid tenantId, Guid appointmentId);
+    Task DeclineAppointmentAsync(Guid tenantId, Guid appointmentId, string? reason);
+
     // Class session methods (for gyms, swimming, classes)
     Task<IEnumerable<ClassSession>> GetUpcomingClassSessionsAsync(Guid tenantId, Guid? serviceId = null, int days = 14);
     Task<ClassSession> CreateClassSessionAsync(ClassSession session);

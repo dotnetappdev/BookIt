@@ -18,6 +18,7 @@ public class CustomerResponse
     public string? Gender { get; set; }
     public string? Notes { get; set; }
     public string? Tags { get; set; }
+    public string? MembershipNumber { get; set; }
     public bool MarketingOptIn { get; set; }
     public bool SmsOptIn { get; set; }
     public int TotalBookings { get; set; }
@@ -41,6 +42,7 @@ public class CreateCustomerRequest
     public string? Gender { get; set; }
     public string? Notes { get; set; }
     public string? Tags { get; set; }
+    public string? MembershipNumber { get; set; }
     public bool MarketingOptIn { get; set; }
     public bool SmsOptIn { get; set; }
 }
@@ -60,6 +62,7 @@ public class UpdateCustomerRequest
     public string? Gender { get; set; }
     public string? Notes { get; set; }
     public string? Tags { get; set; }
+    public string? MembershipNumber { get; set; }
     public bool MarketingOptIn { get; set; }
     public bool SmsOptIn { get; set; }
 }

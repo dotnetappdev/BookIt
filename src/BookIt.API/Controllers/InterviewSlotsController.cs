@@ -71,6 +71,11 @@ public class InterviewSlotsController : ControllerBase
             SlotEnd = request.SlotStart.AddMinutes(request.DurationMinutes),
             Location = request.Location,
             MeetingLink = request.MeetingLink,
+            VideoConferenceProvider = request.VideoConferenceProvider,
+            ConferenceMeetingId = request.ConferenceMeetingId,
+            ConferencePassword = request.ConferencePassword,
+            ConferenceHostUrl = request.ConferenceHostUrl,
+            ConferenceDialIn = request.ConferenceDialIn,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -265,7 +270,9 @@ public class InterviewSlotsController : ControllerBase
         await _emailService.SendInterviewConfirmationAsync(
             request.CandidateEmail, request.CandidateName,
             tenant.Name, slot.Service?.Name ?? invitation.Service?.Name ?? "",
-            slot.SlotStart, slot.Location, slot.MeetingLink);
+            slot.SlotStart, slot.Location, slot.MeetingLink,
+            slot.VideoConferenceProvider, slot.ConferenceMeetingId,
+            slot.ConferencePassword, slot.ConferenceDialIn);
 
         return Ok(new { message = "Interview scheduled successfully", slotStart = slot.SlotStart, location = slot.Location, meetingLink = slot.MeetingLink });
     }
@@ -280,6 +287,11 @@ public class InterviewSlotsController : ControllerBase
         SlotEnd = s.SlotEnd,
         IsBooked = s.IsBooked,
         Location = s.Location,
-        MeetingLink = s.MeetingLink
+        MeetingLink = s.MeetingLink,
+        VideoConferenceProvider = s.VideoConferenceProvider,
+        ConferenceMeetingId = s.ConferenceMeetingId,
+        ConferencePassword = s.ConferencePassword,
+        ConferenceHostUrl = s.ConferenceHostUrl,
+        ConferenceDialIn = s.ConferenceDialIn
     };
 }

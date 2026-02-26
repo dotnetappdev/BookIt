@@ -65,7 +65,8 @@ public class AuthController : ControllerBase
             FullName = user.FullName,
             Role = user.Role,
             TenantId = tenant.Id,
-            TenantSlug = tenant.Slug
+            TenantSlug = tenant.Slug,
+            MembershipNumber = user.MembershipNumber
         });
     }
 
@@ -90,6 +91,7 @@ public class AuthController : ControllerBase
             FirstName = request.FirstName,
             LastName = request.LastName,
             PhoneNumber = request.Phone,
+            MembershipNumber = request.MembershipNumber,
             Role = UserRole.Customer,
             EmailConfirmed = false,
             CreatedAt = DateTime.UtcNow
@@ -119,7 +121,8 @@ public class AuthController : ControllerBase
             FullName = user.FullName,
             Role = user.Role,
             TenantId = tenant.Id,
-            TenantSlug = tenant.Slug
+            TenantSlug = tenant.Slug,
+            MembershipNumber = user.MembershipNumber
         });
     }
 

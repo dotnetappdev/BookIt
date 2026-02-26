@@ -1,0 +1,23 @@
+@inject BookItAuthState Auth
+
+<Router AppAssembly="@typeof(Routes).Assembly" AdditionalAssemblies="@_additionalAssemblies">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <div style="text-align:center;padding:64px 16px;">
+                <MudText Typo="Typo.h4">Page not found</MudText>
+                <MudText Color="Color.Secondary">The page you're looking for doesn't exist.</MudText>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@code {
+    private readonly Assembly[] _additionalAssemblies = new[]
+    {
+        typeof(BookIt.UI.Shared.Components.Shared.AppointmentQrCard).Assembly
+    };
+}

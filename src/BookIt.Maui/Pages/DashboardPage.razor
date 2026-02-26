@@ -1,0 +1,37 @@
+@page "/dashboard"
+@attribute [Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="pa-4">
+    <BookIt.UI.Shared.Components.Admin.DashboardView
+        TenantSlug="@Auth.TenantSlug"
+        UserName="@Auth.UserName"
+        TodayAppointments="_todayAppointments"
+        UpcomingAppointments="_upcomingAppointments" />
+</MudContainer>
+
+@code {
+    [Inject] private BookItApiService Api { get; set; } = default!;
+    [Inject] private BookItAuthState Auth { get; set; } = default!;
+    [Inject] private MauiSyncService Sync { get; set; } = default!;
+
+    private List<AppointmentResponse> _todayAppointments = new();
+    private List<AppointmentResponse> _upcomingAppointments = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Auth.TenantSlug)) return;
+
+        Api.SetToken(Auth.AccessToken);
+        var today = DateTime.Today;
+        var all = await Api.GetAppointmentsAsync(
+            Auth.TenantSlug,
+            from: today,
+            to: today.AddDays(14));
+
+        _todayAppointments = all.Where(a => a.StartTime.Date == today).ToList();
+        _upcomingAppointments = all.Where(a => a.StartTime.Date > today).ToList();
+
+        // Sync to local SQLite
+        await Sync.SyncAppointmentsAsync(all);
+    }
+}

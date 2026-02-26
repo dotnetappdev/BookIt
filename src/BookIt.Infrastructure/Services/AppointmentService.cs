@@ -2,6 +2,7 @@ using BookIt.Core.Entities;
 using BookIt.Core.Enums;
 using BookIt.Core.Interfaces;
 using BookIt.Infrastructure.Data;
+using BookIt.Notifications.Email;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookIt.Infrastructure.Services;
@@ -9,10 +10,14 @@ namespace BookIt.Infrastructure.Services;
 public class AppointmentService : IAppointmentService
 {
     private readonly BookItDbContext _context;
+    private readonly IEmailNotificationService _emailService;
+    private readonly IWebhookService _webhookService;
 
-    public AppointmentService(BookItDbContext context)
+    public AppointmentService(BookItDbContext context, IEmailNotificationService emailService, IWebhookService webhookService)
     {
         _context = context;
+        _emailService = emailService;
+        _webhookService = webhookService;
     }
 
     public async Task<IEnumerable<DateTime>> GetAvailableSlotsAsync(Guid tenantId, Guid serviceId, Guid? staffId, DateOnly date)
@@ -87,6 +92,14 @@ public class AppointmentService : IAppointmentService
         appointment.ConfirmationToken = Guid.NewGuid().ToString("N")[..12].ToUpper();
         _context.Appointments.Add(appointment);
         await _context.SaveChangesAsync();
+        await _webhookService.FireAsync(appointment.TenantId, "appointment.created", new
+        {
+            appointment.Id,
+            appointment.CustomerEmail,
+            appointment.CustomerName,
+            appointment.StartTime,
+            appointment.Status
+        });
         return appointment;
     }
 
@@ -110,6 +123,13 @@ public class AppointmentService : IAppointmentService
             appointment.CancellationReason = reason;
             appointment.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
+            await _webhookService.FireAsync(tenantId, "appointment.cancelled", new
+            {
+                appointment.Id,
+                appointment.CustomerEmail,
+                appointment.CustomerName,
+                reason
+            });
         }
     }
 
@@ -124,6 +144,82 @@ public class AppointmentService : IAppointmentService
             appointment.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task ApproveAppointmentAsync(Guid tenantId, Guid appointmentId)
+    {
+        var appointment = await _context.Appointments
+            .Include(a => a.Tenant)
+            .FirstOrDefaultAsync(a => a.TenantId == tenantId && a.Id == appointmentId);
+
+        if (appointment == null) return;
+
+        appointment.Status = AppointmentStatus.Confirmed;
+        appointment.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        var tenant = appointment.Tenant;
+        if (tenant != null && tenant.EnableEmailNotifications
+            && !string.IsNullOrEmpty(tenant.SendGridApiKey)
+            && !string.IsNullOrEmpty(appointment.CustomerEmail))
+        {
+            await _emailService.SendBookingApprovedAsync(
+                tenant.SendGridApiKey,
+                tenant.SendGridFromEmail ?? tenant.ContactEmail ?? "noreply@bookit.app",
+                tenant.SendGridFromName ?? tenant.Name,
+                appointment.CustomerEmail,
+                appointment.CustomerName,
+                tenant.Name,
+                appointment.StartTime,
+                appointment.ConfirmationToken);
+        }
+
+        await _webhookService.FireAsync(tenantId, "appointment.approved", new
+        {
+            appointment.Id,
+            appointment.CustomerEmail,
+            appointment.CustomerName,
+            appointment.StartTime
+        });
+    }
+
+    public async Task DeclineAppointmentAsync(Guid tenantId, Guid appointmentId, string? reason)
+    {
+        var appointment = await _context.Appointments
+            .Include(a => a.Tenant)
+            .FirstOrDefaultAsync(a => a.TenantId == tenantId && a.Id == appointmentId);
+
+        if (appointment == null) return;
+
+        appointment.Status = AppointmentStatus.Cancelled;
+        appointment.CancellationReason = reason;
+        appointment.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        var tenant = appointment.Tenant;
+        if (tenant != null && tenant.EnableEmailNotifications
+            && !string.IsNullOrEmpty(tenant.SendGridApiKey)
+            && !string.IsNullOrEmpty(appointment.CustomerEmail))
+        {
+            await _emailService.SendBookingDeclinedAsync(
+                tenant.SendGridApiKey,
+                tenant.SendGridFromEmail ?? tenant.ContactEmail ?? "noreply@bookit.app",
+                tenant.SendGridFromName ?? tenant.Name,
+                appointment.CustomerEmail,
+                appointment.CustomerName,
+                tenant.Name,
+                appointment.StartTime,
+                reason);
+        }
+
+        await _webhookService.FireAsync(tenantId, "appointment.declined", new
+        {
+            appointment.Id,
+            appointment.CustomerEmail,
+            appointment.CustomerName,
+            appointment.StartTime,
+            reason
+        });
     }
 
     public async Task<IEnumerable<ClassSession>> GetUpcomingClassSessionsAsync(Guid tenantId, Guid? serviceId = null, int days = 14)
