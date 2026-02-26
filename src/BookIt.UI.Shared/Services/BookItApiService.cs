@@ -109,7 +109,7 @@ public class BookItApiService
         PostBoolAsync($"/api/tenants/{slug}/appointments/{id}/approve", new { });
 
     public Task<bool> DeclineAppointmentAsync(string slug, Guid id, string? reason = null) =>
-        PostBoolAsync($"/api/tenants/{slug}/appointments/{id}/decline", reason ?? (object)new { });
+        PostBoolAsync($"/api/tenants/{slug}/appointments/{id}/decline", new { Reason = reason });
 
     public Task<List<DateTime>?> GetAvailableSlotsAsync(string slug, Guid serviceId, Guid? staffId, DateOnly date)
     {

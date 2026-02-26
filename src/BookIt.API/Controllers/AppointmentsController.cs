@@ -180,7 +180,7 @@ public class AppointmentsController : ControllerBase
 
     [Authorize]
     [HttpPost("{id}/decline")]
-    public async Task<IActionResult> DeclineAppointment(string tenantSlug, Guid id, [FromBody] string? reason)
+    public async Task<IActionResult> DeclineAppointment(string tenantSlug, Guid id, [FromBody] DeclineAppointmentRequest? request)
     {
         var tenant = await GetTenantAsync(tenantSlug);
         if (tenant == null) return NotFound();
@@ -188,7 +188,7 @@ public class AppointmentsController : ControllerBase
         if (!_tenantService.IsValidTenantAccess(tenant.Id))
             return Forbid();
 
-        await _appointmentService.DeclineAppointmentAsync(tenant.Id, id, reason);
+        await _appointmentService.DeclineAppointmentAsync(tenant.Id, id, request?.Reason);
         return NoContent();
     }
 

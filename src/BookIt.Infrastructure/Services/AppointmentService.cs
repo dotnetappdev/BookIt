@@ -18,7 +18,6 @@ public class AppointmentService : IAppointmentService
         _context = context;
         _emailService = emailService;
         _webhookService = webhookService;
-
     }
 
     public async Task<IEnumerable<DateTime>> GetAvailableSlotsAsync(Guid tenantId, Guid serviceId, Guid? staffId, DateOnly date)
