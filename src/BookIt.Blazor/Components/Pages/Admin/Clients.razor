@@ -100,6 +100,7 @@ else
         <MudText Typo="Typo.h6">@(_editClient == null ? "Add Client" : "Edit Client")</MudText>
     </TitleContent>
     <DialogContent>
+        <MudForm @ref="_mudForm" @bind-IsValid="_formValid">
         <MudGrid Spacing="2">
             @if (_editClient == null)
             {
@@ -113,34 +114,52 @@ else
                 </MudItem>
             }
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.CompanyName" Label="Company Name" Required="true" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_form.CompanyName" Label="Company Name" Required="true"
+                              RequiredError="Company name is required." MaxLength="200" Immediate="true"
+                              Validation="@((string v) => string.IsNullOrWhiteSpace(v) ? "Company name is required." : v.Trim().Length < 2 ? "Must be at least 2 characters." : null)"
+                              Variant="Variant.Outlined" />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.ContactName" Label="Contact Name" Required="true" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_form.ContactName" Label="Contact Name" Required="true"
+                              RequiredError="Contact name is required." MaxLength="200" Immediate="true"
+                              Validation="@((string v) => string.IsNullOrWhiteSpace(v) ? "Contact name is required." : null)"
+                              Variant="Variant.Outlined" />
             </MudItem>
             <MudItem xs="6">
-                <MudTextField @bind-Value="_form.Email" Label="Email" InputType="InputType.Email" Required="true" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_form.Email" Label="Email" InputType="InputType.Email" Required="true"
+                              RequiredError="Email address is required." MaxLength="254" Immediate="true"
+                              Validation="@((string v) => ValidateEmail(v))"
+                              Variant="Variant.Outlined" />
             </MudItem>
             <MudItem xs="6">
-                <MudTextField @bind-Value="_form.Phone" Label="Phone" Required="true" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_form.Phone" Label="Phone" Required="true"
+                              RequiredError="Phone number is required." MaxLength="30" Immediate="true"
+                              Validation="@((string v) => string.IsNullOrWhiteSpace(v) ? "Phone number is required." : null)"
+                              Variant="Variant.Outlined" />
             </MudItem>
             @if (_editClient == null)
             {
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_form.Password" Label="Password" InputType="InputType.Password" Required="true" Variant="Variant.Outlined" 
+                    <MudTextField @bind-Value="_form.Password" Label="Password" InputType="InputType.Password" Required="true"
+                                  RequiredError="Password is required." MaxLength="128" Immediate="true"
+                                  Validation="@((string v) => string.IsNullOrWhiteSpace(v) ? "Password is required." : v.Length < 8 ? "Password must be at least 8 characters." : null)"
+                                  Variant="Variant.Outlined" 
                                   HelperText="Initial password for client login" />
                 </MudItem>
             }
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Address" Label="Address" Lines="2" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_form.Address" Label="Address" Lines="2" Variant="Variant.Outlined"
+                              MaxLength="500" />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="3" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="3" Variant="Variant.Outlined"
+                              MaxLength="2000" />
             </MudItem>
             <MudItem xs="12">
                 <MudSwitch @bind-Value="_form.IsActive" Color="Color.Primary" Label="Active" />
             </MudItem>
         </MudGrid>
+        </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="CloseDialog">Cancel</MudButton>
@@ -158,8 +177,20 @@ else
 
     private bool _dialogOpen;
     private bool _saving;
+    private bool _formValid;
+    private MudForm? _mudForm;
     private ClientResponse? _editClient;
     private ClientFormModel _form = new();
+
+    private static readonly System.Text.RegularExpressions.Regex EmailRegex =
+        new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static string? ValidateEmail(string? v)
+    {
+        if (string.IsNullOrWhiteSpace(v)) return "Email address is required.";
+        if (!EmailRegex.IsMatch(v)) return "Please enter a valid email address.";
+        return null;
+    }
 
     private readonly DialogOptions _dialogOptions = new()
     {
@@ -212,17 +243,14 @@ else
 
     private async Task SaveClient()
     {
-        if (string.IsNullOrWhiteSpace(_form.CompanyName) || string.IsNullOrWhiteSpace(_form.Email))
-        {
-            Snackbar.Add("Company name and email are required.", Severity.Warning);
-            return;
-        }
+        if (_mudForm != null) await _mudForm.Validate();
+        if (!_formValid) return;
 
-        if (_editClient == null && string.IsNullOrWhiteSpace(_form.Password))
-        {
-            Snackbar.Add("Password is required for new clients.", Severity.Warning);
-            return;
-        }
+        // Sanitize inputs
+        _form.CompanyName = _form.CompanyName?.Trim();
+        _form.ContactName = _form.ContactName?.Trim();
+        _form.Email = _form.Email?.Trim().ToLowerInvariant();
+        _form.Phone = _form.Phone?.Trim();
 
         _saving = true;
         Api.SetToken(Auth.AccessToken);

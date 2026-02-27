@@ -77,21 +77,28 @@
 <MudDialog @bind-Visible="_addOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
     <TitleContent><MudText Typo="Typo.h6">Add Service</MudText></TitleContent>
     <DialogContent>
+        <MudForm @ref="_mudForm" @bind-IsValid="_formValid">
         <MudStack Spacing="3">
-            <MudTextField @bind-Value="_newName" Label="Service Name" Required="true" Variant="Variant.Outlined" />
-            <MudTextField @bind-Value="_newDesc" Label="Description" Variant="Variant.Outlined" Lines="2" />
+            <MudTextField @bind-Value="_newName" Label="Service Name" Required="true"
+                          RequiredError="Service name is required."
+                          MaxLength="200" Immediate="true"
+                          Validation="@((string v) => string.IsNullOrWhiteSpace(v) ? "Service name is required." : v.Trim().Length < 2 ? "Name must be at least 2 characters." : null)"
+                          Variant="Variant.Outlined" />
+            <MudTextField @bind-Value="_newDesc" Label="Description" Variant="Variant.Outlined" Lines="2"
+                          MaxLength="2000" />
             <MudGrid>
                 <MudItem xs="6">
-                    <MudNumericField T="decimal" @bind-Value="_newPrice" Label="Price (£)" Min="0"
+                    <MudNumericField T="decimal" @bind-Value="_newPrice" Label="Price (£)" Min="0" Max="1000000"
                                      Variant="Variant.Outlined" Format="0.00" />
                 </MudItem>
                 <MudItem xs="6">
-                    <MudNumericField T="int" @bind-Value="_newDuration" Label="Duration (min)" Min="5"
+                    <MudNumericField T="int" @bind-Value="_newDuration" Label="Duration (min)" Min="5" Max="1440"
                                      Variant="Variant.Outlined" />
                 </MudItem>
             </MudGrid>
             <MudSwitch @bind-Value="_newOnline" Label="Allow Online Booking" Color="Color.Primary" />
         </MudStack>
+        </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="@(() => _addOpen = false)">Cancel</MudButton>
@@ -105,6 +112,8 @@
     private List<ServiceResponse> _services = new();
     private bool _loading = true;
     private bool _addOpen = false;
+    private bool _formValid;
+    private MudForm? _mudForm;
 
     private string _newName = "";
     private string _newDesc = "";
@@ -133,7 +142,12 @@
 
     private async Task SaveService()
     {
-        if (string.IsNullOrWhiteSpace(_newName)) return;
+        if (_mudForm != null) await _mudForm.Validate();
+        if (!_formValid) return;
+
+        // Sanitize
+        _newName = _newName.Trim();
+
         Api.SetToken(Auth.AccessToken);
         var result = await Api.CreateServiceAsync(TenantSlug, new CreateServiceRequest
         {
