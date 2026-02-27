@@ -1,13 +1,21 @@
 import SwiftUI
 
-/// Root view — shows Login when unauthenticated, main tab bar when authenticated.
+/// Root view — shows Login when unauthenticated, biometric lock when the session
+/// needs verification, or the main tab bar when fully authenticated.
 struct ContentView: View {
 
     @EnvironmentObject var authStore: AuthStore
 
+    /// Shared biometric service — created once and passed down.
+    @StateObject private var biometricService = BiometricAuthService()
+
     var body: some View {
         if authStore.isAuthenticated {
-            MainTabView()
+            if authStore.requiresBiometricUnlock {
+                BiometricLockView(biometricService: biometricService)
+            } else {
+                MainTabView()
+            }
         } else {
             LoginView()
         }

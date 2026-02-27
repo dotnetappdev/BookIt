@@ -24,6 +24,8 @@
 	<string>BookIt needs calendar access to add your appointments to your calendar.</string>
 	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
 	<string>BookIt needs calendar write access to add your appointments to your calendar.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>BookIt uses Face ID to securely unlock your account without typing your password each time.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

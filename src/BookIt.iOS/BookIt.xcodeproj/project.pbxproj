@@ -23,6 +23,8 @@
 		AA010000000000000000000E /* AppointmentQRCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA020000000000000000000E /* AppointmentQRCardView.swift */; };
 		AA010000000000000000000F /* AppointmentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA020000000000000000000F /* AppointmentRowView.swift */; };
 		AA0100000000000000000010 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000010 /* Assets.xcassets */; };
+		AA0100000000000000000011 /* BiometricAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000013 /* BiometricAuthService.swift */; };
+		AA0100000000000000000012 /* BiometricLockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000014 /* BiometricLockView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +46,8 @@
 		AA0200000000000000000010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA0200000000000000000011 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0200000000000000000012 /* BookIt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BookIt.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0200000000000000000013 /* BiometricAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthService.swift; sourceTree = "<group>"; };
+		AA0200000000000000000014 /* BiometricLockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricLockView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +98,7 @@
 				AA0200000000000000000004 /* BookItAPIService.swift */,
 				AA0200000000000000000005 /* AuthStore.swift */,
 				AA0200000000000000000006 /* KeychainService.swift */,
+				AA0200000000000000000013 /* BiometricAuthService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -107,6 +112,7 @@
 				AA020000000000000000000A /* BookingsView.swift */,
 				AA020000000000000000000B /* WalletView.swift */,
 				AA020000000000000000000C /* ProfileView.swift */,
+				AA0200000000000000000014 /* BiometricLockView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -213,6 +219,8 @@
 				AA010000000000000000000D /* QRCodeView.swift in Sources */,
 				AA010000000000000000000E /* AppointmentQRCardView.swift in Sources */,
 				AA010000000000000000000F /* AppointmentRowView.swift in Sources */,
+				AA0100000000000000000011 /* BiometricAuthService.swift in Sources */,
+				AA0100000000000000000012 /* BiometricLockView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
