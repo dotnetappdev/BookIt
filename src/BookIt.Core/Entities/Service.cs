@@ -9,6 +9,7 @@ public class Service : BaseEntity
     public Guid? CategoryId { get; set; }
     public ServiceCategory? Category { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? Slug { get; set; }   // URL-friendly identifier, e.g. "mens-haircut"
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
     public decimal Price { get; set; }

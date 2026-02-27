@@ -1,5 +1,6 @@
 using BookIt.Core.DTOs;
 using BookIt.Core.Entities;
+using BookIt.Core.Helpers;
 using BookIt.Core.Interfaces;
 using BookIt.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -39,6 +40,7 @@ public class ServicesController : ControllerBase
                 Id = s.Id,
                 TenantId = s.TenantId,
                 Name = s.Name,
+                Slug = s.Slug,
                 Description = s.Description,
                 ImageUrl = s.ImageUrl,
                 Price = s.Price,
@@ -68,6 +70,34 @@ public class ServicesController : ControllerBase
             Id = s.Id,
             TenantId = s.TenantId,
             Name = s.Name,
+            Slug = s.Slug,
+            Description = s.Description,
+            ImageUrl = s.ImageUrl,
+            Price = s.Price,
+            DurationMinutes = s.DurationMinutes,
+            CategoryName = s.Category?.Name,
+            AllowOnlineBooking = s.AllowOnlineBooking,
+            DefaultMeetingType = s.DefaultMeetingType
+        });
+    }
+
+    [HttpGet("by-slug/{slug}")]
+    public async Task<ActionResult<ServiceResponse>> GetServiceBySlug(string tenantSlug, string slug)
+    {
+        var tenant = await GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var s = await _context.Services.Include(s => s.Category)
+            .FirstOrDefaultAsync(s => s.TenantId == tenant.Id && s.Slug == slug && s.IsActive && !s.IsDeleted);
+
+        if (s == null) return NotFound();
+
+        return Ok(new ServiceResponse
+        {
+            Id = s.Id,
+            TenantId = s.TenantId,
+            Name = s.Name,
+            Slug = s.Slug,
             Description = s.Description,
             ImageUrl = s.ImageUrl,
             Price = s.Price,
@@ -88,10 +118,21 @@ public class ServicesController : ControllerBase
         if (!_tenantService.IsValidTenantAccess(tenant.Id))
             return Forbid();
 
+        var baseSlug = !string.IsNullOrWhiteSpace(request.Slug)
+            ? SlugHelper.GenerateSlug(request.Slug)
+            : SlugHelper.GenerateSlug(request.Name);
+
+        // Ensure slug uniqueness within the tenant
+        var uniqueSlug = baseSlug;
+        var suffix = 1;
+        while (await _context.Services.AnyAsync(s => s.TenantId == tenant.Id && s.Slug == uniqueSlug && !s.IsDeleted))
+            uniqueSlug = $"{baseSlug}-{++suffix}";
+
         var service = new Service
         {
             TenantId = tenant.Id,
             Name = request.Name,
+            Slug = uniqueSlug,
             Description = request.Description,
             ImageUrl = request.ImageUrl,
             Price = request.Price,
@@ -110,6 +151,7 @@ public class ServicesController : ControllerBase
             Id = service.Id,
             TenantId = service.TenantId,
             Name = service.Name,
+            Slug = service.Slug,
             Description = service.Description,
             Price = service.Price,
             DurationMinutes = service.DurationMinutes,
@@ -134,6 +176,23 @@ public class ServicesController : ControllerBase
         if (service == null) return NotFound();
 
         service.Name = request.Name;
+
+        // If a new slug is explicitly provided, apply it; otherwise generate from name when the service has no slug yet
+        string? desiredBaseSlug = null;
+        if (!string.IsNullOrWhiteSpace(request.Slug))
+            desiredBaseSlug = SlugHelper.GenerateSlug(request.Slug);
+        else if (service.Slug == null)
+            desiredBaseSlug = SlugHelper.GenerateSlug(request.Name);
+
+        if (desiredBaseSlug != null)
+        {
+            var uniqueSlug = desiredBaseSlug;
+            var suffix = 1;
+            while (await _context.Services.AnyAsync(s => s.TenantId == tenant.Id && s.Slug == uniqueSlug && s.Id != id && !s.IsDeleted))
+                uniqueSlug = $"{desiredBaseSlug}-{++suffix}";
+            service.Slug = uniqueSlug;
+        }
+
         service.Description = request.Description;
         service.ImageUrl = request.ImageUrl;
         service.Price = request.Price;

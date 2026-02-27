@@ -199,7 +199,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@DEMO-BARBER.COM",
                             NormalizedUserName = "ADMIN@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGdmkIYYVLqbXdKkZg50IDGpxTrQ0TQPDvwtFcztxwNzTY9a53EwyHQ7Y7b7vmsREg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEH7AVD2SZx/TGWG0GgiA3gDyZMnDqE8Mu2fTKraLYBI/HMYAAdGwsHDyISNm3/xQ4Q==",
                             PhoneNumberConfirmed = false,
                             Role = 2,
                             SecurityStamp = "admin-security-stamp-1",
@@ -221,7 +221,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER@DEMO-BARBER.COM",
                             NormalizedUserName = "MANAGER@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEA3HvWcx1zen0eFthQvU6K02+HXUL7ISmaH/zrfPtt0v4vgrs4gAxuL1ngd/qMap5w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAELz4Cl4o79N6pAZ4ZZqGUW8TW8cJ20sNUILa/2uP+ApkIFvtYxBRJraD06fhXJL+rA==",
                             PhoneNumberConfirmed = false,
                             Role = 3,
                             SecurityStamp = "manager-security-stamp-1",
@@ -243,7 +243,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "STAFF@DEMO-BARBER.COM",
                             NormalizedUserName = "STAFF@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHb5w4xLoZYRtU1kBVpUMw2NgI1x+W+OmJiO7ptQtjcdfEOeuvGxdPSNrOp2DFaXBw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEIqIPQqGNk4XAUbahQKZG/4qgSztfEFZB2Xb9kqkbY6eUcMmxwwsTCHJEqbGBczzkA==",
                             PhoneNumberConfirmed = false,
                             Role = 4,
                             SecurityStamp = "staff-security-stamp-1",
@@ -265,7 +265,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CUSTOMER@EXAMPLE.COM",
                             NormalizedUserName = "CUSTOMER@EXAMPLE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJHOhmVqv9bxzg/kHo580N5Ew2N4VwAUcN2hfI0NEYZDlJeDfya/6m3WWXyixcpxDA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEMvzXX0SJDHuitLm5LO7UK2w+24dLd/q3okZAJqnyr1+xRAUr5m0NbHegodbYGerNw==",
                             PhoneNumberConfirmed = false,
                             Role = 5,
                             SecurityStamp = "customer-security-stamp-1",
@@ -1451,6 +1451,10 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
@@ -1467,7 +1471,9 @@ namespace BookIt.Infrastructure.Data.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("TenantId", "Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Services");
 
@@ -1489,6 +1495,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             MaxConcurrentBookings = 1,
                             Name = "Mens Haircut",
                             Price = 25.00m,
+                            Slug = "mens-haircut",
                             SortOrder = 1,
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111")
                         },
@@ -1509,6 +1516,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             MaxConcurrentBookings = 1,
                             Name = "Hair & Beard Combo",
                             Price = 40.00m,
+                            Slug = "hair-beard-combo",
                             SortOrder = 2,
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111")
                         },
@@ -1529,6 +1537,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             MaxConcurrentBookings = 1,
                             Name = "Beard Trim",
                             Price = 15.00m,
+                            Slug = "beard-trim",
                             SortOrder = 1,
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111")
                         },
@@ -1549,6 +1558,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             MaxConcurrentBookings = 1,
                             Name = "Hot Towel Shave",
                             Price = 35.00m,
+                            Slug = "hot-towel-shave",
                             SortOrder = 2,
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111")
                         });

@@ -4,10 +4,29 @@
     var tenant = ViewBag.Tenant as BookIt.Core.DTOs.TenantResponse;
     var services = ViewBag.Services as List<ServiceResponse> ?? new();
     var tenantSlug = ViewBag.TenantSlug as string ?? "";
+    var canonicalUrl = ViewBag.CanonicalUrl as string ?? $"/{tenantSlug}/book";
+    var pageTitle = tenant?.BookingPageTitle ?? $"Book an Appointment — {tenant?.Name}";
+    var pageDescription = $"Book your appointment online at {tenant?.Name}. Choose from our services and pick a time that suits you.";
 }
 
 @if (tenant != null)
 {
+    @section MetaTags {
+        <title>@pageTitle</title>
+        <meta name="description" content="@pageDescription" />
+        <link rel="canonical" href="@canonicalUrl" />
+        <meta property="og:title" content="@pageTitle" />
+        <meta property="og:description" content="@pageDescription" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="@canonicalUrl" />
+        @if (!string.IsNullOrEmpty(tenant.LogoUrl))
+        {
+            <meta property="og:image" content="@tenant.LogoUrl" />
+        }
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="@pageTitle" />
+        <meta name="twitter:description" content="@pageDescription" />
+    }
     <style>
         :root { --primary: @(tenant.PrimaryColor ?? "#6c5ce7"); }
         .service-card { cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
