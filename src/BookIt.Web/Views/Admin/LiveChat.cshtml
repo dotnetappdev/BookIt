@@ -204,10 +204,7 @@ async function refreshThread() {
         if (!res.ok) return;
         const session = await res.json();
         renderThread(session);
-    } catch(e) {}
-}
-
-function renderThread(session) {
+    } catch(e) { console.error('Failed to refresh thread', e); }
     const name = session.customerName || 'Anonymous';
     const initials = name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0,2) || '?';
 
@@ -272,10 +269,7 @@ async function resolveSession() {
         await fetch(`${API}/sessions/${activeSessionId}/resolve`, { method: 'POST', headers });
         await refreshThread();
         await loadSessions();
-    } catch(e) {}
-}
-
-function handleAgentKey(e) {
+    } catch(e) { console.error('Failed to resolve session', e); }
     if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); sendAgentReply(); }
 }
 

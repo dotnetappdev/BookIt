@@ -462,7 +462,7 @@
                     toggleChat();
                 }
             }
-        } catch(e) {}
+        } catch(e) { console.warn('Agent message poll error:', e); }
     }
     // Poll every 10s after first user message
     let agentPollTimer = null;
