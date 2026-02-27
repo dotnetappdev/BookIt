@@ -86,7 +86,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-footer bg-white border-0 pb-3 d-flex gap-2">
+                        <div class="card-footer border-0 pb-3 d-flex gap-2">
                             <button class="btn btn-sm btn-outline-secondary flex-fill"
                                     data-staff-id="@member.Id"
                                     data-first-name="@member.FirstName"
@@ -121,7 +121,7 @@
 
 <!-- Add Staff Modal -->
 <div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-modal="true" role="dialog">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-brand text-white">
                 <h5 class="modal-title" id="addStaffModalLabel"><i class="bi bi-person-plus me-2"></i>Add Staff Member</h5>
@@ -140,15 +140,24 @@
                         </div>
                         <div>
                             <label for="addEmail" class="form-label fw-semibold">Email</label>
-                            <input type="email" class="form-control" id="addEmail" name="email" />
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control" id="addEmail" name="email" />
+                            </div>
                         </div>
                         <div>
                             <label for="addPhone" class="form-label fw-semibold">Phone</label>
-                            <input type="tel" class="form-control" id="addPhone" name="phone" />
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" class="form-control" id="addPhone" name="phone" />
+                            </div>
                         </div>
                         <div class="afc-12">
                             <label for="addPhotoUrl" class="form-label fw-semibold">Photo URL</label>
-                            <input type="url" class="form-control" id="addPhotoUrl" name="photoUrl" placeholder="https://..." />
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-image"></i></span>
+                                <input type="url" class="form-control" id="addPhotoUrl" name="photoUrl" placeholder="https://..." />
+                            </div>
                         </div>
                         <div class="afc-12">
                             <label for="addBio" class="form-label fw-semibold">Bio</label>
@@ -179,7 +188,7 @@
 
 <!-- Edit Staff Modal -->
 <div class="modal fade" id="editStaffModal" tabindex="-1" aria-labelledby="editStaffModalLabel" aria-modal="true" role="dialog">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-brand text-white">
                 <h5 class="modal-title" id="editStaffModalLabel"><i class="bi bi-pencil me-2"></i>Edit Staff Member</h5>
@@ -199,15 +208,24 @@
                         </div>
                         <div>
                             <label for="editEmail" class="form-label fw-semibold">Email</label>
-                            <input type="email" class="form-control" id="editEmail" name="email" />
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control" id="editEmail" name="email" />
+                            </div>
                         </div>
                         <div>
                             <label for="editPhone" class="form-label fw-semibold">Phone</label>
-                            <input type="tel" class="form-control" id="editPhone" name="phone" />
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" class="form-control" id="editPhone" name="phone" />
+                            </div>
                         </div>
                         <div class="afc-12">
                             <label for="editPhotoUrl" class="form-label fw-semibold">Photo URL</label>
-                            <input type="url" class="form-control" id="editPhotoUrl" name="photoUrl" placeholder="https://..." />
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-image"></i></span>
+                                <input type="url" class="form-control" id="editPhotoUrl" name="photoUrl" placeholder="https://..." />
+                            </div>
                         </div>
                         <div class="afc-12">
                             <label for="editBio" class="form-label fw-semibold">Bio</label>

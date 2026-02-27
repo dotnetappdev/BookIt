@@ -131,7 +131,7 @@ else
 
 <!-- Add Customer Modal -->
 <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-modal="true" role="dialog">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-brand text-white">
                 <h5 class="modal-title" id="addCustomerModalLabel"><i class="bi bi-person-plus me-2"></i>Add Customer</h5>
@@ -140,6 +140,7 @@ else
             <form id="addCustomerForm">
                 <div class="modal-body p-4">
                     <div class="admin-form-grid">
+                        <div class="afc-12 form-section-label">Personal Details</div>
                         <div>
                             <label for="addFirstName" class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="addFirstName" name="firstName" required aria-required="true" />
@@ -147,18 +148,6 @@ else
                         <div>
                             <label for="addLastName" class="form-label fw-semibold">Last Name</label>
                             <input type="text" class="form-control" id="addLastName" name="lastName" />
-                        </div>
-                        <div>
-                            <label for="addEmail" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="addEmail" name="email" required aria-required="true" />
-                        </div>
-                        <div>
-                            <label for="addPhone" class="form-label fw-semibold">Phone</label>
-                            <input type="tel" class="form-control" id="addPhone" name="phone" />
-                        </div>
-                        <div>
-                            <label for="addMobile" class="form-label fw-semibold">Mobile</label>
-                            <input type="tel" class="form-control" id="addMobile" name="mobile" />
                         </div>
                         <div>
                             <label for="addGender" class="form-label fw-semibold">Gender</label>
@@ -170,6 +159,33 @@ else
                                 <option value="Prefer not to say">Prefer not to say</option>
                             </select>
                         </div>
+                        <div>
+                            <label for="addMembershipNumber" class="form-label fw-semibold">Membership Number</label>
+                            <input type="text" class="form-control" id="addMembershipNumber" name="membershipNumber" />
+                        </div>
+                        <div class="afc-12 form-section-label">Contact Information</div>
+                        <div>
+                            <label for="addEmail" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control" id="addEmail" name="email" required aria-required="true" />
+                            </div>
+                        </div>
+                        <div>
+                            <label for="addPhone" class="form-label fw-semibold">Phone</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" class="form-control" id="addPhone" name="phone" />
+                            </div>
+                        </div>
+                        <div>
+                            <label for="addMobile" class="form-label fw-semibold">Mobile</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-phone"></i></span>
+                                <input type="tel" class="form-control" id="addMobile" name="mobile" />
+                            </div>
+                        </div>
+                        <div class="afc-12 form-section-label">Address</div>
                         <div class="afc-12">
                             <label for="addAddress" class="form-label fw-semibold">Address</label>
                             <input type="text" class="form-control" id="addAddress" name="address" />
@@ -186,17 +202,10 @@ else
                             <label for="addCountry" class="form-label fw-semibold">Country</label>
                             <input type="text" class="form-control" id="addCountry" name="country" />
                         </div>
-                        <div>
-                            <label for="addMembershipNumber" class="form-label fw-semibold">Membership Number</label>
-                            <input type="text" class="form-control" id="addMembershipNumber" name="membershipNumber" />
-                        </div>
+                        <div class="afc-12 form-section-label">Notes &amp; Tags</div>
                         <div>
                             <label for="addTags" class="form-label fw-semibold">Tags</label>
                             <input type="text" class="form-control" id="addTags" name="tags" placeholder="e.g. VIP, New Client" />
-                        </div>
-                        <div class="afc-12">
-                            <label for="addNotes" class="form-label fw-semibold">Notes</label>
-                            <textarea class="form-control" id="addNotes" name="notes" rows="3" placeholder="Internal notes about this customer..."></textarea>
                         </div>
                         <div class="admin-check-cell">
                             <div class="form-check">
@@ -209,6 +218,10 @@ else
                                 <input class="form-check-input" type="checkbox" id="addSmsOptIn" name="smsOptIn" />
                                 <label class="form-check-label fw-semibold" for="addSmsOptIn">SMS Opt-in</label>
                             </div>
+                        </div>
+                        <div class="afc-12">
+                            <label for="addNotes" class="form-label fw-semibold">Notes</label>
+                            <textarea class="form-control" id="addNotes" name="notes" rows="3" placeholder="Internal notes about this customer..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -223,7 +236,7 @@ else
 
 <!-- Edit Customer Modal -->
 <div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-modal="true" role="dialog">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-brand text-white">
                 <h5 class="modal-title" id="editCustomerModalLabel"><i class="bi bi-pencil me-2"></i>Edit Customer</h5>
@@ -233,6 +246,7 @@ else
                 <input type="hidden" id="editCustomerId" />
                 <div class="modal-body p-4">
                     <div class="admin-form-grid">
+                        <div class="afc-12 form-section-label">Personal Details</div>
                         <div>
                             <label for="editFirstName" class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="editFirstName" name="firstName" required aria-required="true" />
@@ -240,18 +254,6 @@ else
                         <div>
                             <label for="editLastName" class="form-label fw-semibold">Last Name</label>
                             <input type="text" class="form-control" id="editLastName" name="lastName" />
-                        </div>
-                        <div>
-                            <label for="editEmail" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="editEmail" name="email" required aria-required="true" />
-                        </div>
-                        <div>
-                            <label for="editPhone" class="form-label fw-semibold">Phone</label>
-                            <input type="tel" class="form-control" id="editPhone" name="phone" />
-                        </div>
-                        <div>
-                            <label for="editMobile" class="form-label fw-semibold">Mobile</label>
-                            <input type="tel" class="form-control" id="editMobile" name="mobile" />
                         </div>
                         <div>
                             <label for="editGender" class="form-label fw-semibold">Gender</label>
@@ -263,6 +265,33 @@ else
                                 <option value="Prefer not to say">Prefer not to say</option>
                             </select>
                         </div>
+                        <div>
+                            <label for="editMembershipNumber" class="form-label fw-semibold">Membership Number</label>
+                            <input type="text" class="form-control" id="editMembershipNumber" name="membershipNumber" />
+                        </div>
+                        <div class="afc-12 form-section-label">Contact Information</div>
+                        <div>
+                            <label for="editEmail" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control" id="editEmail" name="email" required aria-required="true" />
+                            </div>
+                        </div>
+                        <div>
+                            <label for="editPhone" class="form-label fw-semibold">Phone</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" class="form-control" id="editPhone" name="phone" />
+                            </div>
+                        </div>
+                        <div>
+                            <label for="editMobile" class="form-label fw-semibold">Mobile</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-phone"></i></span>
+                                <input type="tel" class="form-control" id="editMobile" name="mobile" />
+                            </div>
+                        </div>
+                        <div class="afc-12 form-section-label">Address</div>
                         <div class="afc-12">
                             <label for="editAddress" class="form-label fw-semibold">Address</label>
                             <input type="text" class="form-control" id="editAddress" name="address" />
@@ -279,17 +308,10 @@ else
                             <label for="editCountry" class="form-label fw-semibold">Country</label>
                             <input type="text" class="form-control" id="editCountry" name="country" />
                         </div>
-                        <div>
-                            <label for="editMembershipNumber" class="form-label fw-semibold">Membership Number</label>
-                            <input type="text" class="form-control" id="editMembershipNumber" name="membershipNumber" />
-                        </div>
+                        <div class="afc-12 form-section-label">Notes &amp; Tags</div>
                         <div>
                             <label for="editTags" class="form-label fw-semibold">Tags</label>
                             <input type="text" class="form-control" id="editTags" name="tags" placeholder="e.g. VIP, New Client" />
-                        </div>
-                        <div class="afc-12">
-                            <label for="editNotes" class="form-label fw-semibold">Notes</label>
-                            <textarea class="form-control" id="editNotes" name="notes" rows="3"></textarea>
                         </div>
                         <div class="admin-check-cell">
                             <div class="form-check">
@@ -302,6 +324,10 @@ else
                                 <input class="form-check-input" type="checkbox" id="editSmsOptIn" name="smsOptIn" />
                                 <label class="form-check-label fw-semibold" for="editSmsOptIn">SMS Opt-in</label>
                             </div>
+                        </div>
+                        <div class="afc-12">
+                            <label for="editNotes" class="form-label fw-semibold">Notes</label>
+                            <textarea class="form-control" id="editNotes" name="notes" rows="3"></textarea>
                         </div>
                     </div>
                 </div>
