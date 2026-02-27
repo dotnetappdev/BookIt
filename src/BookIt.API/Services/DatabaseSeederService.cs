@@ -48,10 +48,10 @@ public class DatabaseSeederService : IDatabaseSeederService
         var client2Id = await SeedClient(demoTenant.Id,
             "Urban Style Group", "Michael Chen", "michael@urbanstyle.com", "555-0102");
 
-        // Seed Staff
-        await SeedStaff(demoTenant.Id, client1Id, "James", "Martinez", "james@example.com", "555-0201", "Master Barber with 10 years experience");
-        await SeedStaff(demoTenant.Id, client1Id, "Emma", "Wilson", "emma@example.com", "555-0202", "Specialist in modern cuts and styling");
-        await SeedStaff(demoTenant.Id, client2Id, "Oliver", "Brown", "oliver@example.com", "555-0203", "Expert in beard grooming and hot shaves");
+        // Seed Staff (also creates ApplicationUser accounts with Staff role)
+        await SeedStaff(demoTenant.Id, client1Id, "James", "Martinez", "james@elitehair.com", "555-0201", "Master Barber with 10 years experience");
+        await SeedStaff(demoTenant.Id, client1Id, "Emma", "Wilson", "emma@elitehair.com", "555-0202", "Specialist in modern cuts and styling");
+        await SeedStaff(demoTenant.Id, client2Id, "Oliver", "Brown", "oliver@urbanstyle.com", "555-0203", "Expert in beard grooming and hot shaves");
 
         // Seed Customers
         await SeedCustomers(demoTenant.Id, 20);
@@ -116,6 +116,35 @@ public class DatabaseSeederService : IDatabaseSeederService
             SortOrder = 0,
             CreatedAt = DateTime.UtcNow
         };
+
+        // Create linked ApplicationUser account so the staff member can log in
+        var existingUser = await _userManager.FindByEmailAsync(email);
+        if (existingUser == null)
+        {
+            var user = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenantId,
+                Email = email,
+                UserName = email,
+                FirstName = firstName,
+                LastName = lastName,
+                PhoneNumber = phone,
+                Role = UserRole.Staff,
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow
+            };
+            var result = await _userManager.CreateAsync(user, "Staff123!");
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, "Staff");
+                staff.UserId = user.Id;
+            }
+        }
+        else
+        {
+            staff.UserId = existingUser.Id;
+        }
 
         _context.Staff.Add(staff);
 

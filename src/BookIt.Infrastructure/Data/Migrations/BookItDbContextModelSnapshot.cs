@@ -332,6 +332,28 @@ namespace BookIt.Infrastructure.Data.Migrations
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
                             TwoFactorEnabled = false,
                             UserName = "customer@example.com"
+                        },
+                        new
+                        {
+                            Id = new Guid("bb000000-0000-0000-0000-000000000005"),
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "superadmin-concurrency-stamp-1",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "superadmin@bookit.app",
+                            EmailConfirmed = true,
+                            FirstName = "Super",
+                            IsDeleted = false,
+                            LastName = "Admin",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "SUPERADMIN@BOOKIT.APP",
+                            NormalizedUserName = "SUPERADMIN@BOOKIT.APP",
+                            PasswordHash = "AQAAAAIAAYagAAAAEP1vd7Ymovqm5D/Vi5LNHBEJvaGP3ZH6DTYDAWgqwEt0ufoljgzwKR8/PT1Ep/wz/g==",
+                            PhoneNumberConfirmed = false,
+                            Role = 1,
+                            SecurityStamp = "superadmin-security-stamp-1",
+                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            TwoFactorEnabled = false,
+                            UserName = "superadmin@bookit.app"
                         });
                 });
 
@@ -2185,6 +2207,23 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Staff");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("cc000000-0000-0000-0000-000000000001"),
+                            Bio = "Demo barber for testing the staff experience",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "staff@demo-barber.com",
+                            FirstName = "John",
+                            IsActive = true,
+                            IsDeleted = false,
+                            LastName = "Barber",
+                            Phone = "555-0001",
+                            SortOrder = 1,
+                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            UserId = new Guid("bb000000-0000-0000-0000-000000000002")
+                        });
                 });
 
             modelBuilder.Entity("BookIt.Core.Entities.StaffAvailability", b =>
@@ -2873,6 +2912,11 @@ namespace BookIt.Infrastructure.Data.Migrations
                         {
                             UserId = new Guid("bb000000-0000-0000-0000-000000000003"),
                             RoleId = new Guid("aa000000-0000-0000-0000-000000000004")
+                        },
+                        new
+                        {
+                            UserId = new Guid("bb000000-0000-0000-0000-000000000005"),
+                            RoleId = new Guid("aa000000-0000-0000-0000-000000000001")
                         });
                 });
 

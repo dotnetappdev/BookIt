@@ -211,11 +211,33 @@ public class AppointmentsController : ControllerBase
         return Ok(appointments.Select(a => MapToResponse(a, null)));
     }
 
+    [Authorize(Policy = "Staff")]
     [HttpPost("{id}/cancel")]
     public async Task<IActionResult> CancelAppointment(string tenantSlug, Guid id, [FromBody] string? reason)
     {
         var tenant = await GetTenantAsync(tenantSlug);
         if (tenant == null) return NotFound();
+
+        if (!_tenantService.IsValidTenantAccess(tenant.Id))
+            return Forbid();
+
+        // Staff can only cancel their own appointments
+        var roleClaim = User.FindFirst("role")?.Value;
+        var hasStaffRoleOnly = roleClaim == ((int)UserRole.Staff).ToString();
+        if (hasStaffRoleOnly)
+        {
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                         ?? User.FindFirst("email")?.Value;
+            var staffRecord = await _context.Staff
+                .FirstOrDefaultAsync(s => s.TenantId == tenant.Id && s.Email == userEmail && !s.IsDeleted);
+            if (staffRecord != null)
+            {
+                var appt = await _context.Appointments
+                    .FirstOrDefaultAsync(a => a.Id == id && a.TenantId == tenant.Id);
+                if (appt?.StaffId != staffRecord.Id)
+                    return Forbid();
+            }
+        }
 
         await _appointmentService.CancelAppointmentAsync(tenant.Id, id, reason);
         return NoContent();
