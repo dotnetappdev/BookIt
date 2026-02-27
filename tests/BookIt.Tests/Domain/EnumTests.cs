@@ -17,6 +17,53 @@ public class EnumTests
     }
 
     [Fact]
+    public void BusinessType_HasLodgingTypes()
+    {
+        Assert.True(Enum.IsDefined(typeof(BusinessType), BusinessType.BedAndBreakfast));
+        Assert.True(Enum.IsDefined(typeof(BusinessType), BusinessType.Hotel));
+        Assert.Equal(12, (int)BusinessType.BedAndBreakfast);
+        Assert.Equal(13, (int)BusinessType.Hotel);
+    }
+
+    [Fact]
+    public void RoomType_HasExpectedValues()
+    {
+        Assert.Equal(1, (int)RoomType.Single);
+        Assert.Equal(2, (int)RoomType.Double);
+        Assert.Equal(3, (int)RoomType.Twin);
+        Assert.Equal(4, (int)RoomType.Suite);
+        Assert.Equal(5, (int)RoomType.Family);
+        Assert.Equal(6, (int)RoomType.Studio);
+        Assert.Equal(7, (int)RoomType.Dormitory);
+        Assert.Equal(99, (int)RoomType.Other);
+    }
+
+    [Fact]
+    public void AmenityType_HasCommonFacilities()
+    {
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Pool));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Gym));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Sauna));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Spa));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.WiFi));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Parking));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Breakfast));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Restaurant));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Bar));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Laundry));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Concierge));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.RoomService));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.PetFriendly));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.AirConditioning));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Heating));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.HotTub));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Garden));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.Terrace));
+        Assert.True(Enum.IsDefined(typeof(AmenityType), AmenityType.SeaView));
+        Assert.Equal(99, (int)AmenityType.Other);
+    }
+
+    [Fact]
     public void AppointmentStatus_HasExpectedValues()
     {
         Assert.Equal(1, (int)AppointmentStatus.Pending);

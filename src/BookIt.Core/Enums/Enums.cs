@@ -193,3 +193,39 @@ public enum VideoConferenceProvider
     Whereby = 7,
     Other = 8
 }
+
+public enum RoomType
+{
+    Single = 1,
+    Double = 2,
+    Twin = 3,
+    Suite = 4,
+    Family = 5,
+    Studio = 6,
+    Dormitory = 7,
+    Other = 99
+}
+
+public enum AmenityType
+{
+    Pool = 1,
+    Gym = 2,
+    Sauna = 3,
+    Spa = 4,
+    WiFi = 5,
+    Parking = 6,
+    Restaurant = 7,
+    Bar = 8,
+    Breakfast = 9,
+    Laundry = 10,
+    Concierge = 11,
+    RoomService = 12,
+    PetFriendly = 13,
+    AirConditioning = 14,
+    Heating = 15,
+    HotTub = 16,
+    Garden = 17,
+    Terrace = 18,
+    SeaView = 19,
+    Other = 99
+}

@@ -285,6 +285,68 @@ public class BookItApiService
         return GetAsync<PagedResult<AuditLogResponse>>($"/api/tenants/{slug}/audit-trail?{qs}");
     }
 
+    // ── Lodging Properties ──
+    public Task<List<LodgingPropertyResponse>?> GetLodgingPropertiesAsync(string slug) =>
+        GetAsync<List<LodgingPropertyResponse>>($"/api/tenants/{slug}/lodging/properties");
+
+    public Task<LodgingPropertyResponse?> CreateLodgingPropertyAsync(string slug, CreateLodgingPropertyRequest req) =>
+        PostAsync<LodgingPropertyResponse>($"/api/tenants/{slug}/lodging/properties", req);
+
+    public Task<bool> UpdateLodgingPropertyAsync(string slug, Guid id, CreateLodgingPropertyRequest req) =>
+        PutAsync($"/api/tenants/{slug}/lodging/properties/{id}", req);
+
+    public Task<bool> DeleteLodgingPropertyAsync(string slug, Guid id) =>
+        DeleteAsync($"/api/tenants/{slug}/lodging/properties/{id}");
+
+    // ── Rooms ──
+    public Task<List<RoomResponse>?> GetRoomsAsync(string slug, Guid? propertyId = null)
+    {
+        var url = $"/api/tenants/{slug}/lodging/rooms";
+        if (propertyId.HasValue) url += $"?propertyId={propertyId}";
+        return GetAsync<List<RoomResponse>>(url);
+    }
+
+    public Task<RoomResponse?> CreateRoomAsync(string slug, CreateRoomRequest req) =>
+        PostAsync<RoomResponse>($"/api/tenants/{slug}/lodging/rooms", req);
+
+    public Task<bool> UpdateRoomAsync(string slug, Guid id, CreateRoomRequest req) =>
+        PutAsync($"/api/tenants/{slug}/lodging/rooms/{id}", req);
+
+    public Task<bool> DeleteRoomAsync(string slug, Guid id) =>
+        DeleteAsync($"/api/tenants/{slug}/lodging/rooms/{id}");
+
+    public Task<RoomPhotoResponse?> AddRoomPhotoAsync(string slug, Guid roomId, AddRoomPhotoRequest req) =>
+        PostAsync<RoomPhotoResponse>($"/api/tenants/{slug}/lodging/rooms/{roomId}/photos", req);
+
+    public Task<bool> DeleteRoomPhotoAsync(string slug, Guid roomId, Guid photoId) =>
+        DeleteAsync($"/api/tenants/{slug}/lodging/rooms/{roomId}/photos/{photoId}");
+
+    // ── Amenities ──
+    public Task<List<AmenityResponse>?> GetAmenitiesAsync(string slug) =>
+        GetAsync<List<AmenityResponse>>($"/api/tenants/{slug}/lodging/amenities");
+
+    public Task<AmenityResponse?> CreateAmenityAsync(string slug, CreateAmenityRequest req) =>
+        PostAsync<AmenityResponse>($"/api/tenants/{slug}/lodging/amenities", req);
+
+    public Task<bool> UpdateAmenityAsync(string slug, Guid id, CreateAmenityRequest req) =>
+        PutAsync($"/api/tenants/{slug}/lodging/amenities/{id}", req);
+
+    public Task<bool> DeleteAmenityAsync(string slug, Guid id) =>
+        DeleteAsync($"/api/tenants/{slug}/lodging/amenities/{id}");
+
+    public Task<bool> AssignRoomAmenitiesAsync(string slug, Guid roomId, AssignRoomAmenitiesRequest req) =>
+        PostBoolAsync($"/api/tenants/{slug}/lodging/rooms/{roomId}/amenities", req);
+
+    // ── Room Rates ──
+    public Task<List<RoomRateResponse>?> GetRoomRatesAsync(string slug, Guid roomId) =>
+        GetAsync<List<RoomRateResponse>>($"/api/tenants/{slug}/lodging/rooms/{roomId}/rates");
+
+    public Task<RoomRateResponse?> CreateRoomRateAsync(string slug, Guid roomId, CreateRoomRateRequest req) =>
+        PostAsync<RoomRateResponse>($"/api/tenants/{slug}/lodging/rooms/{roomId}/rates", req);
+
+    public Task<bool> DeleteRoomRateAsync(string slug, Guid roomId, Guid rateId) =>
+        DeleteAsync($"/api/tenants/{slug}/lodging/rooms/{roomId}/rates/{rateId}");
+
     private async Task<bool> PostBoolAsync(string url, object body)
     {
         var r = await _http.PostAsync(url, Json(body));
