@@ -398,6 +398,73 @@
                         </MudCard>
                     }
 
+                    <!-- AI Chat & Voice Assistant -->
+                    <MudCard Elevation="1" Class="mb-4">
+                        <MudCardHeader>
+                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.SmartToy" Color="Color.Primary" /></CardHeaderAvatar>
+                            <CardHeaderContent><MudText Typo="Typo.h6">AI Chat &amp; Voice Assistant</MudText></CardHeaderContent>
+                            <CardHeaderActions>
+                                <MudSwitch @bind-Value="_enableAiChat" Color="Color.Primary" Label="Enable AI Chat" />
+                            </CardHeaderActions>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudStack Spacing="3">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Configure AI services to power the chat widget and voice assistant on your booking pages.
+                                    All fields are optional — the assistant works with built-in responses if no API keys are provided.
+                                </MudText>
+
+                                <MudText Typo="Typo.subtitle2" Class="fw-semibold">OpenAI (Chat Intelligence)</MudText>
+                                <MudGrid>
+                                    <MudItem xs="12" sm="8">
+                                        <MudTextField @bind-Value="_openAiApiKey" Label="OpenAI API Key"
+                                                      InputType="InputType.Password" Variant="Variant.Outlined"
+                                                      Placeholder="@(_tenant!.HasOpenAiApiKey ? "sk-... (leave blank to keep)" : "sk-...")"
+                                                      HelperText="Powers intelligent conversation. Get a key at platform.openai.com" />
+                                    </MudItem>
+                                </MudGrid>
+
+                                <MudDivider />
+                                <MudText Typo="Typo.subtitle2" Class="fw-semibold">ElevenLabs (Voice Responses)</MudText>
+                                <MudGrid>
+                                    <MudItem xs="12" sm="5">
+                                        <MudTextField @bind-Value="_elevenLabsApiKey" Label="ElevenLabs API Key"
+                                                      InputType="InputType.Password" Variant="Variant.Outlined"
+                                                      Placeholder="@(_tenant!.HasElevenLabsApiKey ? "Leave blank to keep" : "Leave blank to use browser TTS")"
+                                                      HelperText="elevenlabs.io — free tier available" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="5">
+                                        <MudTextField @bind-Value="_elevenLabsVoiceId" Label="ElevenLabs Voice ID"
+                                                      Variant="Variant.Outlined"
+                                                      Placeholder="e.g. 21m00Tcm4TlvDq8ikWAM"
+                                                      HelperText="Leave blank to use default Rachel voice" />
+                                    </MudItem>
+                                </MudGrid>
+
+                                <MudDivider />
+                                <MudText Typo="Typo.subtitle2" Class="fw-semibold">Vapi.ai (Full Voice AI Calls)</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Enables phone-call-style AI voice booking. Customers can ring a dedicated phone number and book appointments by voice.
+                                    Get started at <MudLink Href="https://vapi.ai" Target="_blank">vapi.ai</MudLink> — free trial available.
+                                </MudText>
+                                <MudGrid>
+                                    <MudItem xs="12" sm="6">
+                                        <MudTextField @bind-Value="_vapiPublicKey" Label="Vapi Public Key"
+                                                      Variant="Variant.Outlined"
+                                                      Placeholder="Your Vapi public key"
+                                                      HelperText="Found in your Vapi dashboard → API Keys" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudTextField @bind-Value="_vapiPhoneNumber" Label="Vapi Phone Number"
+                                                      Variant="Variant.Outlined"
+                                                      Placeholder="+447700900000"
+                                                      HelperText="Phone number provisioned in your Vapi dashboard that customers can call" />
+                                    </MudItem>
+                                </MudGrid>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+
                     <MudStack Row="true" Justify="Justify.FlexEnd">
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save"
                                    OnClick="Save" Disabled="_saving">
@@ -478,6 +545,14 @@
     private string _sendGridApiKey = "";
     private string _sendGridFromEmail = "";
     private string _sendGridFromName = "";
+
+    // AI voice fields
+    private bool _enableAiChat = false;
+    private string _openAiApiKey = "";
+    private string _elevenLabsApiKey = "";
+    private string _elevenLabsVoiceId = "";
+    private string _vapiPublicKey = "";
+    private string _vapiPhoneNumber = "";
 
     // Reminder alert fields
     private bool _enableEmailReminders = true;
@@ -637,6 +712,11 @@
             _enableEmail = _tenant.EnableEmailNotifications;
             _sendGridFromEmail = _tenant.SendGridFromEmail ?? "";
             _sendGridFromName = _tenant.SendGridFromName ?? "";
+            // AI voice
+            _enableAiChat = _tenant.EnableAiChat;
+            _vapiPublicKey = _tenant.VapiPublicKey ?? "";
+            _vapiPhoneNumber = _tenant.VapiPhoneNumber ?? "";
+            _elevenLabsVoiceId = _tenant.ElevenLabsVoiceId ?? "";
             // Reminders
             _enableEmailReminders = _tenant.EnableEmailReminders;
             _enableSmsReminders = _tenant.EnableSmsReminders;
@@ -697,6 +777,13 @@
             SendGridFromEmail = _sendGridFromEmail,
             SendGridFromName = _sendGridFromName,
             EnableEmailNotifications = _enableEmail,
+            // AI voice
+            EnableAiChat = _enableAiChat,
+            OpenAiApiKey = string.IsNullOrEmpty(_openAiApiKey) ? null : _openAiApiKey,
+            ElevenLabsApiKey = string.IsNullOrEmpty(_elevenLabsApiKey) ? null : _elevenLabsApiKey,
+            ElevenLabsVoiceId = string.IsNullOrWhiteSpace(_elevenLabsVoiceId) ? null : _elevenLabsVoiceId,
+            VapiPublicKey = string.IsNullOrWhiteSpace(_vapiPublicKey) ? null : _vapiPublicKey,
+            VapiPhoneNumber = string.IsNullOrWhiteSpace(_vapiPhoneNumber) ? null : _vapiPhoneNumber,
             // Reminders
             ReminderAlerts = _selectedAlerts.Any() ? string.Join(",", _selectedAlerts) : null,
             EnableEmailReminders = _enableEmailReminders,

@@ -53,6 +53,13 @@ public class TenantResponse
     public string? ReminderAlerts { get; set; }
     public bool EnableEmailReminders { get; set; }
     public bool EnableSmsReminders { get; set; }
+    // AI chat & voice
+    public bool EnableAiChat { get; set; }
+    public string? VapiPublicKey { get; set; }
+    public string? VapiPhoneNumber { get; set; }
+    public string? ElevenLabsVoiceId { get; set; }
+    public bool HasOpenAiApiKey { get; set; }
+    public bool HasElevenLabsApiKey { get; set; }
 }
 
 public class UpdateTenantRequest
@@ -92,6 +99,7 @@ public class UpdateTenantRequest
     public string? ElevenLabsApiKey { get; set; }
     public string? ElevenLabsVoiceId { get; set; }
     public string? VapiPublicKey { get; set; }
+    public string? VapiPhoneNumber { get; set; }
     public bool EnableAiChat { get; set; } = true;
     public TenantTheme Theme { get; set; } = TenantTheme.Indigo;
     public string? BookingPageTitle { get; set; }
