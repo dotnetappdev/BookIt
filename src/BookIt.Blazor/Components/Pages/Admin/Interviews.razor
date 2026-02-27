@@ -126,6 +126,7 @@ else
         <MudText Typo="Typo.h6" Style="font-weight:700;">Add Interview Slot</MudText>
     </TitleContent>
     <DialogContent>
+        <MudForm @ref="_mudForm" @bind-IsValid="_formValid">
         <MudGrid Spacing="2">
             <MudItem xs="12" sm="6">
                 <MudDatePicker @bind-Date="_slotDate" Label="Slot Date" Required="true" />
@@ -137,10 +138,13 @@ else
                 <MudNumericField @bind-Value="_durationMinutes" Label="Duration (minutes)" Min="15" Max="480" />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_interviewerName" Label="Interviewer Name" Required="true" />
+                <MudTextField @bind-Value="_interviewerName" Label="Interviewer Name" Required="true"
+                              RequiredError="Interviewer name is required." MaxLength="200" Immediate="true"
+                              Validation="@((string v) => string.IsNullOrWhiteSpace(v) ? "Interviewer name is required." : null)" />
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_location" Label="Physical Location (optional)"
+                              MaxLength="500"
                               HelperText="e.g. Room 3A, Head Office, etc." />
             </MudItem>
 
@@ -166,23 +170,29 @@ else
                 <MudItem xs="12">
                     <MudTextField @bind-Value="_meetingLink" Label="Meeting / Join URL"
                                   HelperText="The URL candidates will use to join the video call"
+                                  MaxLength="2000"
+                                  Validation="@((string v) => ValidateOptionalUrl(v))"
                                   InputType="InputType.Url" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_conferenceMeetingId" Label="Meeting ID" />
+                    <MudTextField @bind-Value="_conferenceMeetingId" Label="Meeting ID" MaxLength="200" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_conferencePassword" Label="Meeting Password / PIN" />
+                    <MudTextField @bind-Value="_conferencePassword" Label="Meeting Password / PIN" MaxLength="200" />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_conferenceHostUrl" Label="Host URL (admin only)" />
+                    <MudTextField @bind-Value="_conferenceHostUrl" Label="Host URL (admin only)"
+                                  MaxLength="2000"
+                                  Validation="@((string v) => ValidateOptionalUrl(v))" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="_conferenceDialIn" Label="Dial-In Number (optional)"
+                                  MaxLength="50"
                                   HelperText="Phone number for candidates who can't join by video" />
                 </MudItem>
             }
         </MudGrid>
+        </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="@(() => _showCreateSlot = false)">Cancel</MudButton>
@@ -200,6 +210,8 @@ else
 
     private bool _showCreateSlot;
     private bool _saving;
+    private bool _formValid;
+    private MudForm? _mudForm;
     private DateTime? _slotDate = DateTime.Today.AddDays(1);
     private TimeSpan? _slotTime = new TimeSpan(10, 0, 0);
     private int _durationMinutes = 60;
@@ -211,6 +223,12 @@ else
     private string? _conferencePassword;
     private string? _conferenceHostUrl;
     private string? _conferenceDialIn;
+
+    private static string? ValidateOptionalUrl(string? v)
+    {
+        if (string.IsNullOrWhiteSpace(v)) return null;
+        return Uri.TryCreate(v, UriKind.Absolute, out _) ? null : "Must be a valid URL (https://…).";
+    }
 
     private readonly DialogOptions _dialogOptions = new()
     {
@@ -237,11 +255,15 @@ else
 
     private async Task CreateSlot()
     {
-        if (_slotDate == null || _slotTime == null || string.IsNullOrWhiteSpace(_interviewerName))
+        if (_mudForm != null) await _mudForm.Validate();
+        if (!_formValid) return;
+        if (_slotDate == null || _slotTime == null)
         {
-            Snackbar.Add("Slot date, time, and interviewer name are required.", Severity.Warning);
+            Snackbar.Add("Slot date and time are required.", Severity.Warning);
             return;
         }
+        // Sanitize
+        _interviewerName = _interviewerName.Trim();
         _saving = true;
         Api.SetToken(Auth.AccessToken);
         var slotStart = _slotDate.Value.Date + _slotTime.Value;

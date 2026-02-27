@@ -52,6 +52,8 @@ else if (_loading)
 }
 else
 {
+    <ErrorBoundary>
+        <ChildContent>
     <MudStack Spacing="2">
         <!-- Toolbar -->
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
@@ -244,6 +246,14 @@ else
             </div>
         </div>
     </MudStack>
+        </ChildContent>
+        <ErrorContent Context="ex">
+            <MudAlert Severity="Severity.Error" Style="border-radius:10px;">
+                <MudText Typo="Typo.subtitle1" Class="fw-bold">Form Builder encountered an error</MudText>
+                <MudText Typo="Typo.body2">An unexpected error occurred. Please reload the page or contact support.</MudText>
+            </MudAlert>
+        </ErrorContent>
+    </ErrorBoundary>
 }
 
 @code {

@@ -1,4 +1,5 @@
 using System.Text;
+using BookIt.API.Middleware;
 using BookIt.API.Services;
 using BookIt.Core.Enums;
 using BookIt.Infrastructure;
@@ -7,11 +8,46 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Events;
+
+// Build a startup-time log path: logs/{yyyy}/{MM}/{dd}/{HH-mm-ss}.log
+var startupTime = DateTime.Now;
+var logPath = Path.Combine("logs",
+    startupTime.ToString("yyyy"),
+    startupTime.ToString("MM"),
+    startupTime.ToString("dd"),
+    $"{startupTime:HH-mm-ss}.log");
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File(logPath, rollingInterval: RollingInterval.Infinite,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog();
+
 // Infrastructure (EF Core, services)
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Sentry error monitoring (only active when Dsn is configured)
+var sentryDsn = builder.Configuration["Sentry:Dsn"];
+if (!string.IsNullOrEmpty(sentryDsn))
+{
+    builder.WebHost.UseSentry(o =>
+    {
+        o.Dsn = sentryDsn;
+        o.TracesSampleRate = double.TryParse(builder.Configuration["Sentry:TracesSampleRate"], out var rate) ? rate : 0.1;
+        o.Environment = builder.Environment.EnvironmentName;
+        o.SendDefaultPii = false;
+    });
+}
 
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "BookItDefaultSecretKey-ChangeInProduction-32chars!";
@@ -112,10 +148,23 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookIt API v1"));
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+try
+{
+    Log.Information("BookIt API starting up");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "BookIt API terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

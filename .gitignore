@@ -37,6 +37,7 @@ TestResults/
 ## Logs
 *.log
 nohup.out
+logs/
 
 ## NuGet
 *.nuspec

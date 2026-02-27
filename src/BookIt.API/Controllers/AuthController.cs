@@ -20,244 +20,321 @@ public class AuthController : ControllerBase
     private readonly BookItDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(BookItDbContext context, UserManager<ApplicationUser> userManager, IConfiguration configuration)
+    public AuthController(BookItDbContext context, UserManager<ApplicationUser> userManager, IConfiguration configuration, ILogger<AuthController> logger)
     {
         _context = context;
         _userManager = userManager;
         _configuration = configuration;
+        _logger = logger;
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
     {
-        ApplicationUser? user;
-        Tenant? tenant;
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        if (!string.IsNullOrEmpty(request.TenantSlug))
+        // Sanitize inputs
+        request.Email = request.Email.Trim().ToLowerInvariant();
+        request.TenantSlug = request.TenantSlug?.Trim().ToLowerInvariant();
+
+        try
         {
-            tenant = await _context.Tenants
-                .FirstOrDefaultAsync(t => t.Slug == request.TenantSlug && !t.IsDeleted);
+            ApplicationUser? user;
+            Tenant? tenant;
 
-            if (tenant == null)
-                return Unauthorized(new { message = "Invalid tenant" });
+            if (!string.IsNullOrEmpty(request.TenantSlug))
+            {
+                tenant = await _context.Tenants
+                    .FirstOrDefaultAsync(t => t.Slug == request.TenantSlug && !t.IsDeleted);
 
-            user = await _userManager.Users
-                .FirstOrDefaultAsync(u => u.TenantId == tenant.Id && u.Email == request.Email && !u.IsDeleted);
-        }
-        else
-        {
-            user = await _userManager.Users
-                .Include(u => u.Tenant)
-                .FirstOrDefaultAsync(u => u.Email == request.Email && !u.IsDeleted);
+                if (tenant == null)
+                {
+                    _logger.LogWarning("Login attempted for unknown tenant slug: {TenantSlug}", request.TenantSlug);
+                    return Unauthorized(new { message = "Invalid tenant" });
+                }
 
-            if (user?.Tenant == null)
+                user = await _userManager.Users
+                    .FirstOrDefaultAsync(u => u.TenantId == tenant.Id && u.Email == request.Email && !u.IsDeleted);
+            }
+            else
+            {
+                user = await _userManager.Users
+                    .Include(u => u.Tenant)
+                    .FirstOrDefaultAsync(u => u.Email == request.Email && !u.IsDeleted);
+
+                if (user?.Tenant == null)
+                {
+                    _logger.LogWarning("Login attempted for unknown email (no tenant): {Email}", request.Email);
+                    return Unauthorized(new { message = "Invalid credentials" });
+                }
+
+                tenant = user.Tenant;
+            }
+
+            if (user == null)
+            {
+                _logger.LogWarning("Login failed — user not found: {Email}, Tenant: {Slug}", request.Email, request.TenantSlug);
                 return Unauthorized(new { message = "Invalid credentials" });
+            }
 
-            tenant = user.Tenant;
+            var passwordValid = await _userManager.CheckPasswordAsync(user, request.Password);
+            if (!passwordValid)
+            {
+                _logger.LogWarning("Login failed — invalid password for user: {UserId}", user.Id);
+                return Unauthorized(new { message = "Invalid credentials" });
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = GenerateJwtToken(user, tenant, roles);
+            var refreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            await _userManager.UpdateAsync(user);
+
+            _logger.LogInformation("User {UserId} logged in successfully for tenant {TenantSlug}", user.Id, tenant.Slug);
+
+            return Ok(new AuthResponse
+            {
+                AccessToken = token,
+                RefreshToken = refreshToken,
+                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                UserId = user.Id,
+                Email = user.Email!,
+                FullName = user.FullName,
+                Role = user.Role,
+                TenantId = tenant.Id,
+                TenantSlug = tenant.Slug,
+                MembershipNumber = user.MembershipNumber
+            });
         }
-
-        if (user == null)
-            return Unauthorized(new { message = "Invalid credentials" });
-
-        var passwordValid = await _userManager.CheckPasswordAsync(user, request.Password);
-        if (!passwordValid)
-            return Unauthorized(new { message = "Invalid credentials" });
-
-        var roles = await _userManager.GetRolesAsync(user);
-        var token = GenerateJwtToken(user, tenant, roles);
-        var refreshToken = GenerateRefreshToken();
-
-        user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-        await _userManager.UpdateAsync(user);
-
-        return Ok(new AuthResponse
+        catch (Exception ex)
         {
-            AccessToken = token,
-            RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddHours(24),
-            UserId = user.Id,
-            Email = user.Email!,
-            FullName = user.FullName,
-            Role = user.Role,
-            TenantId = tenant.Id,
-            TenantSlug = tenant.Slug,
-            MembershipNumber = user.MembershipNumber
-        });
+            _logger.LogError(ex, "Unexpected error during login for {Email}", request.Email);
+            throw;
+        }
     }
 
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
     {
-        Tenant? tenant;
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        if (!string.IsNullOrEmpty(request.TenantSlug))
+        // Sanitize inputs
+        request.Email = request.Email.Trim().ToLowerInvariant();
+        request.FirstName = request.FirstName.Trim();
+        request.LastName = request.LastName.Trim();
+        request.TenantSlug = request.TenantSlug?.Trim().ToLowerInvariant();
+
+        try
         {
-            tenant = await _context.Tenants
-                .FirstOrDefaultAsync(t => t.Slug == request.TenantSlug && !t.IsDeleted);
+            Tenant? tenant;
 
-            if (tenant == null)
-                return BadRequest(new { message = "Invalid tenant" });
+            if (!string.IsNullOrEmpty(request.TenantSlug))
+            {
+                tenant = await _context.Tenants
+                    .FirstOrDefaultAsync(t => t.Slug == request.TenantSlug && !t.IsDeleted);
+
+                if (tenant == null)
+                    return BadRequest(new { message = "Invalid tenant" });
+            }
+            else
+            {
+                var existingUser = await _userManager.Users
+                    .Include(u => u.Tenant)
+                    .FirstOrDefaultAsync(u => u.Email == request.Email && !u.IsDeleted);
+
+                if (existingUser?.Tenant == null)
+                    return BadRequest(new { message = "User account not found. Please contact your organization administrator." });
+
+                tenant = existingUser.Tenant;
+            }
+
+            var existingUserCheck = await _userManager.FindByEmailAsync(request.Email);
+            if (existingUserCheck != null && existingUserCheck.TenantId == tenant.Id)
+                return Conflict(new { message = "Email already registered" });
+
+            var user = new ApplicationUser
+            {
+                TenantId = tenant.Id,
+                Email = request.Email,
+                UserName = request.Email,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                PhoneNumber = request.Phone,
+                MembershipNumber = request.MembershipNumber,
+                Role = UserRole.Customer,
+                EmailConfirmed = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var result = await _userManager.CreateAsync(user, request.Password);
+            if (!result.Succeeded)
+            {
+                _logger.LogWarning("Registration failed for {Email}: {Errors}", request.Email,
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+                return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
+            }
+
+            await _userManager.AddToRoleAsync(user, "Customer");
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = GenerateJwtToken(user, tenant, roles);
+            var refreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            await _userManager.UpdateAsync(user);
+
+            _logger.LogInformation("User {UserId} registered successfully for tenant {TenantSlug}", user.Id, tenant.Slug);
+
+            return CreatedAtAction(nameof(Login), new AuthResponse
+            {
+                AccessToken = token,
+                RefreshToken = refreshToken,
+                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                UserId = user.Id,
+                Email = user.Email!,
+                FullName = user.FullName,
+                Role = user.Role,
+                TenantId = tenant.Id,
+                TenantSlug = tenant.Slug,
+                MembershipNumber = user.MembershipNumber
+            });
         }
-        else
+        catch (Exception ex)
         {
-            var existingUser = await _userManager.Users
-                .Include(u => u.Tenant)
-                .FirstOrDefaultAsync(u => u.Email == request.Email && !u.IsDeleted);
-
-            if (existingUser?.Tenant == null)
-                return BadRequest(new { message = "User account not found. Please contact your organization administrator." });
-
-            tenant = existingUser.Tenant;
+            _logger.LogError(ex, "Unexpected error during registration for {Email}", request.Email);
+            throw;
         }
-
-        var existingUserCheck = await _userManager.FindByEmailAsync(request.Email);
-        if (existingUserCheck != null && existingUserCheck.TenantId == tenant.Id)
-            return Conflict(new { message = "Email already registered" });
-
-        var user = new ApplicationUser
-        {
-            TenantId = tenant.Id,
-            Email = request.Email,
-            UserName = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            PhoneNumber = request.Phone,
-            MembershipNumber = request.MembershipNumber,
-            Role = UserRole.Customer,
-            EmailConfirmed = false,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        var result = await _userManager.CreateAsync(user, request.Password);
-        if (!result.Succeeded)
-            return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
-
-        await _userManager.AddToRoleAsync(user, "Customer");
-
-        var roles = await _userManager.GetRolesAsync(user);
-        var token = GenerateJwtToken(user, tenant, roles);
-        var refreshToken = GenerateRefreshToken();
-
-        user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-        await _userManager.UpdateAsync(user);
-
-        return CreatedAtAction(nameof(Login), new AuthResponse
-        {
-            AccessToken = token,
-            RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddHours(24),
-            UserId = user.Id,
-            Email = user.Email!,
-            FullName = user.FullName,
-            Role = user.Role,
-            TenantId = tenant.Id,
-            TenantSlug = tenant.Slug,
-            MembershipNumber = user.MembershipNumber
-        });
     }
 
     [HttpPost("setup")]
     public async Task<ActionResult<AuthResponse>> Setup([FromBody] TenantSetupRequest request)
     {
-        var slug = request.BusinessName.ToLower().Replace(" ", "-").Trim();
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        var exists = await _context.Tenants.AnyAsync(t => t.Slug == slug);
-        if (exists)
-            return Conflict(new { message = "A tenant with this name already exists" });
+        // Sanitize inputs
+        request.BusinessName = request.BusinessName.Trim();
+        request.AdminEmail = request.AdminEmail.Trim().ToLowerInvariant();
+        request.AdminFirstName = request.AdminFirstName.Trim();
+        request.AdminLastName = request.AdminLastName.Trim();
 
-        var tenant = new Tenant
+        try
         {
-            Name = request.BusinessName,
-            Slug = slug,
-            BusinessType = request.BusinessType,
-            ContactEmail = request.AdminEmail,
-            ContactPhone = request.Phone,
-            Address = request.Address,
-            TimeZone = request.TimeZone ?? "UTC",
-            Currency = request.Currency ?? "GBP",
-            IsActive = true
-        };
+            var slug = request.BusinessName.ToLower().Replace(" ", "-").Trim();
 
-        _context.Tenants.Add(tenant);
-        await _context.SaveChangesAsync();
+            var exists = await _context.Tenants.AnyAsync(t => t.Slug == slug);
+            if (exists)
+                return Conflict(new { message = "A tenant with this name already exists" });
 
-        var user = new ApplicationUser
-        {
-            TenantId = tenant.Id,
-            Email = request.AdminEmail,
-            UserName = request.AdminEmail,
-            FirstName = request.AdminFirstName,
-            LastName = request.AdminLastName,
-            Role = UserRole.TenantAdmin,
-            EmailConfirmed = true,
-            CreatedAt = DateTime.UtcNow
-        };
+            var tenant = new Tenant
+            {
+                Name = request.BusinessName,
+                Slug = slug,
+                BusinessType = request.BusinessType,
+                ContactEmail = request.AdminEmail,
+                ContactPhone = request.Phone,
+                Address = request.Address,
+                TimeZone = request.TimeZone ?? "UTC",
+                Currency = request.Currency ?? "GBP",
+                IsActive = true
+            };
 
-        var result = await _userManager.CreateAsync(user, request.AdminPassword);
-        if (!result.Succeeded)
-            return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
+            _context.Tenants.Add(tenant);
+            await _context.SaveChangesAsync();
 
-        await _userManager.AddToRoleAsync(user, "TenantAdmin");
-
-        // Default business hours Mon-Fri
-        for (int day = 1; day <= 5; day++)
-        {
-            _context.BusinessHours.Add(new Core.Entities.BusinessHours
+            var user = new ApplicationUser
             {
                 TenantId = tenant.Id,
-                DayOfWeek = (DayOfWeekFlag)day,
-                OpenTime = new TimeOnly(9, 0),
-                CloseTime = new TimeOnly(17, 0),
-                SlotDurationMinutes = 60,
-                IsClosed = false
-            });
-        }
+                Email = request.AdminEmail,
+                UserName = request.AdminEmail,
+                FirstName = request.AdminFirstName,
+                LastName = request.AdminLastName,
+                Role = UserRole.TenantAdmin,
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        _context.BookingForms.Add(new BookingForm
-        {
-            TenantId = tenant.Id,
-            Name = "Default Booking Form",
-            IsDefault = true,
-            IsActive = true,
-            WelcomeMessage = $"Welcome to {request.BusinessName}",
-            ConfirmationMessage = "Your appointment has been confirmed!"
-        });
+            var result = await _userManager.CreateAsync(user, request.AdminPassword);
+            if (!result.Succeeded)
+            {
+                _logger.LogWarning("Tenant setup failed for {BusinessName}: {Errors}", request.BusinessName,
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+                return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
+            }
 
-        if (!string.IsNullOrEmpty(request.ConnectionString))
-        {
-            _context.AppConfigurations.Add(new AppConfiguration
+            await _userManager.AddToRoleAsync(user, "TenantAdmin");
+
+            // Default business hours Mon-Fri
+            for (int day = 1; day <= 5; day++)
+            {
+                _context.BusinessHours.Add(new Core.Entities.BusinessHours
+                {
+                    TenantId = tenant.Id,
+                    DayOfWeek = (DayOfWeekFlag)day,
+                    OpenTime = new TimeOnly(9, 0),
+                    CloseTime = new TimeOnly(17, 0),
+                    SlotDurationMinutes = 60,
+                    IsClosed = false
+                });
+            }
+
+            _context.BookingForms.Add(new BookingForm
             {
                 TenantId = tenant.Id,
-                Key = "ConnectionString",
-                Value = request.ConnectionString,
-                IsEncrypted = true
+                Name = "Default Booking Form",
+                IsDefault = true,
+                IsActive = true,
+                WelcomeMessage = $"Welcome to {request.BusinessName}",
+                ConfirmationMessage = "Your appointment has been confirmed!"
+            });
+
+            if (!string.IsNullOrEmpty(request.ConnectionString))
+            {
+                _context.AppConfigurations.Add(new AppConfiguration
+                {
+                    TenantId = tenant.Id,
+                    Key = "ConnectionString",
+                    Value = request.ConnectionString,
+                    IsEncrypted = true
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = GenerateJwtToken(user, tenant, roles);
+            var refreshToken = GenerateRefreshToken();
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            await _userManager.UpdateAsync(user);
+
+            _logger.LogInformation("Tenant {TenantSlug} set up successfully by {AdminEmail}", slug, request.AdminEmail);
+
+            return CreatedAtAction(nameof(Login), new AuthResponse
+            {
+                AccessToken = token,
+                RefreshToken = refreshToken,
+                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                UserId = user.Id,
+                Email = user.Email!,
+                FullName = user.FullName,
+                Role = user.Role,
+                TenantId = tenant.Id,
+                TenantSlug = tenant.Slug
             });
         }
-
-        await _context.SaveChangesAsync();
-
-        var roles = await _userManager.GetRolesAsync(user);
-        var token = GenerateJwtToken(user, tenant, roles);
-        var refreshToken = GenerateRefreshToken();
-        user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-        await _userManager.UpdateAsync(user);
-
-        return CreatedAtAction(nameof(Login), new AuthResponse
+        catch (Exception ex)
         {
-            AccessToken = token,
-            RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddHours(24),
-            UserId = user.Id,
-            Email = user.Email!,
-            FullName = user.FullName,
-            Role = user.Role,
-            TenantId = tenant.Id,
-            TenantSlug = tenant.Slug
-        });
+            _logger.LogError(ex, "Unexpected error during tenant setup for {BusinessName}", request.BusinessName);
+            throw;
+        }
     }
 
     private string GenerateJwtToken(ApplicationUser user, Tenant tenant, IList<string> roles)

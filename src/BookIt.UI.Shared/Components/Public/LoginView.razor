@@ -3,46 +3,72 @@
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 
-<div class="login-bg">
+<div class="login-bg" role="main" aria-label="Sign in to BookIt">
     <div style="width:100%;max-width:420px;">
         <!-- Brand mark -->
         <div style="text-align:center;margin-bottom:2rem;">
-            <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);margin-bottom:1rem;box-shadow:0 8px 32px rgba(108,92,231,.4);">
+            <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);margin-bottom:1rem;box-shadow:0 8px 32px rgba(108,92,231,.4);"
+                 aria-hidden="true">
                 <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Medium" Style="color:white;" />
             </div>
-            <h2 style="color:white;font-size:1.5rem;font-weight:800;letter-spacing:-.04em;margin:0 0 .375rem;">
+            <h1 style="color:white;font-size:1.5rem;font-weight:800;letter-spacing:-.04em;margin:0 0 .375rem;">
                 Welcome back
-            </h2>
+            </h1>
             <p style="color:rgba(255,255,255,.45);font-size:.875rem;margin:0;">
                 Enter your business slug and credentials to continue
             </p>
         </div>
 
         <!-- Card -->
-        <MudCard Elevation="0" Style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(20px);border-radius:20px !important;">
+        <MudCard Elevation="0" Style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(20px);border-radius:20px !important;"
+                 role="region" aria-label="Login form">
             <MudCardContent Style="padding:2rem !important;">
                 <MudForm @ref="_form" @bind-IsValid="_valid">
                     <MudStack Spacing="3">
                         <MudTextField @bind-Value="_slug" Label="Business Slug" Variant="Variant.Outlined"
                                       Placeholder="e.g. my-barber-shop" Required="true"
-                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Store" />
+                                      RequiredError="Business slug is required."
+                                      Pattern="^[a-z0-9\-]{2,100}$"
+                                      Validation="@((string v) => ValidateSlug(v))"
+                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Store"
+                                      Immediate="true"
+                                      aria-label="Business Slug"
+                                      aria-describedby="slug-hint"
+                                      aria-required="true" />
+                        <span id="slug-hint" style="font-size:.75rem;color:rgba(255,255,255,.4);">
+                            Lowercase letters, numbers, and hyphens only.
+                        </span>
+
                         <MudTextField @bind-Value="_email" Label="Email Address" Variant="Variant.Outlined"
                                       InputType="InputType.Email" Required="true"
-                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" />
+                                      RequiredError="Email address is required."
+                                      Validation="@((string v) => ValidateEmail(v))"
+                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail"
+                                      Immediate="true"
+                                      aria-label="Email Address"
+                                      aria-required="true" />
+
                         <MudTextField @bind-Value="_password" Label="Password" Variant="Variant.Outlined"
                                       InputType="@(_showPw ? InputType.Text : InputType.Password)" Required="true"
+                                      RequiredError="Password is required."
                                       Adornment="Adornment.End"
                                       AdornmentIcon="@(_showPw ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
-                                      OnAdornmentClick="@(() => _showPw = !_showPw)" />
+                                      AdornmentAriaLabel="@(_showPw ? "Hide password" : "Show password")"
+                                      OnAdornmentClick="@(() => _showPw = !_showPw)"
+                                      aria-label="Password"
+                                      aria-required="true" />
 
                         @if (!string.IsNullOrEmpty(_error))
                         {
-                            <MudAlert Severity="Severity.Error" Dense="true" Style="border-radius:10px;">@_error</MudAlert>
+                            <MudAlert Severity="Severity.Error" Dense="true" Style="border-radius:10px;"
+                                      role="alert" aria-live="assertive">@_error</MudAlert>
                         }
 
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
                                    Size="Size.Large" OnClick="DoLogin" Disabled="_busy"
-                                   Style="font-weight:700;border-radius:10px;padding:.75rem;">
+                                   Style="font-weight:700;border-radius:10px;padding:.75rem;"
+                                   aria-label="@(_busy ? "Signing in, please wait" : "Sign in")"
+                                   aria-busy="@_busy">
                             @(_busy ? "Signing in…" : "Sign In")
                         </MudButton>
                     </MudStack>
@@ -54,7 +80,8 @@
         <div style="text-align:center;margin-top:1.5rem;">
             <span style="color:rgba(255,255,255,.4);font-size:.875rem;">
                 New here?
-                <a href="/setup" style="color:rgba(162,155,254,.9);font-weight:600;text-decoration:none;">Create your account</a>
+                <a href="/setup" style="color:rgba(162,155,254,.9);font-weight:600;text-decoration:none;"
+                   aria-label="Create your BookIt account">Create your account</a>
             </span>
         </div>
     </div>
@@ -72,16 +99,47 @@
     private string _password = "";
     private string _error = "";
 
+    private static readonly System.Text.RegularExpressions.Regex SlugPattern =
+        new(@"^[a-z0-9\-]{2,100}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static readonly System.Text.RegularExpressions.Regex EmailPattern =
+        new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static string? ValidateSlug(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "Business slug is required.";
+        if (!SlugPattern.IsMatch(value))
+            return "Slug may only contain lowercase letters, digits and hyphens (2–100 characters).";
+        return null;
+    }
+
+    private static string? ValidateEmail(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "Email address is required.";
+        if (!EmailPattern.IsMatch(value))
+            return "Please enter a valid email address.";
+        if (value.Length > 254)
+            return "Email must not exceed 254 characters.";
+        return null;
+    }
+
     private async Task DoLogin()
     {
         await _form!.Validate();
         if (!_valid) return;
+
+        // Sanitize inputs before sending to the API
+        var slug = _slug.Trim().ToLowerInvariant();
+        var email = _email.Trim().ToLowerInvariant();
+
         _busy = true;
         _error = "";
         var result = await Api.LoginAsync(new LoginRequest
         {
-            TenantSlug = _slug,
-            Email = _email,
+            TenantSlug = slug,
+            Email = email,
             Password = _password
         });
         _busy = false;

@@ -132,33 +132,38 @@ else
         <MudText Typo="Typo.h6">@(_editCustomer == null ? "Add Customer" : "Edit Customer")</MudText>
     </TitleContent>
     <DialogContent>
+        <MudForm @ref="_mudForm" @bind-IsValid="_formValid">
         <MudGrid Spacing="2">
             <MudItem xs="6">
-                <MudTextField @bind-Value="_form.FirstName" Label="First Name" Required="true" />
+                <MudTextField @bind-Value="_form.FirstName" Label="First Name" Required="true"
+                              RequiredError="First name is required." MaxLength="100" Immediate="true"
+                              Validation="@((string v) => string.IsNullOrWhiteSpace(v) ? "First name is required." : null)" />
             </MudItem>
             <MudItem xs="6">
-                <MudTextField @bind-Value="_form.LastName" Label="Last Name" Required="true" />
+                <MudTextField @bind-Value="_form.LastName" Label="Last Name" MaxLength="100" Immediate="true" />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Email" Label="Email Address" InputType="InputType.Email" Required="true" />
+                <MudTextField @bind-Value="_form.Email" Label="Email Address" InputType="InputType.Email" Required="true"
+                              RequiredError="Email address is required." MaxLength="254" Immediate="true"
+                              Validation="@((string v) => ValidateEmail(v))" />
             </MudItem>
             <MudItem xs="6">
-                <MudTextField @bind-Value="_form.Phone" Label="Phone" />
+                <MudTextField @bind-Value="_form.Phone" Label="Phone" MaxLength="30" Immediate="true" />
             </MudItem>
             <MudItem xs="6">
-                <MudTextField @bind-Value="_form.Mobile" Label="Mobile" />
+                <MudTextField @bind-Value="_form.Mobile" Label="Mobile" MaxLength="30" Immediate="true" />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Address" Label="Address" />
+                <MudTextField @bind-Value="_form.Address" Label="Address" MaxLength="500" />
             </MudItem>
             <MudItem xs="5">
-                <MudTextField @bind-Value="_form.City" Label="City" />
+                <MudTextField @bind-Value="_form.City" Label="City" MaxLength="100" />
             </MudItem>
             <MudItem xs="4">
-                <MudTextField @bind-Value="_form.PostCode" Label="Post Code" />
+                <MudTextField @bind-Value="_form.PostCode" Label="Post Code" MaxLength="20" />
             </MudItem>
             <MudItem xs="3">
-                <MudTextField @bind-Value="_form.Country" Label="Country" />
+                <MudTextField @bind-Value="_form.Country" Label="Country" MaxLength="100" />
             </MudItem>
             <MudItem xs="6">
                 <MudSelect @bind-Value="_form.Gender" Label="Gender">
@@ -172,14 +177,15 @@ else
                 <MudDatePicker @bind-Date="_dobDate" Label="Date of Birth" />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Tags" Label="Tags (comma-separated)" Placeholder="VIP, Regular, New…" />
+                <MudTextField @bind-Value="_form.Tags" Label="Tags (comma-separated)" Placeholder="VIP, Regular, New…"
+                              MaxLength="500" />
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_form.MembershipNumber" Label="Membership Number"
-                              HelperText="Gym / club / loyalty scheme membership number" />
+                              HelperText="Gym / club / loyalty scheme membership number" MaxLength="50" />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="3" />
+                <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="3" MaxLength="2000" />
             </MudItem>
             <MudItem xs="6">
                 <MudSwitch @bind-Value="_form.MarketingOptIn" Color="Color.Primary" Label="Email Marketing" />
@@ -188,6 +194,7 @@ else
                 <MudSwitch @bind-Value="_form.SmsOptIn" Color="Color.Primary" Label="SMS Marketing" />
             </MudItem>
         </MudGrid>
+        </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="CloseDialog">Cancel</MudButton>
@@ -207,9 +214,21 @@ else
 
     private bool _dialogOpen;
     private bool _saving;
+    private bool _formValid;
+    private MudForm? _mudForm;
     private CustomerResponse? _editCustomer;
     private CustomerFormModel _form = new();
     private DateTime? _dobDate;
+
+    private static readonly System.Text.RegularExpressions.Regex EmailRegex =
+        new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static string? ValidateEmail(string? v)
+    {
+        if (string.IsNullOrWhiteSpace(v)) return "Email address is required.";
+        if (!EmailRegex.IsMatch(v)) return "Please enter a valid email address.";
+        return null;
+    }
 
     private readonly DialogOptions _dialogOptions = new()
     {
@@ -278,11 +297,14 @@ else
 
     private async Task SaveCustomer()
     {
-        if (string.IsNullOrWhiteSpace(_form.FirstName) || string.IsNullOrWhiteSpace(_form.Email))
-        {
-            Snackbar.Add("First name and email are required.", Severity.Warning);
-            return;
-        }
+        if (_mudForm != null) await _mudForm.Validate();
+        if (!_formValid) return;
+
+        // Sanitize inputs
+        _form.FirstName = _form.FirstName.Trim();
+        _form.LastName = _form.LastName?.Trim();
+        _form.Email = _form.Email?.Trim()?.ToLowerInvariant();
+
         _saving = true;
         Api.SetToken(Auth.AccessToken);
 

@@ -3,6 +3,7 @@ using BookIt.UI.Shared;
 using BookIt.UI.Shared.Services;
 using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
+using Sentry;
 
 namespace BookIt.Maui;
 
@@ -14,6 +15,13 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
+            .UseSentry(o =>
+            {
+                // Set the SENTRY_DSN environment variable (or update this value) to activate Sentry monitoring.
+                o.Dsn = Environment.GetEnvironmentVariable("SENTRY_DSN") ?? "";
+                o.TracesSampleRate = 0.1;
+                o.SendDefaultPii = false;
+            })
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
