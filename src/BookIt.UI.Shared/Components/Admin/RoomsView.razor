@@ -1,0 +1,630 @@
+@inject IDialogService Dialog
+@inject ISnackbar Snackbar
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+
+<MudStack>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+        <div>
+            <MudText Typo="Typo.h5" Class="fw-bold">Rooms &amp; Lodging</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Manage your properties, rooms, amenities and seasonal rates</MudText>
+        </div>
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Spa"
+                       OnClick="OpenAmenityDialog">Amenities</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" StartIcon="@Icons.Material.Filled.Hotel"
+                       OnClick="OpenPropertyDialog">Add Property</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="OpenRoomDialog">Add Room</MudButton>
+        </MudStack>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <!-- Property tabs -->
+        @if (_properties.Any())
+        {
+            <MudTabs @bind-ActivePanelIndex="_activeTab" Elevation="0" Rounded="true" ApplyEffectsToContainer="true" Class="mb-4">
+                <MudTabPanel Text="All Rooms">
+                    @RenderRoomGrid(_rooms)
+                </MudTabPanel>
+                @foreach (var prop in _properties)
+                {
+                    var propRooms = _rooms.Where(r => r.LodgingPropertyId == prop.Id).ToList();
+                    <MudTabPanel Text="@prop.Name" Icon="@Icons.Material.Filled.Business">
+                        @RenderRoomGrid(propRooms)
+                    </MudTabPanel>
+                }
+            </MudTabs>
+        }
+        else
+        {
+            @RenderRoomGrid(_rooms)
+        }
+    }
+</MudStack>
+
+<!-- Add/Edit Room Dialog -->
+<MudDialog @bind-Visible="_roomDialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent><MudText Typo="Typo.h6">@(_editingRoom == null ? "Add Room" : "Edit Room")</MudText></TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudSelect T="Guid?" @bind-Value="_roomForm.LodgingPropertyId" Label="Property" Variant="Variant.Outlined" Clearable="true">
+                @foreach (var p in _properties)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)p.Id)">@p.Name</MudSelectItem>
+                }
+            </MudSelect>
+            <MudTextField @bind-Value="_roomForm.Name" Label="Room Name" Required="true" Variant="Variant.Outlined" />
+            <MudTextField @bind-Value="_roomForm.Description" Label="Description" Variant="Variant.Outlined" Lines="2" />
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudSelect T="RoomType" @bind-Value="_roomForm.RoomType" Label="Room Type" Variant="Variant.Outlined">
+                        @foreach (RoomType rt in Enum.GetValues(typeof(RoomType)))
+                        {
+                            <MudSelectItem Value="@rt">@rt</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField T="int" @bind-Value="_roomForm.Capacity" Label="Max Guests" Min="1" Variant="Variant.Outlined" />
+                </MudItem>
+            </MudGrid>
+            <MudNumericField T="decimal" @bind-Value="_roomForm.BaseRate" Label="Base Rate (per night)" Min="0" Variant="Variant.Outlined" Format="0.00" />
+            <MudSwitch @bind-Value="_roomForm.IsActive" Label="Active" Color="Color.Primary" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _roomDialogOpen = false)">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveRoom">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Add Property Dialog -->
+<MudDialog @bind-Visible="_propertyDialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent><MudText Typo="Typo.h6">Add Property</MudText></TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="_propertyForm.Name" Label="Property Name" Required="true" Variant="Variant.Outlined" />
+            <MudTextField @bind-Value="_propertyForm.Description" Label="Description" Variant="Variant.Outlined" Lines="2" />
+            <MudTextField @bind-Value="_propertyForm.Address" Label="Address" Variant="Variant.Outlined" />
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="_propertyForm.City" Label="City" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="_propertyForm.PostCode" Label="Post Code" Variant="Variant.Outlined" />
+                </MudItem>
+            </MudGrid>
+            <MudTextField @bind-Value="_propertyForm.Country" Label="Country" Variant="Variant.Outlined" />
+            <MudTextField @bind-Value="_propertyForm.PhoneNumber" Label="Phone Number" Variant="Variant.Outlined" />
+            <MudTextField @bind-Value="_propertyForm.Email" Label="Email" Variant="Variant.Outlined" />
+            <MudTextField @bind-Value="_propertyForm.Website" Label="Website" Variant="Variant.Outlined" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _propertyDialogOpen = false)">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveProperty">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Amenity Dialog -->
+<MudDialog @bind-Visible="_amenityDialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true })">
+    <TitleContent><MudText Typo="Typo.h6">Amenities</MudText></TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudStack Row="true" AlignItems="AlignItems.End" Spacing="2">
+                <MudTextField @bind-Value="_newAmenityName" Label="Name" Variant="Variant.Outlined" Style="flex:1;" />
+                <MudSelect T="AmenityType" @bind-Value="_newAmenityType" Label="Type" Variant="Variant.Outlined" Style="min-width:160px;">
+                    @foreach (AmenityType at in Enum.GetValues(typeof(AmenityType)))
+                    {
+                        <MudSelectItem Value="@at">@at</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudTextField @bind-Value="_newAmenityIcon" Label="Icon (material)" Variant="Variant.Outlined" Style="min-width:140px;" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAmenity">Add</MudButton>
+            </MudStack>
+            <MudDivider />
+            @if (_amenities.Any())
+            {
+                <MudSimpleTable Elevation="0" Dense="true">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Icon</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in _amenities)
+                        {
+                            <tr>
+                                <td>@a.Name</td>
+                                <td><MudChip T="string" Size="Size.Small" Label="true">@a.AmenityType</MudChip></td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(a.Icon))
+                                    {
+                                        <MudIcon Icon="@a.Icon" Size="Size.Small" />
+                                    }
+                                </td>
+                                <td>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                   Color="Color.Error" OnClick="@(() => DeleteAmenity(a))" />
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </MudSimpleTable>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center py-4">No amenities yet</MudText>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _amenityDialogOpen = false)">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Room Rates Dialog -->
+<MudDialog @bind-Visible="_ratesDialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true })">
+    <TitleContent><MudText Typo="Typo.h6">Room Rates — @_selectedRoom?.Name</MudText></TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudGrid>
+                <MudItem xs="3">
+                    <MudDatePicker @bind-Date="_rateStartDate" Label="From" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" />
+                </MudItem>
+                <MudItem xs="3">
+                    <MudDatePicker @bind-Date="_rateEndDate" Label="To" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" />
+                </MudItem>
+                <MudItem xs="3">
+                    <MudNumericField T="decimal" @bind-Value="_rateAmount" Label="Rate (per night)" Min="0" Variant="Variant.Outlined" Format="0.00" />
+                </MudItem>
+                <MudItem xs="3">
+                    <MudTextField @bind-Value="_rateLabel" Label="Label (e.g. Peak)" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveRate" FullWidth="true">Add Rate</MudButton>
+                </MudItem>
+            </MudGrid>
+            <MudDivider />
+            @if (_selectedRoomRates.Any())
+            {
+                <MudSimpleTable Elevation="0" Dense="true">
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Rate</th>
+                            <th>Label</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in _selectedRoomRates)
+                        {
+                            <tr>
+                                <td>@r.StartDate.ToString("dd/MM/yyyy")</td>
+                                <td>@r.EndDate.ToString("dd/MM/yyyy")</td>
+                                <td>£@r.Rate.ToString("0.00")</td>
+                                <td>@r.Label</td>
+                                <td>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                   Color="Color.Error" OnClick="@(() => DeleteRate(r))" />
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </MudSimpleTable>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center py-4">No custom rates yet — base rate applies</MudText>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _ratesDialogOpen = false)">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Room Photos Dialog -->
+<MudDialog @bind-Visible="_photosDialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true })">
+    <TitleContent><MudText Typo="Typo.h6">Photos — @_selectedRoom?.Name</MudText></TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudStack Row="true" AlignItems="AlignItems.End" Spacing="2">
+                <MudTextField @bind-Value="_newPhotoUrl" Label="Photo URL" Variant="Variant.Outlined" Style="flex:1;" />
+                <MudTextField @bind-Value="_newPhotoCaption" Label="Caption" Variant="Variant.Outlined" Style="min-width:160px;" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SavePhoto">Add</MudButton>
+            </MudStack>
+            @if (_selectedRoom?.Photos.Any() == true)
+            {
+                <MudGrid>
+                    @foreach (var photo in _selectedRoom.Photos.OrderBy(p => p.SortOrder))
+                    {
+                        <MudItem xs="6" sm="4">
+                            <MudCard Elevation="1">
+                                <MudCardMedia Image="@photo.Url" Height="160" />
+                                <MudCardActions Style="padding:4px 8px;">
+                                    <MudText Typo="Typo.caption" Style="flex:1;">@photo.Caption</MudText>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                   Color="Color.Error" OnClick="@(() => DeletePhoto(photo))" />
+                                </MudCardActions>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center py-4">No photos yet</MudText>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _photosDialogOpen = false)">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+
+    private List<LodgingPropertyResponse> _properties = new();
+    private List<RoomResponse> _rooms = new();
+    private List<AmenityResponse> _amenities = new();
+    private List<RoomRateResponse> _selectedRoomRates = new();
+    private bool _loading = true;
+    private int _activeTab = 0;
+
+    // Room dialog
+    private bool _roomDialogOpen = false;
+    private RoomResponse? _editingRoom = null;
+    private CreateRoomRequest _roomForm = new();
+
+    // Property dialog
+    private bool _propertyDialogOpen = false;
+    private CreateLodgingPropertyRequest _propertyForm = new();
+
+    // Amenity dialog
+    private bool _amenityDialogOpen = false;
+    private string _newAmenityName = "";
+    private AmenityType _newAmenityType = AmenityType.Other;
+    private string _newAmenityIcon = "";
+
+    // Rates dialog
+    private bool _ratesDialogOpen = false;
+    private RoomResponse? _selectedRoom = null;
+    private DateTime? _rateStartDate;
+    private DateTime? _rateEndDate;
+    private decimal _rateAmount = 0;
+    private string _rateLabel = "";
+
+    // Photos dialog
+    private bool _photosDialogOpen = false;
+    private string _newPhotoUrl = "";
+    private string _newPhotoCaption = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        Api.SetToken(Auth.AccessToken);
+        var props = await Api.GetLodgingPropertiesAsync(TenantSlug);
+        _properties = props ?? new();
+        var rooms = await Api.GetRoomsAsync(TenantSlug);
+        _rooms = rooms ?? new();
+        var amenities = await Api.GetAmenitiesAsync(TenantSlug);
+        _amenities = amenities ?? new();
+        _loading = false;
+    }
+
+    // Room CRUD
+    private void OpenRoomDialog()
+    {
+        _editingRoom = null;
+        _roomForm = new CreateRoomRequest { IsActive = true, Capacity = 2, RoomType = RoomType.Double };
+        _roomDialogOpen = true;
+    }
+
+    private void OpenEditRoomDialog(RoomResponse room)
+    {
+        _editingRoom = room;
+        _roomForm = new CreateRoomRequest
+        {
+            LodgingPropertyId = room.LodgingPropertyId,
+            Name = room.Name,
+            Description = room.Description,
+            RoomType = room.RoomType,
+            Capacity = room.Capacity,
+            BaseRate = room.BaseRate,
+            IsActive = room.IsActive,
+            SortOrder = room.SortOrder
+        };
+        _roomDialogOpen = true;
+    }
+
+    private async Task SaveRoom()
+    {
+        if (string.IsNullOrWhiteSpace(_roomForm.Name)) return;
+        Api.SetToken(Auth.AccessToken);
+
+        if (_editingRoom == null)
+        {
+            var result = await Api.CreateRoomAsync(TenantSlug, _roomForm);
+            if (result != null)
+            {
+                Snackbar.Add("Room added!", Severity.Success);
+                _roomDialogOpen = false;
+                await LoadAsync();
+            }
+            else Snackbar.Add("Failed to add room.", Severity.Error);
+        }
+        else
+        {
+            var ok = await Api.UpdateRoomAsync(TenantSlug, _editingRoom.Id, _roomForm);
+            if (ok)
+            {
+                Snackbar.Add("Room updated!", Severity.Success);
+                _roomDialogOpen = false;
+                await LoadAsync();
+            }
+            else Snackbar.Add("Failed to update room.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteRoom(RoomResponse room)
+    {
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteRoomAsync(TenantSlug, room.Id);
+        if (ok) { Snackbar.Add($"'{room.Name}' deleted.", Severity.Success); await LoadAsync(); }
+        else Snackbar.Add("Failed to delete room.", Severity.Error);
+    }
+
+    // Property CRUD
+    private void OpenPropertyDialog()
+    {
+        _propertyForm = new CreateLodgingPropertyRequest { IsActive = true };
+        _propertyDialogOpen = true;
+    }
+
+    private async Task SaveProperty()
+    {
+        if (string.IsNullOrWhiteSpace(_propertyForm.Name)) return;
+        Api.SetToken(Auth.AccessToken);
+        var result = await Api.CreateLodgingPropertyAsync(TenantSlug, _propertyForm);
+        if (result != null)
+        {
+            Snackbar.Add("Property added!", Severity.Success);
+            _propertyDialogOpen = false;
+            await LoadAsync();
+        }
+        else Snackbar.Add("Failed to add property.", Severity.Error);
+    }
+
+    // Amenities
+    private void OpenAmenityDialog()
+    {
+        _newAmenityName = "";
+        _newAmenityType = AmenityType.Other;
+        _newAmenityIcon = "";
+        _amenityDialogOpen = true;
+    }
+
+    private async Task SaveAmenity()
+    {
+        if (string.IsNullOrWhiteSpace(_newAmenityName)) return;
+        Api.SetToken(Auth.AccessToken);
+        var result = await Api.CreateAmenityAsync(TenantSlug, new CreateAmenityRequest
+        {
+            Name = _newAmenityName,
+            AmenityType = _newAmenityType,
+            Icon = string.IsNullOrWhiteSpace(_newAmenityIcon) ? null : _newAmenityIcon,
+            IsActive = true
+        });
+        if (result != null)
+        {
+            Snackbar.Add("Amenity added!", Severity.Success);
+            _amenities = await Api.GetAmenitiesAsync(TenantSlug) ?? new();
+            _newAmenityName = "";
+            _newAmenityIcon = "";
+        }
+        else Snackbar.Add("Failed to add amenity.", Severity.Error);
+    }
+
+    private async Task DeleteAmenity(AmenityResponse amenity)
+    {
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteAmenityAsync(TenantSlug, amenity.Id);
+        if (ok) { _amenities = await Api.GetAmenitiesAsync(TenantSlug) ?? new(); Snackbar.Add("Amenity deleted.", Severity.Success); }
+        else Snackbar.Add("Failed to delete amenity.", Severity.Error);
+    }
+
+    // Rates
+    private async Task OpenRatesDialog(RoomResponse room)
+    {
+        _selectedRoom = room;
+        Api.SetToken(Auth.AccessToken);
+        _selectedRoomRates = await Api.GetRoomRatesAsync(TenantSlug, room.Id) ?? new();
+        _rateStartDate = null; _rateEndDate = null; _rateAmount = 0; _rateLabel = "";
+        _ratesDialogOpen = true;
+    }
+
+    private async Task SaveRate()
+    {
+        if (_selectedRoom == null || _rateStartDate == null || _rateEndDate == null) return;
+        Api.SetToken(Auth.AccessToken);
+        var result = await Api.CreateRoomRateAsync(TenantSlug, _selectedRoom.Id, new CreateRoomRateRequest
+        {
+            StartDate = DateOnly.FromDateTime(_rateStartDate.Value),
+            EndDate = DateOnly.FromDateTime(_rateEndDate.Value),
+            Rate = _rateAmount,
+            Label = _rateLabel
+        });
+        if (result != null)
+        {
+            Snackbar.Add("Rate added!", Severity.Success);
+            _selectedRoomRates = await Api.GetRoomRatesAsync(TenantSlug, _selectedRoom.Id) ?? new();
+        }
+        else Snackbar.Add("Failed to add rate.", Severity.Error);
+    }
+
+    private async Task DeleteRate(RoomRateResponse rate)
+    {
+        if (_selectedRoom == null) return;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteRoomRateAsync(TenantSlug, _selectedRoom.Id, rate.Id);
+        if (ok) { _selectedRoomRates = await Api.GetRoomRatesAsync(TenantSlug, _selectedRoom.Id) ?? new(); Snackbar.Add("Rate deleted.", Severity.Success); }
+        else Snackbar.Add("Failed to delete rate.", Severity.Error);
+    }
+
+    // Photos
+    private void OpenPhotosDialog(RoomResponse room)
+    {
+        _selectedRoom = room;
+        _newPhotoUrl = ""; _newPhotoCaption = "";
+        _photosDialogOpen = true;
+    }
+
+    private async Task SavePhoto()
+    {
+        if (_selectedRoom == null || string.IsNullOrWhiteSpace(_newPhotoUrl)) return;
+        Api.SetToken(Auth.AccessToken);
+        var result = await Api.AddRoomPhotoAsync(TenantSlug, _selectedRoom.Id, new AddRoomPhotoRequest
+        {
+            Url = _newPhotoUrl,
+            Caption = _newPhotoCaption,
+            SortOrder = _selectedRoom.Photos.Count
+        });
+        if (result != null)
+        {
+            Snackbar.Add("Photo added!", Severity.Success);
+            var rooms = await Api.GetRoomsAsync(TenantSlug);
+            _rooms = rooms ?? new();
+            _selectedRoom = _rooms.FirstOrDefault(r => r.Id == _selectedRoom.Id);
+            _newPhotoUrl = ""; _newPhotoCaption = "";
+        }
+        else Snackbar.Add("Failed to add photo.", Severity.Error);
+    }
+
+    private async Task DeletePhoto(RoomPhotoResponse photo)
+    {
+        if (_selectedRoom == null) return;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteRoomPhotoAsync(TenantSlug, _selectedRoom.Id, photo.Id);
+        if (ok)
+        {
+            Snackbar.Add("Photo deleted.", Severity.Success);
+            var rooms = await Api.GetRoomsAsync(TenantSlug);
+            _rooms = rooms ?? new();
+            _selectedRoom = _rooms.FirstOrDefault(r => r.Id == _selectedRoom.Id);
+        }
+        else Snackbar.Add("Failed to delete photo.", Severity.Error);
+    }
+
+    private RenderFragment RenderRoomGrid(List<RoomResponse> rooms) => __builder =>
+    {
+        if (!rooms.Any())
+        {
+            <MudCard Elevation="1">
+                <MudCardContent>
+                    <MudStack AlignItems="AlignItems.Center" Class="py-8">
+                        <MudIcon Icon="@Icons.Material.Filled.Hotel" Size="Size.Large" Color="Color.Default" Style="opacity:.3;" />
+                        <MudText Typo="Typo.body1" Class="fw-medium">No rooms yet</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Add your first room to start taking bookings</MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenRoomDialog">Add Room</MudButton>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        }
+        else
+        {
+            <MudGrid Class="mt-2">
+                @foreach (var room in rooms)
+                {
+                    <MudItem xs="12" sm="6" lg="4">
+                        <MudCard Elevation="1" Style="height:100%;">
+                            @if (room.Photos.Any(p => p.IsPrimary) || room.Photos.Any())
+                            {
+                                var imgUrl = (room.Photos.FirstOrDefault(p => p.IsPrimary) ?? room.Photos.First()).Url;
+                                <MudCardMedia Image="@imgUrl" Height="160" />
+                            }
+                            <MudCardContent>
+                                <MudStack Spacing="1">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                        <MudText Typo="Typo.h6" Class="fw-semibold">@room.Name</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text" Label="true">@room.RoomType</MudChip>
+                                    </MudStack>
+                                    @if (!string.IsNullOrEmpty(room.Description))
+                                    {
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary">@room.Description</MudText>
+                                    }
+                                    @if (!string.IsNullOrEmpty(room.LodgingPropertyName))
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Tertiary">
+                                            <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small" Style="vertical-align:middle;" />
+                                            @room.LodgingPropertyName
+                                        </MudText>
+                                    }
+                                    <MudStack Row="true" Spacing="1" Wrap="Wrap.Wrap" Class="mt-1">
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" Label="true">
+                                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" /> @room.Capacity guests
+                                        </MudChip>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text" Label="true">
+                                            £@room.BaseRate.ToString("0.00")/night
+                                        </MudChip>
+                                        @foreach (var amenity in room.Amenities.Take(4))
+                                        {
+                                            <MudTooltip Text="@amenity.Name">
+                                                <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Label="true">
+                                                    @if (!string.IsNullOrEmpty(amenity.Icon))
+                                                    {
+                                                        <MudIcon Icon="@amenity.Icon" Size="Size.Small" />
+                                                    }
+                                                    else
+                                                    {
+                                                        @amenity.Name
+                                                    }
+                                                </MudChip>
+                                            </MudTooltip>
+                                        }
+                                        @if (room.Amenities.Count > 4)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Label="true">+@(room.Amenities.Count - 4)</MudChip>
+                                        }
+                                    </MudStack>
+                                </MudStack>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudTooltip Text="Photos">
+                                    <MudIconButton Icon="@Icons.Material.Filled.PhotoLibrary" Size="Size.Small"
+                                                   Color="Color.Default" OnClick="@(() => OpenPhotosDialog(room))" />
+                                </MudTooltip>
+                                <MudTooltip Text="Rates">
+                                    <MudIconButton Icon="@Icons.Material.Filled.AttachMoney" Size="Size.Small"
+                                                   Color="Color.Default" OnClick="@(() => OpenRatesDialog(room))" />
+                                </MudTooltip>
+                                <MudSpacer />
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                               Color="Color.Primary" OnClick="@(() => OpenEditRoomDialog(room))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                               Color="Color.Error" OnClick="@(() => DeleteRoom(room))" />
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    };
+}

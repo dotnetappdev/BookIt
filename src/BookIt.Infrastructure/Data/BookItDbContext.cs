@@ -48,6 +48,12 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
     public DbSet<StaffInvitation> StaffInvitations => Set<StaffInvitation>();
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<LodgingProperty> LodgingProperties => Set<LodgingProperty>();
+    public DbSet<Room> Rooms => Set<Room>();
+    public DbSet<RoomPhoto> RoomPhotos => Set<RoomPhoto>();
+    public DbSet<Amenity> Amenities => Set<Amenity>();
+    public DbSet<RoomAmenity> RoomAmenities => Set<RoomAmenity>();
+    public DbSet<RoomRate> RoomRates => Set<RoomRate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -258,6 +264,52 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
             entity.Property(a => a.EntityId).HasMaxLength(200).IsRequired();
             entity.Property(a => a.Action).HasMaxLength(50).IsRequired();
             entity.Property(a => a.ChangedBy).HasMaxLength(256);
+        });
+
+        // LodgingProperty
+        modelBuilder.Entity<LodgingProperty>(entity =>
+        {
+            entity.HasQueryFilter(e => !e.IsDeleted);
+            entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+        });
+
+        // Room
+        modelBuilder.Entity<Room>(entity =>
+        {
+            entity.HasQueryFilter(e => !e.IsDeleted);
+            entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.BaseRate).HasColumnType("decimal(18,2)");
+        });
+
+        // RoomRate
+        modelBuilder.Entity<RoomRate>(entity =>
+        {
+            entity.Property(e => e.Rate).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.StartDate).HasConversion(
+                v => v.ToDateTime(TimeOnly.MinValue), v => DateOnly.FromDateTime(v));
+            entity.Property(e => e.EndDate).HasConversion(
+                v => v.ToDateTime(TimeOnly.MinValue), v => DateOnly.FromDateTime(v));
+        });
+
+        // Amenity
+        modelBuilder.Entity<Amenity>(entity =>
+        {
+            entity.HasQueryFilter(e => !e.IsDeleted);
+            entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+        });
+
+        // RoomAmenity composite key
+        modelBuilder.Entity<RoomAmenity>().HasKey(ra => new { ra.RoomId, ra.AmenityId });
+        modelBuilder.Entity<RoomAmenity>(entity =>
+        {
+            entity.HasOne(ra => ra.Room)
+                  .WithMany(r => r.RoomAmenities)
+                  .HasForeignKey(ra => ra.RoomId)
+                  .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne(ra => ra.Amenity)
+                  .WithMany(a => a.RoomAmenities)
+                  .HasForeignKey(ra => ra.AmenityId)
+                  .OnDelete(DeleteBehavior.NoAction);
         });
 
         // Seed data
