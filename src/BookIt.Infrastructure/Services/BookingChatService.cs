@@ -1,4 +1,5 @@
 using BookIt.Core.DTOs;
+using BookIt.Core.Entities;
 using BookIt.Core.Interfaces;
 using BookIt.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -29,20 +30,179 @@ public class BookingChatService : IChatService
         if (tenant == null)
             return Reply("Sorry, I couldn't find this business.");
 
+        // Persist session and user message
+        await PersistMessageAsync(tenant.Id, request.SessionId, "user", request.Message);
+
+        ChatResponse response;
+
         // Try OpenAI first if configured
         if (!string.IsNullOrEmpty(tenant.OpenAiApiKey))
         {
             try
             {
-                return await ProcessWithOpenAiAsync(tenant, tenantSlug, request);
+                response = await ProcessWithOpenAiAsync(tenant, tenantSlug, request);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "OpenAI chat failed, falling back to rule-based");
+                response = await ProcessRuleBasedAsync(tenant, tenantSlug, request);
             }
         }
+        else
+        {
+            response = await ProcessRuleBasedAsync(tenant, tenantSlug, request);
+        }
 
-        return await ProcessRuleBasedAsync(tenant, tenantSlug, request);
+        // Persist assistant response
+        await PersistMessageAsync(tenant.Id, request.SessionId, "assistant", response.Message);
+
+        return response;
+    }
+
+    // ── Session persistence ────────────────────────────────────────────────────
+    private async Task PersistMessageAsync(Guid tenantId, string sessionId, string role, string content)
+    {
+        if (string.IsNullOrEmpty(sessionId)) return;
+
+        var session = await _context.ChatSessions
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(s => s.TenantId == tenantId && s.SessionId == sessionId);
+
+        if (session == null)
+        {
+            session = new ChatSession
+            {
+                TenantId = tenantId,
+                SessionId = sessionId,
+                Status = ChatSessionStatus.Active,
+                LastMessageAt = DateTime.UtcNow
+            };
+            _context.ChatSessions.Add(session);
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            session.LastMessageAt = DateTime.UtcNow;
+        }
+
+        _context.ChatMessages.Add(new ChatMessage
+        {
+            ChatSessionId = session.Id,
+            Role = role,
+            Content = content,
+            IsAgentMessage = false
+        });
+
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task UpdateSessionIdentityAsync(Guid tenantId, string sessionId, string? name, string? email)
+    {
+        if (string.IsNullOrEmpty(sessionId)) return;
+        var session = await _context.ChatSessions
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(s => s.TenantId == tenantId && s.SessionId == sessionId);
+        if (session == null) return;
+        if (name != null && session.CustomerName == null) session.CustomerName = name;
+        if (email != null && session.CustomerEmail == null) session.CustomerEmail = email;
+        await _context.SaveChangesAsync();
+    }
+
+    // ── Agent dashboard methods ────────────────────────────────────────────────
+    public async Task<List<ChatSessionSummary>> GetSessionsAsync(Guid tenantId)
+    {
+        var sessions = await _context.ChatSessions
+            .IgnoreQueryFilters()
+            .Where(s => s.TenantId == tenantId && !s.IsDeleted)
+            .OrderByDescending(s => s.LastMessageAt)
+            .Select(s => new
+            {
+                s.Id, s.SessionId, s.CustomerName, s.CustomerEmail,
+                s.Status, s.LastMessageAt, s.HasUnreadAgentMessages,
+                MessageCount = s.Messages.Count,
+                LastMsg = s.Messages.OrderByDescending(m => m.CreatedAt)
+                              .Select(m => m.Content).FirstOrDefault()
+            })
+            .Take(100)
+            .ToListAsync();
+
+        return sessions.Select(s => new ChatSessionSummary
+        {
+            Id = s.Id,
+            SessionId = s.SessionId,
+            CustomerName = s.CustomerName,
+            CustomerEmail = s.CustomerEmail,
+            Status = s.Status.ToString(),
+            LastMessageAt = s.LastMessageAt,
+            HasUnreadAgentMessages = s.HasUnreadAgentMessages,
+            LastMessage = s.LastMsg,
+            MessageCount = s.MessageCount
+        }).ToList();
+    }
+
+    public async Task<ChatSessionDetail?> GetSessionAsync(Guid tenantId, string sessionId)
+    {
+        var session = await _context.ChatSessions
+            .IgnoreQueryFilters()
+            .Include(s => s.Messages)
+            .FirstOrDefaultAsync(s => s.TenantId == tenantId && s.SessionId == sessionId && !s.IsDeleted);
+
+        if (session == null) return null;
+
+        return new ChatSessionDetail
+        {
+            Id = session.Id,
+            SessionId = session.SessionId,
+            CustomerName = session.CustomerName,
+            CustomerEmail = session.CustomerEmail,
+            Status = session.Status.ToString(),
+            LastMessageAt = session.LastMessageAt,
+            Messages = session.Messages
+                .OrderBy(m => m.CreatedAt)
+                .Select(m => new ChatMessageDetail
+                {
+                    Id = m.Id,
+                    Role = m.Role,
+                    Content = m.Content,
+                    IsAgentMessage = m.IsAgentMessage,
+                    CreatedAt = m.CreatedAt
+                }).ToList()
+        };
+    }
+
+    public async Task<bool> AgentReplyAsync(Guid tenantId, string sessionId, string message)
+    {
+        var session = await _context.ChatSessions
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(s => s.TenantId == tenantId && s.SessionId == sessionId && !s.IsDeleted);
+        if (session == null) return false;
+
+        session.Status = ChatSessionStatus.HandedOffToAgent;
+        session.LastMessageAt = DateTime.UtcNow;
+        session.HasUnreadAgentMessages = true;
+
+        _context.ChatMessages.Add(new ChatMessage
+        {
+            ChatSessionId = session.Id,
+            Role = "agent",
+            Content = message,
+            IsAgentMessage = true
+        });
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> ResolveSessionAsync(Guid tenantId, string sessionId)
+    {
+        var session = await _context.ChatSessions
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(s => s.TenantId == tenantId && s.SessionId == sessionId && !s.IsDeleted);
+        if (session == null) return false;
+
+        session.Status = ChatSessionStatus.Resolved;
+        await _context.SaveChangesAsync();
+        return true;
     }
 
     // ── Rule-based processing ──────────────────────────────────────────────────
@@ -116,7 +276,7 @@ public class BookingChatService : IChatService
             );
         }
 
-        // Book intent
+        // Book intent — multi-step in-chat booking
         if (msg.Contains("book") || msg.Contains("appointment") || msg.Contains("schedule") || msg.Contains("reserve"))
         {
             var services = await _context.Services
@@ -126,17 +286,18 @@ public class BookingChatService : IChatService
 
             if (matched != null)
             {
+                // Check if there's a next available slot to suggest
+                var tomorrow = DateOnly.FromDateTime(DateTime.Now.AddDays(1));
                 return Reply(
-                    $"Great choice! Let me take you to the booking page for **{matched.Name}**.",
-                    quickReplies: new[] { "Yes, let's go!", "Show me all services" },
-                    action: new ChatAction { Type = "redirect", Url = $"/{tenantSlug}/booking/formstep?serviceId={matched.Id}" }
+                    $"Great choice! You'd like to book **{matched.Name}** ({tenant.Currency}{matched.Price:F2}, {matched.DurationMinutes} min).\n\nTo complete your booking I'll need a few details. What date would you like? (e.g. **tomorrow**, **Monday**, or a specific date)",
+                    quickReplies: new[] { "Tomorrow", "This week", "Next week", "Show me the booking page" },
+                    action: new ChatAction { Type = "collect_booking", Data = new { serviceId = matched.Id, serviceName = matched.Name } }
                 );
             }
 
             return Reply(
                 "I'd be happy to help you book! Which service are you interested in?",
-                quickReplies: services.Take(5).Select(s => s.Name).ToArray(),
-                action: new ChatAction { Type = "redirect", Url = $"/{tenantSlug}/book" }
+                quickReplies: services.Take(5).Select(s => s.Name).ToArray()
             );
         }
 

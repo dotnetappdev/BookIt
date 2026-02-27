@@ -54,6 +54,8 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
     public DbSet<Amenity> Amenities => Set<Amenity>();
     public DbSet<RoomAmenity> RoomAmenities => Set<RoomAmenity>();
     public DbSet<RoomRate> RoomRates => Set<RoomRate>();
+    public DbSet<ChatSession> ChatSessions => Set<ChatSession>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -310,6 +312,27 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
                   .WithMany(a => a.RoomAmenities)
                   .HasForeignKey(ra => ra.AmenityId)
                   .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // ChatSession
+        modelBuilder.Entity<ChatSession>(entity =>
+        {
+            entity.HasIndex(c => new { c.TenantId, c.SessionId }).IsUnique();
+            entity.HasIndex(c => c.LastMessageAt);
+            entity.Property(c => c.SessionId).HasMaxLength(100).IsRequired();
+            entity.Property(c => c.CustomerName).HasMaxLength(200);
+            entity.Property(c => c.CustomerEmail).HasMaxLength(256);
+        });
+
+        // ChatMessage
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.HasIndex(m => m.ChatSessionId);
+            entity.Property(m => m.Role).HasMaxLength(20).IsRequired();
+            entity.HasOne(m => m.ChatSession)
+                  .WithMany(s => s.Messages)
+                  .HasForeignKey(m => m.ChatSessionId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Seed data
