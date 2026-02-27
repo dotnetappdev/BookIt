@@ -90,7 +90,7 @@ public class StaffController : ControllerBase
         return Ok(MapToResponse(staff));
     }
 
-    [Authorize]
+    [Authorize(Policy = "Manager")]
     [HttpPost]
     public async Task<ActionResult<StaffResponse>> CreateStaff(string tenantSlug, [FromBody] CreateStaffRequest request)
     {
@@ -164,7 +164,7 @@ public class StaffController : ControllerBase
         return CreatedAtAction(nameof(GetStaffById), new { tenantSlug, id = staff.Id }, MapToResponse(staff));
     }
 
-    [Authorize]
+    [Authorize(Policy = "Manager")]
     [HttpPut("{id}")]
     public async Task<ActionResult<StaffResponse>> UpdateStaff(string tenantSlug, Guid id, [FromBody] UpdateStaffRequest request)
     {
@@ -194,7 +194,7 @@ public class StaffController : ControllerBase
         return Ok(MapToResponse(staff));
     }
 
-    [Authorize]
+    [Authorize(Policy = "Manager")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteStaff(string tenantSlug, Guid id)
     {
@@ -216,7 +216,7 @@ public class StaffController : ControllerBase
         return NoContent();
     }
 
-    [Authorize]
+    [Authorize(Policy = "Manager")]
     [HttpPut("{id}/services")]
     public async Task<IActionResult> AssignServices(string tenantSlug, Guid id, [FromBody] AssignStaffServicesRequest request)
     {

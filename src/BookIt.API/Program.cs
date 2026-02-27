@@ -75,8 +75,13 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("TenantAdmin", policy => policy.RequireClaim("role",
         ((int)UserRole.TenantAdmin).ToString(),
         ((int)UserRole.SuperAdmin).ToString()));
+    options.AddPolicy("Manager", policy => policy.RequireClaim("role",
+        ((int)UserRole.Manager).ToString(),
+        ((int)UserRole.TenantAdmin).ToString(),
+        ((int)UserRole.SuperAdmin).ToString()));
     options.AddPolicy("Staff", policy => policy.RequireClaim("role",
         ((int)UserRole.Staff).ToString(),
+        ((int)UserRole.Manager).ToString(),
         ((int)UserRole.TenantAdmin).ToString(),
         ((int)UserRole.SuperAdmin).ToString()));
 });
