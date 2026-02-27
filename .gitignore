@@ -5,6 +5,7 @@ obj/
 **/obj/
 ## Windows-style build output paths (backslash in directory name)
 **/bin\*/
+**\bin\**
 *.user
 *.suo
 .vs/
