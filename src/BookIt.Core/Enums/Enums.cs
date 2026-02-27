@@ -67,8 +67,9 @@ public enum UserRole
 {
     SuperAdmin = 1,
     TenantAdmin = 2,
-    Staff = 3,
-    Customer = 4
+    Manager = 3,
+    Staff = 4,
+    Customer = 5
 }
 
 public enum DayOfWeekFlag

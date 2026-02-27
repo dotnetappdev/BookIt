@@ -19,6 +19,9 @@ public class BookItAuthState
 
     public bool IsAuthenticated => !string.IsNullOrEmpty(AccessToken);
 
+    public bool IsManagerOrAbove => Role is UserRole.TenantAdmin or UserRole.SuperAdmin or UserRole.Manager;
+    public bool IsStaffOnly => Role == UserRole.Staff;
+
     public string Initials
     {
         get

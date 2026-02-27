@@ -2,6 +2,7 @@ using BookIt.Core.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace BookIt.Infrastructure.Data;
 
@@ -46,6 +47,7 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
     public DbSet<WebhookDelivery> WebhookDeliveries => Set<WebhookDelivery>();
     public DbSet<StaffInvitation> StaffInvitations => Set<StaffInvitation>();
     public DbSet<Client> Clients => Set<Client>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -245,6 +247,17 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
             entity.Property(c => c.TotalSpent).HasColumnType("decimal(18,2)");
         });
 
+        // AuditLog
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasIndex(a => new { a.TenantId, a.ChangedAt });
+            entity.HasIndex(a => new { a.EntityName, a.EntityId });
+            entity.Property(a => a.EntityName).HasMaxLength(200).IsRequired();
+            entity.Property(a => a.EntityId).HasMaxLength(200).IsRequired();
+            entity.Property(a => a.Action).HasMaxLength(50).IsRequired();
+            entity.Property(a => a.ChangedBy).HasMaxLength(256);
+        });
+
         // Seed data
         SeedData(modelBuilder);
     }
@@ -270,18 +283,21 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         // Seed Identity Roles
         var superAdminRoleId = new Guid("aa000000-0000-0000-0000-000000000001");
         var tenantAdminRoleId = new Guid("aa000000-0000-0000-0000-000000000002");
+        var managerRoleId = new Guid("aa000000-0000-0000-0000-000000000005");
         var staffRoleId = new Guid("aa000000-0000-0000-0000-000000000003");
         var customerRoleId = new Guid("aa000000-0000-0000-0000-000000000004");
 
         modelBuilder.Entity<IdentityRole<Guid>>().HasData(
             new IdentityRole<Guid> { Id = superAdminRoleId, Name = "SuperAdmin", NormalizedName = "SUPERADMIN", ConcurrencyStamp = "1" },
             new IdentityRole<Guid> { Id = tenantAdminRoleId, Name = "TenantAdmin", NormalizedName = "TENANTADMIN", ConcurrencyStamp = "2" },
+            new IdentityRole<Guid> { Id = managerRoleId, Name = "Manager", NormalizedName = "MANAGER", ConcurrencyStamp = "5" },
             new IdentityRole<Guid> { Id = staffRoleId, Name = "Staff", NormalizedName = "STAFF", ConcurrencyStamp = "3" },
             new IdentityRole<Guid> { Id = customerRoleId, Name = "Customer", NormalizedName = "CUSTOMER", ConcurrencyStamp = "4" }
         );
 
         // Seed admin user for demo tenant (password: Admin123!)
         var adminUserId = new Guid("bb000000-0000-0000-0000-000000000001");
+        var managerUserId = new Guid("bb000000-0000-0000-0000-000000000004");
         var staffUserId = new Guid("bb000000-0000-0000-0000-000000000002");
         var customerUserId = new Guid("bb000000-0000-0000-0000-000000000003");
 
@@ -305,6 +321,25 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         };
         adminUser.PasswordHash = hasher.HashPassword(adminUser, "Admin123!");
+
+        var managerUser = new ApplicationUser
+        {
+            Id = managerUserId,
+            TenantId = demoTenantId,
+            Email = "manager@demo-barber.com",
+            NormalizedEmail = "MANAGER@DEMO-BARBER.COM",
+            UserName = "manager@demo-barber.com",
+            NormalizedUserName = "MANAGER@DEMO-BARBER.COM",
+            FirstName = "Sarah",
+            LastName = "Manager",
+            Role = Core.Enums.UserRole.Manager,
+            IsDeleted = false,
+            EmailConfirmed = true,
+            SecurityStamp = "manager-security-stamp-1",
+            ConcurrencyStamp = "manager-concurrency-stamp-1",
+            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
+        managerUser.PasswordHash = hasher.HashPassword(managerUser, "Manager123!");
 
         var staffUser = new ApplicationUser
         {
@@ -344,11 +379,12 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         };
         customerUser.PasswordHash = hasher.HashPassword(customerUser, "Customer123!");
 
-        modelBuilder.Entity<ApplicationUser>().HasData(adminUser, staffUser, customerUser);
+        modelBuilder.Entity<ApplicationUser>().HasData(adminUser, managerUser, staffUser, customerUser);
 
         // Seed UserRoles
         modelBuilder.Entity<IdentityUserRole<Guid>>().HasData(
             new IdentityUserRole<Guid> { UserId = adminUserId, RoleId = tenantAdminRoleId },
+            new IdentityUserRole<Guid> { UserId = managerUserId, RoleId = managerRoleId },
             new IdentityUserRole<Guid> { UserId = staffUserId, RoleId = staffRoleId },
             new IdentityUserRole<Guid> { UserId = customerUserId, RoleId = customerRoleId }
         );
@@ -406,14 +442,86 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         });
     }
 
+    public string? CurrentUserEmail { get; set; }
+
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var entries = ChangeTracker.Entries<BookIt.Core.Entities.BaseEntity>();
-        foreach (var entry in entries)
+        var now = DateTime.UtcNow;
+        var auditEntries = new List<AuditLog>();
+
+        foreach (var entry in ChangeTracker.Entries<BaseEntity>())
         {
-            if (entry.State == EntityState.Modified)
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = now;
+                entry.Entity.CreatedBy = CurrentUserEmail;
+                auditEntries.Add(BuildAuditLog(entry, "Created", now));
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = now;
+                entry.Entity.UpdatedBy = CurrentUserEmail;
+
+                // If IsDeleted just flipped to true, stamp DeletedAt/DeletedBy
+                var isDeletedProp = entry.Property(nameof(BaseEntity.IsDeleted));
+                if (isDeletedProp.IsModified && entry.Entity.IsDeleted)
+                {
+                    entry.Entity.DeletedAt = now;
+                    entry.Entity.DeletedBy = CurrentUserEmail;
+                    auditEntries.Add(BuildAuditLog(entry, "Deleted", now));
+                }
+                else
+                {
+                    entry.Entity.EditedAt = now;
+                    entry.Entity.EditedBy = CurrentUserEmail;
+                    auditEntries.Add(BuildAuditLog(entry, "Updated", now));
+                }
+            }
         }
+
+        if (auditEntries.Any())
+            AuditLogs.AddRange(auditEntries);
+
         return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private AuditLog BuildAuditLog(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<BaseEntity> entry, string action, DateTime now)
+    {
+        var entityName = entry.Metadata.GetTableName() ?? entry.Metadata.ClrType.Name;
+        var entityId = entry.Entity.Id.ToString();
+
+        var newValues = new Dictionary<string, object?>();
+        Dictionary<string, object?>? oldValues = null;
+
+        foreach (var prop in entry.Properties)
+        {
+            if (prop.Metadata.IsKey()) continue;
+            if (action == "Updated" && !prop.IsModified) continue;
+
+            newValues[prop.Metadata.Name] = prop.CurrentValue;
+            if (action == "Updated")
+            {
+                oldValues ??= new Dictionary<string, object?>();
+                oldValues[prop.Metadata.Name] = prop.OriginalValue;
+            }
+        }
+
+        // Resolve TenantId if entity exposes one
+        Guid? tenantId = null;
+        var tenantProp = entry.Properties.FirstOrDefault(p => p.Metadata.Name == "TenantId");
+        if (tenantProp?.CurrentValue is Guid tid)
+            tenantId = tid;
+
+        return new AuditLog
+        {
+            TenantId = tenantId,
+            EntityName = entityName,
+            EntityId = entityId,
+            Action = action,
+            ChangedBy = CurrentUserEmail,
+            ChangedAt = now,
+            OldValues = oldValues == null ? null : JsonSerializer.Serialize(oldValues),
+            NewValues = JsonSerializer.Serialize(newValues)
+        };
     }
 }

@@ -1170,13 +1170,13 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasOne("BookIt.Core.Entities.Service", "Service")
                         .WithMany("StaffServices")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BookIt.Core.Entities.Staff", "Staff")
                         .WithMany("Services")
                         .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Service");

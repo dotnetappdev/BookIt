@@ -13,6 +13,22 @@
 }
 else
 {
+    <!-- Staff filter dropdown — visible to Managers and above only -->
+    @if (Auth.IsManagerOrAbove && _staffList.Any())
+    {
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Style="white-space:nowrap;">View staff:</MudText>
+            <MudSelect T="Guid?" Value="_selectedStaffId" ValueChanged="OnStaffFilterChanged"
+                       Variant="Variant.Outlined" Dense="true" Style="max-width:240px;"
+                       Clearable="true" Placeholder="All staff">
+                @foreach (var s in _staffList)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)s.Id)">@s.FullName</MudSelectItem>
+                }
+            </MudSelect>
+        </MudStack>
+    }
+
     <BookIt.UI.Shared.Components.Admin.CalendarView
         Appointments="@_appointments"
         InitialView="week"
@@ -23,6 +39,10 @@ else
     [Parameter] public string TenantSlug { get; set; } = "";
 
     private List<AppointmentResponse> _appointments = new();
+    private List<StaffResponse> _staffList = new();
+    private Guid? _selectedStaffId;
+    private DateTime _currentFrom;
+    private DateTime _currentTo;
 
     protected override void OnInitialized()
     {
@@ -33,20 +53,38 @@ else
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender || !Auth.IsAuthenticated) return;
+        Api.SetToken(Auth.AccessToken);
+
+        // Load staff list for managers/admins to enable the filter dropdown
+        if (Auth.IsManagerOrAbove)
+        {
+            _staffList = await Api.GetAllStaffAsync(TenantSlug) ?? new();
+        }
+
         // Load the current week on first render
         var monday = DateTime.Today.AddDays(-(((int)DateTime.Today.DayOfWeek + 6) % 7));
-        await LoadAsync(monday, monday.AddDays(7));
+        _currentFrom = monday;
+        _currentTo = monday.AddDays(7);
+        await LoadAsync(_currentFrom, _currentTo);
     }
 
     private async Task HandleRangeChanged((DateTime From, DateTime To) range)
     {
-        await LoadAsync(range.From, range.To);
+        _currentFrom = range.From;
+        _currentTo = range.To;
+        await LoadAsync(_currentFrom, _currentTo);
+    }
+
+    private async Task OnStaffFilterChanged(Guid? staffId)
+    {
+        _selectedStaffId = staffId;
+        await LoadAsync(_currentFrom, _currentTo);
     }
 
     private async Task LoadAsync(DateTime from, DateTime to)
     {
         Api.SetToken(Auth.AccessToken);
-        _appointments = await Api.GetAppointmentsAsync(TenantSlug, from, to);
+        _appointments = await Api.GetAppointmentsAsync(TenantSlug, from, to, _selectedStaffId);
         StateHasChanged();
     }
 }

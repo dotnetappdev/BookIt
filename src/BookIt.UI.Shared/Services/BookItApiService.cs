@@ -92,12 +92,13 @@ public class BookItApiService
 
     // ── Appointments ──
     public async Task<List<AppointmentResponse>> GetAppointmentsAsync(
-        string slug, DateTime? from = null, DateTime? to = null)
+        string slug, DateTime? from = null, DateTime? to = null, Guid? staffId = null)
     {
         var url = $"/api/tenants/{slug}/appointments";
         var qs = new List<string>();
         if (from.HasValue) qs.Add($"from={from.Value:yyyy-MM-ddTHH:mm:ss}");
         if (to.HasValue) qs.Add($"to={to.Value:yyyy-MM-ddTHH:mm:ss}");
+        if (staffId.HasValue) qs.Add($"staffId={staffId.Value}");
         if (qs.Count > 0) url += "?" + string.Join("&", qs);
         return await GetAsync<List<AppointmentResponse>>(url) ?? new();
     }
@@ -271,6 +272,18 @@ public class BookItApiService
 
     public Task<List<WebhookDeliveryResponse>?> GetWebhookDeliveriesAsync(string slug, Guid webhookId) =>
         GetAsync<List<WebhookDeliveryResponse>>($"/api/tenants/{slug}/webhooks/{webhookId}/deliveries");
+
+    // ── Audit Trail ──
+    public Task<PagedResult<AuditLogResponse>?> GetAuditTrailAsync(string slug, AuditLogQueryParams queryParams)
+    {
+        var qs = $"page={queryParams.Page}&pageSize={queryParams.PageSize}";
+        if (!string.IsNullOrWhiteSpace(queryParams.EntityName)) qs += $"&entityName={Uri.EscapeDataString(queryParams.EntityName)}";
+        if (!string.IsNullOrWhiteSpace(queryParams.Action))     qs += $"&action={Uri.EscapeDataString(queryParams.Action)}";
+        if (!string.IsNullOrWhiteSpace(queryParams.ChangedBy))  qs += $"&changedBy={Uri.EscapeDataString(queryParams.ChangedBy)}";
+        if (queryParams.From.HasValue) qs += $"&from={queryParams.From.Value:O}";
+        if (queryParams.To.HasValue)   qs += $"&to={queryParams.To.Value:O}";
+        return GetAsync<PagedResult<AuditLogResponse>>($"/api/tenants/{slug}/audit-trail?{qs}");
+    }
 
     private async Task<bool> PostBoolAsync(string url, object body)
     {

@@ -4,6 +4,7 @@ using BookIt.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookIt.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(BookItDbContext))]
-    partial class BookItDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260226230758_AddAuditFieldsAndAuditLog")]
+    partial class AddAuditFieldsAndAuditLog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -199,35 +202,13 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@DEMO-BARBER.COM",
                             NormalizedUserName = "ADMIN@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGdmkIYYVLqbXdKkZg50IDGpxTrQ0TQPDvwtFcztxwNzTY9a53EwyHQ7Y7b7vmsREg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEA2nCbeZm1TLryi6PZxfwiq4+hggmyC4NllfXHmdDBnIZEWyI9gwISa57IKdZBAByw==",
                             PhoneNumberConfirmed = false,
                             Role = 2,
                             SecurityStamp = "admin-security-stamp-1",
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
                             TwoFactorEnabled = false,
                             UserName = "admin@demo-barber.com"
-                        },
-                        new
-                        {
-                            Id = new Guid("bb000000-0000-0000-0000-000000000004"),
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "manager-concurrency-stamp-1",
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "manager@demo-barber.com",
-                            EmailConfirmed = true,
-                            FirstName = "Sarah",
-                            IsDeleted = false,
-                            LastName = "Manager",
-                            LockoutEnabled = false,
-                            NormalizedEmail = "MANAGER@DEMO-BARBER.COM",
-                            NormalizedUserName = "MANAGER@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEA3HvWcx1zen0eFthQvU6K02+HXUL7ISmaH/zrfPtt0v4vgrs4gAxuL1ngd/qMap5w==",
-                            PhoneNumberConfirmed = false,
-                            Role = 3,
-                            SecurityStamp = "manager-security-stamp-1",
-                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            TwoFactorEnabled = false,
-                            UserName = "manager@demo-barber.com"
                         },
                         new
                         {
@@ -243,9 +224,9 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "STAFF@DEMO-BARBER.COM",
                             NormalizedUserName = "STAFF@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHb5w4xLoZYRtU1kBVpUMw2NgI1x+W+OmJiO7ptQtjcdfEOeuvGxdPSNrOp2DFaXBw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEMkThscyR7jpGtUzsnmtQ7rclygQbzDX8Mwy2vzPuN5tAXQ+/QmnlMShH6wt+WqRg==",
                             PhoneNumberConfirmed = false,
-                            Role = 4,
+                            Role = 3,
                             SecurityStamp = "staff-security-stamp-1",
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
                             TwoFactorEnabled = false,
@@ -265,9 +246,9 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CUSTOMER@EXAMPLE.COM",
                             NormalizedUserName = "CUSTOMER@EXAMPLE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJHOhmVqv9bxzg/kHo580N5Ew2N4VwAUcN2hfI0NEYZDlJeDfya/6m3WWXyixcpxDA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEI53NgoT3podwonUEjQw6xIc9LTgU2jqJUOBzghSyTEHYNHQIugO6eeQMwqJVtuLRw==",
                             PhoneNumberConfirmed = false,
-                            Role = 5,
+                            Role = 4,
                             SecurityStamp = "customer-security-stamp-1",
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
                             TwoFactorEnabled = false,
@@ -2278,13 +2259,6 @@ namespace BookIt.Infrastructure.Data.Migrations
                         },
                         new
                         {
-                            Id = new Guid("aa000000-0000-0000-0000-000000000005"),
-                            ConcurrencyStamp = "5",
-                            Name = "Manager",
-                            NormalizedName = "MANAGER"
-                        },
-                        new
-                        {
                             Id = new Guid("aa000000-0000-0000-0000-000000000003"),
                             ConcurrencyStamp = "3",
                             Name = "Staff",
@@ -2387,11 +2361,6 @@ namespace BookIt.Infrastructure.Data.Migrations
                         {
                             UserId = new Guid("bb000000-0000-0000-0000-000000000001"),
                             RoleId = new Guid("aa000000-0000-0000-0000-000000000002")
-                        },
-                        new
-                        {
-                            UserId = new Guid("bb000000-0000-0000-0000-000000000004"),
-                            RoleId = new Guid("aa000000-0000-0000-0000-000000000005")
                         },
                         new
                         {

@@ -168,7 +168,8 @@ public class AppointmentsController : ControllerBase
         string tenantSlug,
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to,
-        [FromQuery] AppointmentStatus? status)
+        [FromQuery] AppointmentStatus? status,
+        [FromQuery] Guid? staffId)
     {
         var tenant = await GetTenantAsync(tenantSlug);
         if (tenant == null) return NotFound();
@@ -176,10 +177,31 @@ public class AppointmentsController : ControllerBase
         if (!_tenantService.IsValidTenantAccess(tenant.Id))
             return Forbid();
 
+        // Determine the role claim from the JWT
+        var roleClaim = User.FindFirst("role")?.Value;
+        var isStaffOnly = roleClaim == ((int)UserRole.Staff).ToString();
+        var isManager = roleClaim == ((int)UserRole.Manager).ToString();
+
         var query = _context.Appointments
             .Include(a => a.Services).ThenInclude(s => s.Service)
             .Include(a => a.Staff)
             .Where(a => a.TenantId == tenant.Id && !a.IsDeleted);
+
+        if (isStaffOnly)
+        {
+            // Staff can only see their own appointments — look up via email match on Staff table
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                         ?? User.FindFirst("email")?.Value;
+            var staffRecord = await _context.Staff
+                .FirstOrDefaultAsync(s => s.TenantId == tenant.Id && s.Email == userEmail && !s.IsDeleted);
+            if (staffRecord != null)
+                query = query.Where(a => a.StaffId == staffRecord.Id);
+        }
+        else if (staffId.HasValue)
+        {
+            // Managers and admins can filter by a specific staff member
+            query = query.Where(a => a.StaffId == staffId.Value);
+        }
 
         if (from.HasValue) query = query.Where(a => a.StartTime >= from.Value);
         if (to.HasValue) query = query.Where(a => a.StartTime <= to.Value);

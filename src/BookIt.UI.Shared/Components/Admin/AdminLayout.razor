@@ -141,6 +141,9 @@
             <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/subscriptions")"
                         Icon="@Icons.Material.Filled.CreditCard"
                         Style="color:rgba(255,255,255,.65);">Subscription</MudNavLink>
+            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/audit-trail")"
+                        Icon="@Icons.Material.Filled.ManageSearch"
+                        Style="color:rgba(255,255,255,.65);">Audit Trail</MudNavLink>
         </MudNavMenu>
 
         <!-- User footer strip -->
@@ -187,6 +190,7 @@
         "settings"         => "Settings",
         "email-templates"  => "Email Templates",
         "subscriptions"    => "Subscription",
+        "audit-trail"      => "Audit Trail",
         _                  => "Dashboard"
     };
 
