@@ -21,8 +21,11 @@ else
                 <MudText Typo="Typo.h5" Class="fw-bold">Customers</MudText>
                 <MudText Typo="Typo.body2" Color="Color.Secondary">All customers for this business</MudText>
             </div>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
-                       OnClick="OpenAddDialog">Add Customer</MudButton>
+            @if (Auth.IsStaffOrAbove)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
+                           OnClick="OpenAddDialog">Add Customer</MudButton>
+            }
         </MudStack>
 
         <!-- Search bar -->
@@ -41,7 +44,10 @@ else
                     <MudStack AlignItems="AlignItems.Center" Class="py-8">
                         <MudIcon Icon="@Icons.Material.Filled.PeopleOutline" Size="Size.Large" Style="opacity:.3;" />
                         <MudText Typo="Typo.body1" Class="fw-medium">No customers yet</MudText>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog">Add First Customer</MudButton>
+                        @if (Auth.IsStaffOrAbove)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog">Add First Customer</MudButton>
+                        }
                     </MudStack>
                 </MudCardContent>
             </MudCard>
@@ -102,18 +108,21 @@ else
                     </TemplateColumn>
                     <TemplateColumn Title="" Sortable="false">
                         <CellTemplate>
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
-                                           OnClick="@(() => OpenEditDialog(context.Item))" />
-                            @if (_pendingDeleteId == context.Item.Id)
+                            @if (Auth.IsStaffOrAbove)
                             {
-                                <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
-                                           OnClick="@(() => ConfirmDelete(context.Item))">Delete?</MudButton>
-                                <MudButton Size="Size.Small" OnClick="@(() => _pendingDeleteId = null)">Cancel</MudButton>
-                            }
-                            else
-                            {
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
-                                               OnClick="@(() => _pendingDeleteId = context.Item.Id)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                               OnClick="@(() => OpenEditDialog(context.Item))" />
+                                @if (_pendingDeleteId == context.Item.Id)
+                                {
+                                    <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
+                                               OnClick="@(() => ConfirmDelete(context.Item))">Delete?</MudButton>
+                                    <MudButton Size="Size.Small" OnClick="@(() => _pendingDeleteId = null)">Cancel</MudButton>
+                                }
+                                else
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                   OnClick="@(() => _pendingDeleteId = context.Item.Id)" />
+                                }
                             }
                         </CellTemplate>
                     </TemplateColumn>

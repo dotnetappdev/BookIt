@@ -78,6 +78,7 @@ public class CustomersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "Staff")]
     public async Task<ActionResult<CustomerResponse>> CreateCustomer(string tenantSlug, [FromBody] CreateCustomerRequest request)
     {
         var tenant = await GetTenantAsync(tenantSlug);
@@ -119,6 +120,7 @@ public class CustomersController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Policy = "Staff")]
     public async Task<ActionResult<CustomerResponse>> UpdateCustomer(string tenantSlug, Guid id, [FromBody] UpdateCustomerRequest request)
     {
         var tenant = await GetTenantAsync(tenantSlug);
@@ -159,6 +161,7 @@ public class CustomersController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = "Staff")]
     public async Task<IActionResult> DeleteCustomer(string tenantSlug, Guid id)
     {
         var tenant = await GetTenantAsync(tenantSlug);
