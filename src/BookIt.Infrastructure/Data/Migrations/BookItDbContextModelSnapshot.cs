@@ -354,6 +354,121 @@ namespace BookIt.Infrastructure.Data.Migrations
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
                             TwoFactorEnabled = false,
                             UserName = "superadmin@bookit.app"
+                        },
+                        new
+                        {
+                            Id = new Guid("ee000000-0000-0000-0000-000000000001"),
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "james-concurrency-stamp",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "james@elitehair.com",
+                            EmailConfirmed = true,
+                            FirstName = "James",
+                            IsDeleted = false,
+                            LastName = "Martinez",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "JAMES@ELITEHAIR.COM",
+                            NormalizedUserName = "JAMES@ELITEHAIR.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJG449ssHHixsjQHRmtQ77ObBnLZBt3s4t54hGgYCLV7/EuqQsTEMNl8VueuB7hknw==",
+                            PhoneNumber = "555-0201",
+                            PhoneNumberConfirmed = false,
+                            Role = 4,
+                            SecurityStamp = "james-security-stamp",
+                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            TwoFactorEnabled = false,
+                            UserName = "james@elitehair.com"
+                        },
+                        new
+                        {
+                            Id = new Guid("ee000000-0000-0000-0000-000000000002"),
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "emma-concurrency-stamp",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "emma@elitehair.com",
+                            EmailConfirmed = true,
+                            FirstName = "Emma",
+                            IsDeleted = false,
+                            LastName = "Wilson",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "EMMA@ELITEHAIR.COM",
+                            NormalizedUserName = "EMMA@ELITEHAIR.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJG449ssHHixsjQHRmtQ77ObBnLZBt3s4t54hGgYCLV7/EuqQsTEMNl8VueuB7hknw==",
+                            PhoneNumber = "555-0202",
+                            PhoneNumberConfirmed = false,
+                            Role = 4,
+                            SecurityStamp = "emma-security-stamp",
+                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            TwoFactorEnabled = false,
+                            UserName = "emma@elitehair.com"
+                        },
+                        new
+                        {
+                            Id = new Guid("ee000000-0000-0000-0000-000000000003"),
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "oliver-concurrency-stamp",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "oliver@urbanstyle.com",
+                            EmailConfirmed = true,
+                            FirstName = "Oliver",
+                            IsDeleted = false,
+                            LastName = "Brown",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "OLIVER@URBANSTYLE.COM",
+                            NormalizedUserName = "OLIVER@URBANSTYLE.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJG449ssHHixsjQHRmtQ77ObBnLZBt3s4t54hGgYCLV7/EuqQsTEMNl8VueuB7hknw==",
+                            PhoneNumber = "555-0203",
+                            PhoneNumberConfirmed = false,
+                            Role = 4,
+                            SecurityStamp = "oliver-security-stamp",
+                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            TwoFactorEnabled = false,
+                            UserName = "oliver@urbanstyle.com"
+                        },
+                        new
+                        {
+                            Id = new Guid("ee000000-0000-0000-0000-000000000004"),
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "client1-concurrency-stamp",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "sarah@elitehair.com",
+                            EmailConfirmed = true,
+                            FirstName = "Sarah",
+                            IsDeleted = false,
+                            LastName = "Johnson",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "SARAH@ELITEHAIR.COM",
+                            NormalizedUserName = "SARAH@ELITEHAIR.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEg7zuYqljGMg56j3zUnQcWfW3B1ES52Rac1If1LF5QpglTD9iCwA2fjdi++mqLUNQ==",
+                            PhoneNumber = "555-0101",
+                            PhoneNumberConfirmed = false,
+                            Role = 5,
+                            SecurityStamp = "client1-security-stamp",
+                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            TwoFactorEnabled = false,
+                            UserName = "sarah@elitehair.com"
+                        },
+                        new
+                        {
+                            Id = new Guid("ee000000-0000-0000-0000-000000000005"),
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "client2-concurrency-stamp",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "michael@urbanstyle.com",
+                            EmailConfirmed = true,
+                            FirstName = "Michael",
+                            IsDeleted = false,
+                            LastName = "Chen",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "MICHAEL@URBANSTYLE.COM",
+                            NormalizedUserName = "MICHAEL@URBANSTYLE.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEg7zuYqljGMg56j3zUnQcWfW3B1ES52Rac1If1LF5QpglTD9iCwA2fjdi++mqLUNQ==",
+                            PhoneNumber = "555-0102",
+                            PhoneNumberConfirmed = false,
+                            Role = 5,
+                            SecurityStamp = "client2-security-stamp",
+                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            TwoFactorEnabled = false,
+                            UserName = "michael@urbanstyle.com"
                         });
                 });
 
@@ -480,6 +595,23 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasIndex("TenantId", "StartTime");
 
                     b.ToTable("Appointments");
+
+                    b.HasData(
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000001"), BookingPin = "A1B2C3", ConfirmationToken = "tok-appt01", CreatedAt = new DateTime(2026, 1,  1, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "alice.thompson@example.com", CustomerId = new Guid("dd000000-0000-0000-0000-000000000001"), CustomerName = "Alice Thompson", CustomerPhone = "555-1001", EndTime = new DateTime(2026, 1, 8, 10, 30, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 1, ReminderSent = true,  StaffId = new Guid("cc000000-0000-0000-0000-000000000001"), StartTime = new DateTime(2026, 1, 8, 10, 0, 0, DateTimeKind.Utc), Status = 3, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 25.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000002"), BookingPin = "D4E5F6", ConfirmationToken = "tok-appt02", CreatedAt = new DateTime(2026, 1,  2, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "bob.williams@example.com",   CustomerId = new Guid("dd000000-0000-0000-0000-000000000002"), CustomerName = "Bob Williams",   CustomerPhone = "555-1002", EndTime = new DateTime(2026, 1, 10, 12, 0, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 1, ReminderSent = true,  StaffId = new Guid("cc000000-0000-0000-0000-000000000002"), StartTime = new DateTime(2026, 1, 10, 11, 0, 0, DateTimeKind.Utc), Status = 3, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 40.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000003"), BookingPin = "G7H8I9", ConfirmationToken = "tok-appt03", CreatedAt = new DateTime(2026, 1,  3, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "carol.davies@example.com",   CustomerId = new Guid("dd000000-0000-0000-0000-000000000003"), CustomerName = "Carol Davies",   CustomerPhone = "555-1003", EndTime = new DateTime(2026, 1, 12, 9,  30, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 1, ReminderSent = true,  StaffId = new Guid("cc000000-0000-0000-0000-000000000003"), StartTime = new DateTime(2026, 1, 12, 9,  0, 0, DateTimeKind.Utc), Status = 3, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 25.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000004"), BookingPin = "J1K2L3", ConfirmationToken = "tok-appt04", CreatedAt = new DateTime(2026, 1,  4, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "david.harrison@example.com", CustomerId = new Guid("dd000000-0000-0000-0000-000000000004"), CustomerName = "David Harrison", CustomerPhone = "555-1004", EndTime = new DateTime(2026, 1, 15, 14, 20, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 1, ReminderSent = true,  StaffId = new Guid("cc000000-0000-0000-0000-000000000004"), StartTime = new DateTime(2026, 1, 15, 14, 0, 0, DateTimeKind.Utc), Status = 3, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 15.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000005"), BookingPin = "M4N5O6", ConfirmationToken = "tok-appt05", CreatedAt = new DateTime(2026, 1,  5, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "eve.jackson@example.com",    CustomerId = new Guid("dd000000-0000-0000-0000-000000000005"), CustomerName = "Eve Jackson",    CustomerPhone = "555-1005", EndTime = new DateTime(2026, 1, 18, 11, 0, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 1, ReminderSent = true,  StaffId = new Guid("cc000000-0000-0000-0000-000000000002"), StartTime = new DateTime(2026, 1, 18, 10, 0, 0, DateTimeKind.Utc), Status = 3, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 40.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000006"), BookingPin = "P7Q8R9", ConfirmationToken = "tok-appt06", CreatedAt = new DateTime(2026, 1,  7, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "alice.thompson@example.com", CustomerId = new Guid("dd000000-0000-0000-0000-000000000001"), CustomerName = "Alice Thompson", CustomerPhone = "555-1001", EndTime = new DateTime(2026, 1, 22, 10, 0, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 1, ReminderSent = true,  StaffId = new Guid("cc000000-0000-0000-0000-000000000003"), StartTime = new DateTime(2026, 1, 22, 9,  0, 0, DateTimeKind.Utc), Status = 3, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 40.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000007"), BookingPin = "S1T2U3", ConfirmationToken = "tok-appt07", CreatedAt = new DateTime(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "carol.davies@example.com",   CustomerId = new Guid("dd000000-0000-0000-0000-000000000003"), CustomerName = "Carol Davies",   CustomerPhone = "555-1003", EndTime = new DateTime(2026, 1, 25, 11, 45, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 1, ReminderSent = true,  StaffId = new Guid("cc000000-0000-0000-0000-000000000004"), StartTime = new DateTime(2026, 1, 25, 11, 0, 0, DateTimeKind.Utc), Status = 3, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 35.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000008"), BookingPin = "V4W5X6", ConfirmationToken = "tok-appt08", CreatedAt = new DateTime(2026, 1, 12, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "bob.williams@example.com",   CustomerId = new Guid("dd000000-0000-0000-0000-000000000002"), CustomerName = "Bob Williams",   CustomerPhone = "555-1002", EndTime = new DateTime(2026, 1, 28, 12, 30, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 1, ReminderSent = true,  StaffId = new Guid("cc000000-0000-0000-0000-000000000001"), StartTime = new DateTime(2026, 1, 28, 12, 0, 0, DateTimeKind.Utc), Status = 3, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 25.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000009"), BookingPin = "Y7Z8A1", ConfirmationToken = "tok-appt09", CreatedAt = new DateTime(2026, 1, 13, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "eve.jackson@example.com",    CustomerId = new Guid("dd000000-0000-0000-0000-000000000005"), CustomerName = "Eve Jackson",    CustomerPhone = "555-1005", EndTime = new DateTime(2026, 1, 29, 14, 20, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 1, ReminderSent = true,  StaffId = new Guid("cc000000-0000-0000-0000-000000000001"), StartTime = new DateTime(2026, 1, 29, 14, 0, 0, DateTimeKind.Utc), Status = 3, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 15.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000010"), BookingPin = "B2C3D4", CancellationReason = "Customer requested reschedule", ConfirmationToken = "tok-appt10", CreatedAt = new DateTime(2026, 1, 14, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "david.harrison@example.com", CustomerId = new Guid("dd000000-0000-0000-0000-000000000004"), CustomerName = "David Harrison", CustomerPhone = "555-1004", EndTime = new DateTime(2026, 1, 31, 15, 30, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 0, ReminderSent = false, StaffId = new Guid("cc000000-0000-0000-0000-000000000002"), StartTime = new DateTime(2026, 1, 31, 15, 0, 0, DateTimeKind.Utc), Status = 4, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 25.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000011"), BookingPin = "E5F6G7", ConfirmationToken = "tok-appt11", CreatedAt = new DateTime(2026, 1, 27, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "alice.thompson@example.com", CustomerId = new Guid("dd000000-0000-0000-0000-000000000001"), CustomerName = "Alice Thompson", CustomerPhone = "555-1001", EndTime = new DateTime(2026, 3,  3, 11, 0, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 0, ReminderSent = false, StaffId = new Guid("cc000000-0000-0000-0000-000000000002"), StartTime = new DateTime(2026, 3,  3, 10, 0, 0, DateTimeKind.Utc), Status = 2, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 40.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000012"), BookingPin = "H8I9J1", ConfirmationToken = "tok-appt12", CreatedAt = new DateTime(2026, 1, 28, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "carol.davies@example.com",   CustomerId = new Guid("dd000000-0000-0000-0000-000000000003"), CustomerName = "Carol Davies",   CustomerPhone = "555-1003", EndTime = new DateTime(2026, 3,  5, 9,  30, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 0, ReminderSent = false, StaffId = new Guid("cc000000-0000-0000-0000-000000000003"), StartTime = new DateTime(2026, 3,  5, 9,  0, 0, DateTimeKind.Utc), Status = 2, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 25.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000013"), BookingPin = "K2L3M4", ConfirmationToken = "tok-appt13", CreatedAt = new DateTime(2026, 1, 29, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "bob.williams@example.com",   CustomerId = new Guid("dd000000-0000-0000-0000-000000000002"), CustomerName = "Bob Williams",   CustomerPhone = "555-1002", EndTime = new DateTime(2026, 3,  7, 12, 45, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 0, ReminderSent = false, StaffId = new Guid("cc000000-0000-0000-0000-000000000004"), StartTime = new DateTime(2026, 3,  7, 12, 0, 0, DateTimeKind.Utc), Status = 0, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 35.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000014"), BookingPin = "N5O6P7", ConfirmationToken = "tok-appt14", CreatedAt = new DateTime(2026, 1, 30, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "eve.jackson@example.com",    CustomerId = new Guid("dd000000-0000-0000-0000-000000000005"), CustomerName = "Eve Jackson",    CustomerPhone = "555-1005", EndTime = new DateTime(2026, 3, 10, 10, 30, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 0, ReminderSent = false, StaffId = new Guid("cc000000-0000-0000-0000-000000000001"), StartTime = new DateTime(2026, 3, 10, 10, 0, 0, DateTimeKind.Utc), Status = 2, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 25.00m },
+                        new { Id = new Guid("aa100000-0000-0000-0000-000000000015"), BookingPin = "Q8R9S1", ConfirmationToken = "tok-appt15", CreatedAt = new DateTime(2026, 1, 31, 0, 0, 0, DateTimeKind.Utc), CustomerEmail = "david.harrison@example.com", CustomerNotes = "Please trim short on sides", CustomerId = new Guid("dd000000-0000-0000-0000-000000000004"), CustomerName = "David Harrison", CustomerPhone = "555-1004", EndTime = new DateTime(2026, 3, 14, 15, 30, 0, DateTimeKind.Utc), IsDeleted = false, MeetingType = 1, PaymentStatus = 0, ReminderSent = false, StaffId = new Guid("cc000000-0000-0000-0000-000000000002"), StartTime = new DateTime(2026, 3, 14, 15, 0, 0, DateTimeKind.Utc), Status = 2, TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalAmount = 25.00m });
                 });
 
             modelBuilder.Entity("BookIt.Core.Entities.AppointmentService", b =>
@@ -501,6 +633,23 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasIndex("ServiceId");
 
                     b.ToTable("AppointmentServices");
+
+                    b.HasData(
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000001"), ServiceId = new Guid("44444444-4444-4444-4444-444444444401"), DurationAtBooking = 30, PriceAtBooking = 25.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000002"), ServiceId = new Guid("44444444-4444-4444-4444-444444444402"), DurationAtBooking = 60, PriceAtBooking = 40.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000003"), ServiceId = new Guid("44444444-4444-4444-4444-444444444401"), DurationAtBooking = 30, PriceAtBooking = 25.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000004"), ServiceId = new Guid("44444444-4444-4444-4444-444444444403"), DurationAtBooking = 20, PriceAtBooking = 15.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000005"), ServiceId = new Guid("44444444-4444-4444-4444-444444444402"), DurationAtBooking = 60, PriceAtBooking = 40.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000006"), ServiceId = new Guid("44444444-4444-4444-4444-444444444402"), DurationAtBooking = 60, PriceAtBooking = 40.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000007"), ServiceId = new Guid("44444444-4444-4444-4444-444444444404"), DurationAtBooking = 45, PriceAtBooking = 35.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000008"), ServiceId = new Guid("44444444-4444-4444-4444-444444444401"), DurationAtBooking = 30, PriceAtBooking = 25.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000009"), ServiceId = new Guid("44444444-4444-4444-4444-444444444403"), DurationAtBooking = 20, PriceAtBooking = 15.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000010"), ServiceId = new Guid("44444444-4444-4444-4444-444444444401"), DurationAtBooking = 30, PriceAtBooking = 25.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000011"), ServiceId = new Guid("44444444-4444-4444-4444-444444444402"), DurationAtBooking = 60, PriceAtBooking = 40.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000012"), ServiceId = new Guid("44444444-4444-4444-4444-444444444401"), DurationAtBooking = 30, PriceAtBooking = 25.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000013"), ServiceId = new Guid("44444444-4444-4444-4444-444444444404"), DurationAtBooking = 45, PriceAtBooking = 35.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000014"), ServiceId = new Guid("44444444-4444-4444-4444-444444444401"), DurationAtBooking = 30, PriceAtBooking = 25.00m },
+                        new { AppointmentId = new Guid("aa100000-0000-0000-0000-000000000015"), ServiceId = new Guid("44444444-4444-4444-4444-444444444401"), DurationAtBooking = 30, PriceAtBooking = 25.00m });
                 });
 
             modelBuilder.Entity("BookIt.Core.Entities.AuditLog", b =>
@@ -1239,6 +1388,35 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasIndex("TenantId", "Email");
 
                     b.ToTable("Clients");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("ff000000-0000-0000-0000-000000000001"),
+                            CompanyName = "Elite Hair Solutions",
+                            ContactName = "Sarah Johnson",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "sarah@elitehair.com",
+                            IsActive = true,
+                            IsDeleted = false,
+                            Notes = "VIP client — priority scheduling",
+                            Phone = "555-0101",
+                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            UserId = new Guid("ee000000-0000-0000-0000-000000000004")
+                        },
+                        new
+                        {
+                            Id = new Guid("ff000000-0000-0000-0000-000000000002"),
+                            CompanyName = "Urban Style Group",
+                            ContactName = "Michael Chen",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "michael@urbanstyle.com",
+                            IsActive = true,
+                            IsDeleted = false,
+                            Phone = "555-0102",
+                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            UserId = new Guid("ee000000-0000-0000-0000-000000000005")
+                        });
                 });
 
             modelBuilder.Entity("BookIt.Core.Entities.Customer", b =>
@@ -1347,6 +1525,13 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Customers");
+
+                    b.HasData(
+                        new { Id = new Guid("dd000000-0000-0000-0000-000000000001"), City = "London",     Country = "UK", CreatedAt = new DateTime(2025, 6,  1, 0, 0, 0, DateTimeKind.Utc), Email = "alice.thompson@example.com", FirstName = "Alice",  Gender = "Female", IsDeleted = false, LastName = "Thompson", LastVisit = new DateTime(2026, 1, 20, 10, 0, 0, DateTimeKind.Utc), MarketingOptIn = true,  MembershipNumber = "MBR-001", Phone = "555-1001", SmsOptIn = false, Tags = "regular",   TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalBookings = 5, TotalSpent = 125.00m },
+                        new { Id = new Guid("dd000000-0000-0000-0000-000000000002"), City = "Manchester", Country = "UK", CreatedAt = new DateTime(2025, 7, 15, 0, 0, 0, DateTimeKind.Utc), Email = "bob.williams@example.com",   FirstName = "Bob",    Gender = "Male",   IsDeleted = false, LastName = "Williams", LastVisit = new DateTime(2026, 1, 28, 11, 0, 0, DateTimeKind.Utc), MarketingOptIn = false, MembershipNumber = "MBR-002", Phone = "555-1002", SmsOptIn = false,                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalBookings = 3, TotalSpent =  75.00m },
+                        new { Id = new Guid("dd000000-0000-0000-0000-000000000003"), City = "Birmingham", Country = "UK", CreatedAt = new DateTime(2025, 8, 10, 0, 0, 0, DateTimeKind.Utc), Email = "carol.davies@example.com",   FirstName = "Carol",  Gender = "Female", IsDeleted = false, LastName = "Davies",   LastVisit = new DateTime(2026, 2,  5,  9, 0, 0, DateTimeKind.Utc), MarketingOptIn = true,  MembershipNumber = "MBR-003", Phone = "555-1003", SmsOptIn = true,  Tags = "vip",       TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalBookings = 8, TotalSpent = 320.00m },
+                        new { Id = new Guid("dd000000-0000-0000-0000-000000000004"), City = "Leeds",      Country = "UK", CreatedAt = new DateTime(2025, 9,  5, 0, 0, 0, DateTimeKind.Utc), Email = "david.harrison@example.com", FirstName = "David",  Gender = "Male",   IsDeleted = false, LastName = "Harrison", LastVisit = new DateTime(2026, 1, 15, 14, 0, 0, DateTimeKind.Utc), MarketingOptIn = true,                                          Phone = "555-1004", SmsOptIn = false,                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalBookings = 2, TotalSpent =  50.00m },
+                        new { Id = new Guid("dd000000-0000-0000-0000-000000000005"), City = "Bristol",    Country = "UK", CreatedAt = new DateTime(2025, 10, 20, 0, 0, 0, DateTimeKind.Utc), Email = "eve.jackson@example.com",    FirstName = "Eve",    Gender = "Female", IsDeleted = false, LastName = "Jackson",  LastVisit = new DateTime(2026, 2, 10, 13, 0, 0, DateTimeKind.Utc), MarketingOptIn = false, MembershipNumber = "MBR-005", Notes = "Regular client — prefers Emma", Phone = "555-1005", SmsOptIn = false, Tags = "regular",   TenantId = new Guid("11111111-1111-1111-1111-111111111111"), TotalBookings = 4, TotalSpent = 160.00m });
                 });
 
             modelBuilder.Entity("BookIt.Core.Entities.EmailTemplate", b =>
@@ -2223,6 +2408,54 @@ namespace BookIt.Infrastructure.Data.Migrations
                             SortOrder = 1,
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
                             UserId = new Guid("bb000000-0000-0000-0000-000000000002")
+                        },
+                        new
+                        {
+                            Id = new Guid("cc000000-0000-0000-0000-000000000002"),
+                            Bio = "Master Barber with 10 years experience",
+                            ClientId = new Guid("ff000000-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "james@elitehair.com",
+                            FirstName = "James",
+                            IsActive = true,
+                            IsDeleted = false,
+                            LastName = "Martinez",
+                            Phone = "555-0201",
+                            SortOrder = 2,
+                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            UserId = new Guid("ee000000-0000-0000-0000-000000000001")
+                        },
+                        new
+                        {
+                            Id = new Guid("cc000000-0000-0000-0000-000000000003"),
+                            Bio = "Specialist in modern cuts and styling",
+                            ClientId = new Guid("ff000000-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "emma@elitehair.com",
+                            FirstName = "Emma",
+                            IsActive = true,
+                            IsDeleted = false,
+                            LastName = "Wilson",
+                            Phone = "555-0202",
+                            SortOrder = 3,
+                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            UserId = new Guid("ee000000-0000-0000-0000-000000000002")
+                        },
+                        new
+                        {
+                            Id = new Guid("cc000000-0000-0000-0000-000000000004"),
+                            Bio = "Expert in beard grooming and hot shaves",
+                            ClientId = new Guid("ff000000-0000-0000-0000-000000000002"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "oliver@urbanstyle.com",
+                            FirstName = "Oliver",
+                            IsActive = true,
+                            IsDeleted = false,
+                            LastName = "Brown",
+                            Phone = "555-0203",
+                            SortOrder = 4,
+                            TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            UserId = new Guid("ee000000-0000-0000-0000-000000000003")
                         });
                 });
 
@@ -2367,6 +2600,17 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasIndex("ServiceId1");
 
                     b.ToTable("StaffServices");
+
+                    b.HasData(
+                        new { StaffId = new Guid("cc000000-0000-0000-0000-000000000001"), ServiceId = new Guid("44444444-4444-4444-4444-444444444401") },
+                        new { StaffId = new Guid("cc000000-0000-0000-0000-000000000001"), ServiceId = new Guid("44444444-4444-4444-4444-444444444403") },
+                        new { StaffId = new Guid("cc000000-0000-0000-0000-000000000002"), ServiceId = new Guid("44444444-4444-4444-4444-444444444401") },
+                        new { StaffId = new Guid("cc000000-0000-0000-0000-000000000002"), ServiceId = new Guid("44444444-4444-4444-4444-444444444402") },
+                        new { StaffId = new Guid("cc000000-0000-0000-0000-000000000002"), ServiceId = new Guid("44444444-4444-4444-4444-444444444403") },
+                        new { StaffId = new Guid("cc000000-0000-0000-0000-000000000003"), ServiceId = new Guid("44444444-4444-4444-4444-444444444401") },
+                        new { StaffId = new Guid("cc000000-0000-0000-0000-000000000003"), ServiceId = new Guid("44444444-4444-4444-4444-444444444402") },
+                        new { StaffId = new Guid("cc000000-0000-0000-0000-000000000004"), ServiceId = new Guid("44444444-4444-4444-4444-444444444403") },
+                        new { StaffId = new Guid("cc000000-0000-0000-0000-000000000004"), ServiceId = new Guid("44444444-4444-4444-4444-444444444404") });
                 });
 
             modelBuilder.Entity("BookIt.Core.Entities.Tenant", b =>
@@ -2917,6 +3161,31 @@ namespace BookIt.Infrastructure.Data.Migrations
                         {
                             UserId = new Guid("bb000000-0000-0000-0000-000000000005"),
                             RoleId = new Guid("aa000000-0000-0000-0000-000000000001")
+                        },
+                        new
+                        {
+                            UserId = new Guid("ee000000-0000-0000-0000-000000000001"),
+                            RoleId = new Guid("aa000000-0000-0000-0000-000000000003")
+                        },
+                        new
+                        {
+                            UserId = new Guid("ee000000-0000-0000-0000-000000000002"),
+                            RoleId = new Guid("aa000000-0000-0000-0000-000000000003")
+                        },
+                        new
+                        {
+                            UserId = new Guid("ee000000-0000-0000-0000-000000000003"),
+                            RoleId = new Guid("aa000000-0000-0000-0000-000000000003")
+                        },
+                        new
+                        {
+                            UserId = new Guid("ee000000-0000-0000-0000-000000000004"),
+                            RoleId = new Guid("aa000000-0000-0000-0000-000000000004")
+                        },
+                        new
+                        {
+                            UserId = new Guid("ee000000-0000-0000-0000-000000000005"),
+                            RoleId = new Guid("aa000000-0000-0000-0000-000000000004")
                         });
                 });
 

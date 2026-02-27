@@ -129,16 +129,8 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<BookItDbContext>();
     try
     {
-        db.Database.EnsureCreated();
-
-        // Seed demo data on first run if not exists
-        var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeederService>();
-        if (!await seeder.HasDemoDataAsync())
-        {
-            await seeder.SeedDemoDataAsync();
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-            logger.LogInformation("Demo data seeded successfully");
-        }
+        // Run all pending migrations at startup — this also applies seed data defined in migrations
+        await db.Database.MigrateAsync();
     }
     catch (Exception ex)
     {
