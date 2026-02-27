@@ -72,6 +72,11 @@
     border-bottom-left-radius: 4px;
 }
 .chat-msg.bot strong { color: var(--primary, #6c5ce7); }
+.chat-msg.agent {
+    align-self: flex-start; background: #ecfdf5; color: #065f46;
+    border: 1px solid #a7f3d0; border-bottom-left-radius: 4px;
+}
+.chat-msg.agent::before { content: '👤 Agent: '; font-weight: 600; font-size: .75rem; display: block; margin-bottom: .2rem; color: #059669; }
 .chat-typing {
     align-self: flex-start; background: #f1f5f9; color: #94a3b8;
     padding: .6rem 1rem; border-radius: 14px 14px 14px 4px;
@@ -438,5 +443,35 @@
     }
 
     initVapi();
+
+    // ── Poll for agent messages ──
+    let lastAgentMsgCount = 0;
+    async function pollAgentMessages() {
+        try {
+            const res = await fetch(`${API_URL}/sessions/${sessionId}`);
+            if (!res.ok) return;
+            const session = await res.json();
+            const agentMsgs = session.messages.filter(m => m.isAgentMessage);
+            if (agentMsgs.length > lastAgentMsgCount) {
+                for (let i = lastAgentMsgCount; i < agentMsgs.length; i++) {
+                    appendMsg('agent', agentMsgs[i].content, []);
+                }
+                lastAgentMsgCount = agentMsgs.length;
+                // Auto-open chat if closed when agent replies
+                if (!chatOpen) {
+                    toggleChat();
+                }
+            }
+        } catch(e) { console.warn('Agent message poll error:', e); }
+    }
+    // Poll every 10s after first user message
+    let agentPollTimer = null;
+    const origSendMessage = window.sendMessage;
+    window.sendMessage = async function() {
+        await origSendMessage();
+        if (!agentPollTimer) {
+            agentPollTimer = setInterval(pollAgentMessages, 10000);
+        }
+    };
 })();
 </script>

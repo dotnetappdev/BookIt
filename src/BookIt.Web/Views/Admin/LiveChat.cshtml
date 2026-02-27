@@ -1,0 +1,302 @@
+@using BookIt.Core.DTOs
+@{
+    ViewData["Title"] = "Live Chat";
+    Layout = "_AdminLayout";
+    var tenant = ViewBag.Tenant as TenantResponse;
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+    var accessToken = ViewBag.AccessToken as string ?? "";
+    var apiBase = $"/api/tenants/{tenantSlug}/chat";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Live Chat</h1>
+        <p class="page-subtitle">Monitor customer chat sessions and reply as an agent</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <span class="badge bg-success" id="liveIndicator">● Live</span>
+        <button class="btn btn-outline-secondary btn-sm" onclick="loadSessions()" title="Refresh sessions">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<div class="row g-3" style="height:calc(100vh - 200px); min-height: 500px;">
+    <!-- Sessions list -->
+    <div class="col-lg-4 d-flex flex-column">
+        <div class="card h-100">
+            <div class="card-header px-3 py-2 d-flex align-items-center justify-content-between">
+                <span class="fw-semibold"><i class="bi bi-chat-dots me-2 text-brand"></i>Chat Sessions</span>
+                <span class="badge bg-secondary" id="sessionCount">0</span>
+            </div>
+            <div class="px-3 py-2 border-bottom">
+                <input type="text" class="form-control form-control-sm" id="sessionSearch"
+                       placeholder="Search by name or email..." oninput="filterSessions(this.value)" />
+            </div>
+            <div class="overflow-auto flex-grow-1" id="sessionsList" style="max-height:calc(100% - 90px);">
+                <div class="text-center text-muted py-5" id="sessionsEmpty">
+                    <i class="bi bi-chat-square-text fs-2 d-block mb-2 opacity-25"></i>
+                    <p class="small mb-0">No active sessions yet</p>
+                    <p class="small">Sessions appear when customers use the chat widget</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat thread -->
+    <div class="col-lg-8 d-flex flex-column">
+        <div class="card h-100 d-flex flex-column">
+            <!-- Empty state -->
+            <div id="chatEmptyState" class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                <i class="bi bi-chat-left-dots fs-1 mb-3 opacity-25"></i>
+                <p class="fw-medium mb-1">Select a session to view the conversation</p>
+                <p class="small">You can reply directly as an agent to assist customers</p>
+            </div>
+
+            <!-- Active chat -->
+            <div id="chatActive" class="d-none d-flex flex-column h-100">
+                <div class="card-header px-4 py-3 d-flex align-items-center justify-content-between" id="chatHeader">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
+                             style="width:36px;height:36px;font-size:.8rem;" id="chatAvatar">?</div>
+                        <div>
+                            <div class="fw-semibold" id="chatCustomerName">Customer</div>
+                            <div class="text-muted small" id="chatCustomerEmail"></div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <span class="badge" id="chatStatusBadge">Active</span>
+                        <button class="btn btn-sm btn-outline-success" onclick="resolveSession()" id="resolveBtn" title="Mark as resolved">
+                            <i class="bi bi-check2-circle me-1"></i>Resolve
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-grow-1 overflow-auto p-3 d-flex flex-column gap-2" id="chatThread" style="background:#f8fafc;">
+                </div>
+                <div class="p-3 border-top bg-white" style="border-radius:0 0 12px 12px;">
+                    <div class="d-flex gap-2 align-items-end">
+                        <textarea class="form-control" id="agentReplyInput" placeholder="Type a reply as agent..."
+                                  rows="2" style="resize:none;border-radius:10px;"
+                                  onkeydown="handleAgentKey(event)"></textarea>
+                        <button class="btn btn-brand" onclick="sendAgentReply()" style="height:fit-content;" aria-label="Send reply">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                    <div class="text-muted small mt-1">Press Ctrl+Enter to send · Customers see agent replies in the chat widget</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.session-item {
+    padding: .75rem 1rem; border-bottom: 1px solid #f1f5f9;
+    cursor: pointer; transition: background .15s;
+}
+.session-item:hover, .session-item.active { background: #f0f4ff; }
+.session-item .session-name { font-weight: 600; font-size: .875rem; }
+.session-item .session-preview { font-size: .8rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.session-item .session-time { font-size: .72rem; color: #94a3b8; white-space: nowrap; }
+.session-badge-unread { width: 8px; height: 8px; border-radius: 50%; background: #6c5ce7; flex-shrink: 0; }
+.msg-bubble {
+    max-width: 75%; padding: .6rem .9rem; border-radius: 14px;
+    font-size: .875rem; line-height: 1.5; word-break: break-word;
+    white-space: pre-wrap;
+}
+.msg-user { align-self: flex-start; background: #e2e8f0; color: #1e293b; border-bottom-left-radius: 4px; }
+.msg-assistant { align-self: flex-start; background: #f0f4ff; color: #1e293b; border-bottom-left-radius: 4px; }
+.msg-agent { align-self: flex-end; background: var(--primary,#6c5ce7); color: white; border-bottom-right-radius: 4px; }
+.msg-label { font-size: .7rem; color: #94a3b8; margin-bottom: .2rem; }
+.msg-label.agent { text-align: right; color: #6c5ce7; }
+</style>
+
+@section Scripts {
+<script>
+const API = '@apiBase';
+const TOKEN = '@accessToken';
+let allSessions = [];
+let activeSessionId = null;
+let pollTimer = null;
+
+const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${TOKEN}`
+};
+
+async function loadSessions() {
+    try {
+        const res = await fetch(`${API}/sessions`, { headers });
+        if (!res.ok) return;
+        allSessions = await res.json();
+        renderSessions(allSessions);
+        document.getElementById('sessionCount').textContent = allSessions.length;
+        document.getElementById('sessionsEmpty').style.display = allSessions.length ? 'none' : '';
+    } catch(e) {
+        console.error('Failed to load sessions', e);
+    }
+}
+
+function renderSessions(sessions) {
+    const list = document.getElementById('sessionsList');
+    const empty = document.getElementById('sessionsEmpty');
+
+    // Remove existing session items (keep the empty state)
+    list.querySelectorAll('.session-item').forEach(el => el.remove());
+
+    if (!sessions.length) {
+        empty.style.display = '';
+        return;
+    }
+    empty.style.display = 'none';
+
+    sessions.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'session-item d-flex align-items-start gap-2' + (s.sessionId === activeSessionId ? ' active' : '');
+        div.dataset.sessionId = s.sessionId;
+        div.onclick = () => openSession(s.sessionId);
+
+        const ago = timeAgo(new Date(s.lastMessageAt));
+        const statusColor = s.status === 'Resolved' ? 'success' : s.status === 'HandedOffToAgent' ? 'warning' : 'primary';
+
+        div.innerHTML = `
+            <div class="flex-grow-1 min-w-0">
+                <div class="d-flex justify-content-between align-items-center gap-1">
+                    <span class="session-name">${escHtml(s.customerName || 'Anonymous')}</span>
+                    <span class="session-time">${ago}</span>
+                </div>
+                <div class="d-flex align-items-center gap-1 mt-1">
+                    <span class="badge bg-${statusColor}" style="font-size:.65rem;">${s.status}</span>
+                    ${s.hasUnreadAgentMessages ? '<span class="session-badge-unread"></span>' : ''}
+                </div>
+                <div class="session-preview mt-1">${escHtml(s.lastMessage || '...')}</div>
+            </div>`;
+        list.insertBefore(div, list.querySelector('#sessionsEmpty'));
+    });
+}
+
+function filterSessions(query) {
+    const q = query.toLowerCase();
+    const filtered = allSessions.filter(s =>
+        (s.customerName || '').toLowerCase().includes(q) ||
+        (s.customerEmail || '').toLowerCase().includes(q) ||
+        (s.lastMessage || '').toLowerCase().includes(q)
+    );
+    renderSessions(filtered);
+}
+
+async function openSession(sessionId) {
+    activeSessionId = sessionId;
+    document.querySelectorAll('.session-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.sessionId === sessionId);
+    });
+
+    document.getElementById('chatEmptyState').classList.add('d-none');
+    document.getElementById('chatActive').classList.remove('d-none');
+
+    await refreshThread();
+}
+
+async function refreshThread() {
+    if (!activeSessionId) return;
+    try {
+        const res = await fetch(`${API}/sessions/${activeSessionId}`, { headers });
+        if (!res.ok) return;
+        const session = await res.json();
+        renderThread(session);
+    } catch(e) { console.error('Failed to refresh thread', e); }
+    const name = session.customerName || 'Anonymous';
+    const initials = name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0,2) || '?';
+
+    document.getElementById('chatAvatar').textContent = initials;
+    document.getElementById('chatCustomerName').textContent = name;
+    document.getElementById('chatCustomerEmail').textContent = session.customerEmail || '';
+
+    const statusMap = { 'Active': 'bg-success', 'HandedOffToAgent': 'bg-warning text-dark', 'Resolved': 'bg-secondary' };
+    const badge = document.getElementById('chatStatusBadge');
+    badge.textContent = session.status;
+    badge.className = 'badge ' + (statusMap[session.status] || 'bg-secondary');
+
+    document.getElementById('resolveBtn').style.display = session.status === 'Resolved' ? 'none' : '';
+
+    const thread = document.getElementById('chatThread');
+    thread.innerHTML = '';
+
+    session.messages.forEach(m => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'd-flex flex-column';
+        wrapper.style.alignItems = m.isAgentMessage ? 'flex-end' : 'flex-start';
+
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'msg-label' + (m.isAgentMessage ? ' agent' : '');
+        labelDiv.textContent = m.isAgentMessage ? 'Agent' : m.role === 'assistant' ? 'AI Assistant' : 'Customer';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'msg-bubble msg-' + (m.isAgentMessage ? 'agent' : m.role === 'user' ? 'user' : 'assistant');
+        bubble.innerHTML = formatMsg(m.content);
+
+        wrapper.appendChild(labelDiv);
+        wrapper.appendChild(bubble);
+        thread.appendChild(wrapper);
+    });
+
+    thread.scrollTop = thread.scrollHeight;
+}
+
+async function sendAgentReply() {
+    const input = document.getElementById('agentReplyInput');
+    const msg = input.value.trim();
+    if (!msg || !activeSessionId) return;
+    input.value = '';
+
+    try {
+        await fetch(`${API}/sessions/${activeSessionId}/reply`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ message: msg })
+        });
+        await refreshThread();
+        await loadSessions();
+    } catch(e) {
+        alert('Failed to send reply. Please try again.');
+        input.value = msg;
+    }
+}
+
+async function resolveSession() {
+    if (!activeSessionId || !confirm('Mark this session as resolved?')) return;
+    try {
+        await fetch(`${API}/sessions/${activeSessionId}/resolve`, { method: 'POST', headers });
+        await refreshThread();
+        await loadSessions();
+    } catch(e) { console.error('Failed to resolve session', e); }
+    if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); sendAgentReply(); }
+}
+
+function formatMsg(text) {
+    return text
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+        .replace(/\n/g,'<br>');
+}
+
+function escHtml(t) {
+    return (t || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function timeAgo(date) {
+    const secs = Math.floor((Date.now() - date) / 1000);
+    if (secs < 60) return 'now';
+    if (secs < 3600) return Math.floor(secs/60) + 'm ago';
+    if (secs < 86400) return Math.floor(secs/3600) + 'h ago';
+    return Math.floor(secs/86400) + 'd ago';
+}
+
+// Initial load + auto-refresh every 15 seconds
+loadSessions();
+pollTimer = setInterval(() => {
+    loadSessions();
+    if (activeSessionId) refreshThread();
+}, 15000);
+</script>
+}

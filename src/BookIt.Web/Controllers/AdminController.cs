@@ -261,4 +261,17 @@ public class AdminController : Controller
         ViewBag.TrialEndsAt = DateTime.UtcNow.AddDays(14);
         return View();
     }
+
+    public async Task<IActionResult> LiveChat(string tenantSlug)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        ViewBag.Tenant = tenant;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.AccessToken = HttpContext.Session.GetString("AccessToken") ?? "";
+        return View();
+    }
 }
