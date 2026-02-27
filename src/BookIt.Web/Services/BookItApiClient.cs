@@ -50,6 +50,14 @@ public class BookItApiClient
         return JsonSerializer.Deserialize<List<ServiceResponse>>(content, _jsonOptions) ?? new();
     }
 
+    public async Task<ServiceResponse?> GetServiceBySlugAsync(string tenantSlug, string serviceSlug)
+    {
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/services/by-slug/{serviceSlug}");
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<ServiceResponse>(content, _jsonOptions);
+    }
+
     public async Task<List<DateTime>> GetAvailableSlotsAsync(string tenantSlug, Guid serviceId, Guid? staffId, DateOnly date)
     {
         var url = $"/api/tenants/{tenantSlug}/appointments/slots?serviceId={serviceId}&date={date:yyyy-MM-dd}";

@@ -24,6 +24,27 @@ public class BookingController : Controller
         ViewBag.Tenant = tenant;
         ViewBag.Services = services;
         ViewBag.TenantSlug = tenantSlug;
+        ViewBag.CanonicalUrl = $"/{tenantSlug}/book";
+        return View();
+    }
+
+    /// <summary>
+    /// SEO landing page for a specific service, e.g. /demo-barber/book/mens-haircut
+    /// Provides a crawlable, indexable page per service with proper meta tags.
+    /// </summary>
+    public async Task<IActionResult> ServiceLanding(string tenantSlug, string serviceSlug)
+    {
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var service = await _apiClient.GetServiceBySlugAsync(tenantSlug, serviceSlug);
+        if (service == null) return NotFound();
+
+        ViewBag.Tenant = tenant;
+        ViewBag.Service = service;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.ServiceSlug = serviceSlug;
+        ViewBag.CanonicalUrl = $"/{tenantSlug}/book/{serviceSlug}";
         return View();
     }
 

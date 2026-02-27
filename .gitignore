@@ -8,6 +8,8 @@ obj/
 **\bin\**
 **/bin\Debug/**
 **/bin\Release/**
+**/bin\\Debug/**
+**/bin\\Release/**
 *.user
 *.suo
 .vs/

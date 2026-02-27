@@ -61,7 +61,7 @@
                             {
                                 <p class="text-muted small mb-2">@service.Description</p>
                             }
-                            <div class="d-flex gap-2 flex-wrap">
+                            <div class="d-flex gap-2 flex-wrap mb-2">
                                 <span class="badge bg-light text-dark border small">
                                     <i class="bi bi-clock me-1"></i>@service.DurationMinutes min
                                 </span>
@@ -69,6 +69,18 @@
                                     @(service.AllowOnlineBooking ? "Online Booking" : "In-Store Only")
                                 </span>
                             </div>
+                            @if (!string.IsNullOrEmpty(service.Slug))
+                            {
+                                <div class="d-flex align-items-center gap-1 mt-2">
+                                    <a href="/@tenantSlug/book/@service.Slug" target="_blank"
+                                       class="small text-muted text-truncate" style="max-width:160px;" title="/@tenantSlug/book/@service.Slug">
+                                        <i class="bi bi-link-45deg me-1"></i>/@tenantSlug/book/@service.Slug
+                                    </a>
+                                    <button class="btn btn-sm btn-link p-0 ms-1" onclick="copyBookingLink('/@tenantSlug/book/@service.Slug')" title="Copy booking link">
+                                        <i class="bi bi-clipboard text-muted"></i>
+                                    </button>
+                                </div>
+                            }
                         </div>
                         <div class="card-footer bg-white border-0 pb-3">
                             <button class="btn btn-sm btn-outline-secondary w-100">
@@ -100,6 +112,18 @@
                         <div class="col-md-4">
                             <label for="servicePrice" class="form-label fw-semibold">Price (£) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" id="servicePrice" name="price" min="0" step="0.01" required aria-required="true" />
+                        </div>
+                        <div class="col-12">
+                            <label for="serviceSlug" class="form-label fw-semibold">
+                                URL Slug <span class="text-muted fw-normal small">(auto-generated from name)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text text-muted small">/@tenantSlug/book/</span>
+                                <input type="text" class="form-control" id="serviceSlug" name="slug"
+                                       placeholder="e.g. mens-haircut"
+                                       pattern="[a-z0-9\-]+" title="Lowercase letters, numbers and hyphens only" />
+                            </div>
+                            <div class="form-text">Used in the public booking URL for SEO. Leave blank to auto-generate.</div>
                         </div>
                         <div class="col-md-6">
                             <label for="serviceDuration" class="form-label fw-semibold">Duration (minutes) <span class="text-danger">*</span></label>
@@ -146,11 +170,39 @@
 
 @section Scripts {
 <script>
+// Auto-generate slug from service name
+document.getElementById('serviceName').addEventListener('input', function() {
+    const slugField = document.getElementById('serviceSlug');
+    if (!slugField._userEdited) {
+        slugField.value = generateSlug(this.value);
+    }
+});
+
+document.getElementById('serviceSlug').addEventListener('input', function() {
+    this._userEdited = this.value.length > 0;
+    // Sanitize as user types
+    const pos = this.selectionStart;
+    const sanitized = this.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-');
+    if (sanitized !== this.value) {
+        this.value = sanitized;
+        this.setSelectionRange(pos, pos);
+    }
+});
+
+function generateSlug(text) {
+    return text.toLowerCase()
+        .replace(/['\u2018\u2019]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .replace(/-{2,}/g, '-');
+}
+
 document.getElementById('addServiceForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const form = e.target;
     const data = {
         name: form.name.value,
+        slug: form.slug.value || null,
         price: parseFloat(form.price.value),
         durationMinutes: parseInt(form.durationMinutes.value),
         bufferMinutes: parseInt(form.bufferMinutes.value),
@@ -175,5 +227,11 @@ document.getElementById('addServiceForm').addEventListener('submit', async funct
         alert('Failed to create service. Please check your input.');
     }
 });
+
+function copyBookingLink(url) {
+    navigator.clipboard.writeText(window.location.origin + url).then(() => {
+        alert('Booking link copied!\n\n' + window.location.origin + url);
+    });
+}
 </script>
 }

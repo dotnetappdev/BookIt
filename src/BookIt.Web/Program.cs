@@ -39,6 +39,11 @@ app.MapControllerRoute(
     defaults: new { controller = "Booking", action = "Index" });
 
 app.MapControllerRoute(
+    name: "tenantServiceBook",
+    pattern: "{tenantSlug}/book/{serviceSlug}",
+    defaults: new { controller = "Booking", action = "ServiceLanding" });
+
+app.MapControllerRoute(
     name: "tenantAdmin",
     pattern: "{tenantSlug}/admin/{action=Index}/{id?}",
     defaults: new { controller = "Admin" });

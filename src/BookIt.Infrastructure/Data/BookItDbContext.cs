@@ -108,6 +108,8 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         {
             entity.Property(s => s.Price).HasColumnType("decimal(18,2)");
             entity.Property(s => s.Name).HasMaxLength(200).IsRequired();
+            entity.Property(s => s.Slug).HasMaxLength(200);
+            entity.HasIndex(s => new { s.TenantId, s.Slug }).IsUnique().HasFilter("[Slug] IS NOT NULL");
         });
 
         // Appointment
@@ -424,10 +426,10 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         var svc3Id = new Guid("44444444-4444-4444-4444-444444444403");
         var svc4Id = new Guid("44444444-4444-4444-4444-444444444404");
         modelBuilder.Entity<Service>().HasData(
-            new Service { Id = svc1Id, TenantId = demoTenantId, CategoryId = catId1, Name = "Mens Haircut", Description = "Classic mens haircut with styling", Price = 25.00m, DurationMinutes = 30, IsActive = true, AllowOnlineBooking = true, SortOrder = 1, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Service { Id = svc2Id, TenantId = demoTenantId, CategoryId = catId1, Name = "Hair & Beard Combo", Description = "Full haircut and beard trim combo", Price = 40.00m, DurationMinutes = 60, IsActive = true, AllowOnlineBooking = true, SortOrder = 2, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Service { Id = svc3Id, TenantId = demoTenantId, CategoryId = catId2, Name = "Beard Trim", Description = "Precision beard trimming and shaping", Price = 15.00m, DurationMinutes = 20, IsActive = true, AllowOnlineBooking = true, SortOrder = 1, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Service { Id = svc4Id, TenantId = demoTenantId, CategoryId = catId2, Name = "Hot Towel Shave", Description = "Traditional hot towel straight razor shave", Price = 35.00m, DurationMinutes = 45, IsActive = true, AllowOnlineBooking = true, SortOrder = 2, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+            new Service { Id = svc1Id, TenantId = demoTenantId, CategoryId = catId1, Name = "Mens Haircut", Slug = "mens-haircut", Description = "Classic mens haircut with styling", Price = 25.00m, DurationMinutes = 30, IsActive = true, AllowOnlineBooking = true, SortOrder = 1, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Service { Id = svc2Id, TenantId = demoTenantId, CategoryId = catId1, Name = "Hair & Beard Combo", Slug = "hair-beard-combo", Description = "Full haircut and beard trim combo", Price = 40.00m, DurationMinutes = 60, IsActive = true, AllowOnlineBooking = true, SortOrder = 2, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Service { Id = svc3Id, TenantId = demoTenantId, CategoryId = catId2, Name = "Beard Trim", Slug = "beard-trim", Description = "Precision beard trimming and shaping", Price = 15.00m, DurationMinutes = 20, IsActive = true, AllowOnlineBooking = true, SortOrder = 1, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Service { Id = svc4Id, TenantId = demoTenantId, CategoryId = catId2, Name = "Hot Towel Shave", Slug = "hot-towel-shave", Description = "Traditional hot towel straight razor shave", Price = 35.00m, DurationMinutes = 45, IsActive = true, AllowOnlineBooking = true, SortOrder = 2, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
 
         // Default booking form
