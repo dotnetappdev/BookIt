@@ -46,6 +46,8 @@
     <PackageReference Include="QRCoder" Version="1.6.0" />
     <!-- Secure storage of tokens -->
     <PackageReference Include="Microsoft.Maui.Essentials" Version="$(MauiVersion)" />
+    <!-- Error monitoring -->
+    <PackageReference Include="Sentry.Maui" Version="6.1.0" />
   </ItemGroup>
 
   <ItemGroup>

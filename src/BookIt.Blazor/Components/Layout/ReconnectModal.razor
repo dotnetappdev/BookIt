@@ -1,31 +1,58 @@
 ﻿<script type="module" src="@Assets["Components/Layout/ReconnectModal.razor.js"]"></script>
 
-<dialog id="components-reconnect-modal" data-nosnippet>
+<dialog id="components-reconnect-modal"
+        data-nosnippet
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="reconnect-modal-title"
+        aria-describedby="reconnect-modal-description">
     <div class="components-reconnect-container">
-        <div class="components-rejoining-animation" aria-hidden="true">
-            <div></div>
-            <div></div>
+        <div class="components-reconnect-icon" aria-hidden="true">
+            <div class="components-rejoining-animation" aria-hidden="true">
+                <div></div>
+                <div></div>
+            </div>
         </div>
-        <p class="components-reconnect-first-attempt-visible">
-            Rejoining the server...
-        </p>
-        <p class="components-reconnect-repeated-attempt-visible">
-            Rejoin failed... trying again in <span id="components-seconds-to-next-attempt"></span> seconds.
-        </p>
-        <p class="components-reconnect-failed-visible">
-            Failed to rejoin.<br />Please retry or reload the page.
-        </p>
-        <button id="components-reconnect-button" class="components-reconnect-failed-visible">
-            Retry
-        </button>
-        <p class="components-pause-visible">
-            The session has been paused by the server.
-        </p>
-        <p class="components-resume-failed-visible">
-            Failed to resume the session.<br />Please retry or reload the page.
-        </p>
-        <button id="components-resume-button" class="components-pause-visible components-resume-failed-visible">
-            Resume
-        </button>
+        <h2 id="reconnect-modal-title" class="reconnect-heading" aria-live="polite">
+            <span class="components-reconnect-first-attempt-visible">Connection lost</span>
+            <span class="components-reconnect-repeated-attempt-visible">Reconnecting…</span>
+            <span class="components-reconnect-failed-visible">Connection failed</span>
+            <span class="components-pause-visible">Session paused</span>
+            <span class="components-resume-failed-visible">Session resume failed</span>
+        </h2>
+        <div id="reconnect-modal-description">
+            <p class="components-reconnect-first-attempt-visible" aria-live="polite">
+                Attempting to reconnect to the server&hellip;
+            </p>
+            <p class="components-reconnect-repeated-attempt-visible" aria-live="polite">
+                Reconnect attempt failed. Retrying in <span id="components-seconds-to-next-attempt" aria-label="seconds until next attempt"></span> seconds&hellip;
+            </p>
+            <p class="components-reconnect-failed-visible" role="alert">
+                Could not reconnect to the server.<br />Please check your network connection and retry.
+            </p>
+            <p class="components-pause-visible" aria-live="polite">
+                Your session has been paused by the server.
+            </p>
+            <p class="components-resume-failed-visible" role="alert">
+                Failed to resume the session.<br />Please retry or reload the page.
+            </p>
+        </div>
+        <div class="reconnect-actions">
+            <button id="components-reconnect-button"
+                    class="components-reconnect-failed-visible reconnect-btn"
+                    aria-label="Retry connection">
+                Retry
+            </button>
+            <button id="components-resume-button"
+                    class="components-pause-visible components-resume-failed-visible reconnect-btn"
+                    aria-label="Resume session">
+                Resume
+            </button>
+            <button class="components-reconnect-failed-visible reconnect-btn reconnect-btn--secondary"
+                    onclick="window.location.reload()"
+                    aria-label="Reload the page">
+                Reload page
+            </button>
+        </div>
     </div>
 </dialog>
