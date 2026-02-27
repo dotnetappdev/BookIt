@@ -92,12 +92,13 @@ public class BookItApiService
 
     // ── Appointments ──
     public async Task<List<AppointmentResponse>> GetAppointmentsAsync(
-        string slug, DateTime? from = null, DateTime? to = null)
+        string slug, DateTime? from = null, DateTime? to = null, Guid? staffId = null)
     {
         var url = $"/api/tenants/{slug}/appointments";
         var qs = new List<string>();
         if (from.HasValue) qs.Add($"from={from.Value:yyyy-MM-ddTHH:mm:ss}");
         if (to.HasValue) qs.Add($"to={to.Value:yyyy-MM-ddTHH:mm:ss}");
+        if (staffId.HasValue) qs.Add($"staffId={staffId.Value}");
         if (qs.Count > 0) url += "?" + string.Join("&", qs);
         return await GetAsync<List<AppointmentResponse>>(url) ?? new();
     }
