@@ -89,6 +89,7 @@
                                     data-slug="@(service.Slug ?? "")"
                                     data-price="@service.Price"
                                     data-duration-minutes="@service.DurationMinutes"
+                                    data-buffer-minutes="@service.BufferMinutes"
                                     data-description="@(service.Description ?? "")"
                                     data-image-url="@(service.ImageUrl ?? "")"
                                     data-allow-online-booking="@service.AllowOnlineBooking.ToString().ToLower()"
@@ -261,7 +262,7 @@
 
 @section Scripts {
 <script>
-const serviceToken = '@accessToken';
+const token = '@accessToken';
 const serviceApiBase = '/api/tenants/@tenantSlug/services';
 
 // Auto-generate slug from service name
@@ -305,7 +306,7 @@ document.getElementById('addServiceForm').addEventListener('submit', async funct
     };
     const resp = await fetch(serviceApiBase, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + serviceToken },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify(data)
     });
     if (resp.ok) {
@@ -320,11 +321,11 @@ function openEditServiceModal(btn) {
     document.getElementById('editServiceName').value = btn.dataset.name;
     document.getElementById('editServicePrice').value = btn.dataset.price;
     document.getElementById('editServiceDuration').value = btn.dataset.durationMinutes;
+    document.getElementById('editServiceBuffer').value = btn.dataset.bufferMinutes || 0;
     document.getElementById('editServiceSlug').value = btn.dataset.slug;
     document.getElementById('editServiceDescription').value = btn.dataset.description;
     document.getElementById('editServiceImage').value = btn.dataset.imageUrl;
     document.getElementById('editAllowOnline').checked = btn.dataset.allowOnlineBooking === 'true';
-    document.getElementById('editServiceBuffer').value = 0;
     new bootstrap.Modal(document.getElementById('editServiceModal')).show();
 }
 
@@ -344,7 +345,7 @@ document.getElementById('editServiceForm').addEventListener('submit', async func
     };
     const resp = await fetch(`${serviceApiBase}/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + serviceToken },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify(data)
     });
     if (resp.ok) {
@@ -360,7 +361,7 @@ async function deleteService() {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
     const resp = await fetch(`${serviceApiBase}/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': 'Bearer ' + serviceToken }
+        headers: { 'Authorization': 'Bearer ' + token }
     });
     if (resp.ok) {
         location.reload();

@@ -13,6 +13,7 @@ public class ServiceResponse
     public string? ImageUrl { get; set; }
     public decimal Price { get; set; }
     public int DurationMinutes { get; set; }
+    public int BufferMinutes { get; set; }
     public string? CategoryName { get; set; }
     public bool AllowOnlineBooking { get; set; }
     public MeetingType DefaultMeetingType { get; set; }
