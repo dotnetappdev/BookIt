@@ -344,6 +344,39 @@ The Settings page (`/{slug}/admin/settings`) now includes three new sections:
 
 ---
 
+## Quick Start — Demo Data
+
+All seed data is installed **automatically at API startup** via EF Core `MigrateAsync()`.  
+No manual scripts needed — just run the API.
+
+### Demo Accounts
+
+| Role | Email | Password |
+|------|-------|----------|
+| SuperAdmin | superadmin@bookit.app | `SuperAdmin123!` |
+| TenantAdmin | admin@demo-barber.com | `Admin123!` |
+| Manager | manager@demo-barber.com | `Manager123!` |
+| Staff (John) | staff@demo-barber.com | `Staff123!` |
+| Staff (James) | james@elitehair.com | `Staff123!` |
+| Staff (Emma) | emma@elitehair.com | `Staff123!` |
+| Staff (Oliver) | oliver@urbanstyle.com | `Staff123!` |
+| Customer | customer@example.com | `Customer123!` |
+
+> Tenant slug: **demo-barber**  
+> Full account list with GUIDs, CSV data, and appointment details → **[SEEDS.md](SEEDS.md)**
+
+### Role Capabilities
+
+| Role | Can do |
+|------|--------|
+| SuperAdmin | Full platform access — all tenants |
+| TenantAdmin | Full access within their tenant |
+| Manager | Manage staff / services (TenantId hidden) |
+| Staff | View own appointments, cancel with reason, view customers |
+| Customer | Book appointments, view own bookings |
+
+---
+
 ## Projects
 
 | Project | Type | Description |

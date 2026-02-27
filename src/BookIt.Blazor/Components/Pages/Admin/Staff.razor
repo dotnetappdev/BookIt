@@ -20,8 +20,11 @@ else
                 <MudText Typo="Typo.h5" Class="fw-bold">Staff</MudText>
                 <MudText Typo="Typo.body2" Color="Color.Secondary">Manage your team members and service assignments</MudText>
             </div>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
-                       OnClick="OpenAddDialog">Add Staff Member</MudButton>
+            @if (Auth.IsManagerOrAbove)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
+                           OnClick="OpenAddDialog">Add Staff Member</MudButton>
+            }
         </MudStack>
 
         @if (_loading)
@@ -35,7 +38,10 @@ else
                     <MudStack AlignItems="AlignItems.Center" Class="py-8">
                         <MudIcon Icon="@Icons.Material.Filled.PeopleOutline" Size="Size.Large" Style="opacity:.3;" />
                         <MudText Typo="Typo.body1" Class="fw-medium">No staff members yet</MudText>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog">Add First Staff Member</MudButton>
+                        @if (Auth.IsManagerOrAbove)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog">Add First Staff Member</MudButton>
+                        }
                     </MudStack>
                 </MudCardContent>
             </MudCard>
@@ -102,21 +108,24 @@ else
                     </TemplateColumn>
                     <TemplateColumn Title="" Sortable="false" Filterable="false">
                         <CellTemplate>
-                            <MudStack Row="true" Spacing="0">
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
-                                               OnClick="@(() => OpenEditDialog(context.Item))" />
-                                @if (_pendingDeleteId == context.Item.Id)
-                                {
-                                    <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
-                                               OnClick="@(() => ConfirmDelete(context.Item))">Delete?</MudButton>
-                                    <MudButton Size="Size.Small" OnClick="@(() => _pendingDeleteId = null)">Cancel</MudButton>
-                                }
-                                else
-                                {
-                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
-                                                   OnClick="@(() => _pendingDeleteId = context.Item.Id)" />
-                                }
-                            </MudStack>
+                            @if (Auth.IsManagerOrAbove)
+                            {
+                                <MudStack Row="true" Spacing="0">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                                   OnClick="@(() => OpenEditDialog(context.Item))" />
+                                    @if (_pendingDeleteId == context.Item.Id)
+                                    {
+                                        <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
+                                                   OnClick="@(() => ConfirmDelete(context.Item))">Delete?</MudButton>
+                                        <MudButton Size="Size.Small" OnClick="@(() => _pendingDeleteId = null)">Cancel</MudButton>
+                                    }
+                                    else
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                       OnClick="@(() => _pendingDeleteId = context.Item.Id)" />
+                                    }
+                                </MudStack>
+                            }
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>

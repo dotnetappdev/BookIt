@@ -106,24 +106,30 @@
             <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);padding:16px 20px 4px;">
                 Management
             </div>
-            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/services")"
-                        Icon="@Icons.Material.Filled.Spa"
-                        Style="color:rgba(255,255,255,.65);">Services</MudNavLink>
-            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/rooms")"
-                        Icon="@Icons.Material.Filled.Hotel"
-                        Style="color:rgba(255,255,255,.65);">Rooms &amp; Lodging</MudNavLink>
+            @if (!Auth.IsStaffOnly)
+            {
+                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/services")"
+                            Icon="@Icons.Material.Filled.Spa"
+                            Style="color:rgba(255,255,255,.65);">Services</MudNavLink>
+                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/rooms")"
+                            Icon="@Icons.Material.Filled.Hotel"
+                            Style="color:rgba(255,255,255,.65);">Rooms &amp; Lodging</MudNavLink>
+            }
             <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/customers")"
                         Icon="@Icons.Material.Filled.People"
                         Style="color:rgba(255,255,255,.65);">Customers</MudNavLink>
-            <MudNavGroup Title="Booking Forms" Icon="@Icons.Material.Filled.Assignment"
-                         Style="color:rgba(255,255,255,.65);">
-                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/forms")"
-                            Icon="@Icons.Material.Filled.List"
-                            Style="color:rgba(255,255,255,.65);">All Forms</MudNavLink>
-                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/forms/builder")"
-                            Icon="@Icons.Material.Filled.Build"
-                            Style="color:rgba(255,255,255,.65);">Form Builder</MudNavLink>
-            </MudNavGroup>
+            @if (!Auth.IsStaffOnly)
+            {
+                <MudNavGroup Title="Booking Forms" Icon="@Icons.Material.Filled.Assignment"
+                             Style="color:rgba(255,255,255,.65);">
+                    <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/forms")"
+                                Icon="@Icons.Material.Filled.List"
+                                Style="color:rgba(255,255,255,.65);">All Forms</MudNavLink>
+                    <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/forms/builder")"
+                                Icon="@Icons.Material.Filled.Build"
+                                Style="color:rgba(255,255,255,.65);">Form Builder</MudNavLink>
+                </MudNavGroup>
+            }
             <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/interviews")"
                         Icon="@Icons.Material.Filled.Groups"
                         Style="color:rgba(255,255,255,.65);">Interviews</MudNavLink>
@@ -132,21 +138,24 @@
                         Style="color:rgba(255,255,255,.65);">Booking Page</MudNavLink>
 
             <!-- Settings -->
-            <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);padding:16px 20px 4px;">
-                Account
-            </div>
-            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/settings")"
-                        Icon="@Icons.Material.Filled.Tune"
-                        Style="color:rgba(255,255,255,.65);">Settings</MudNavLink>
-            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/email-templates")"
-                        Icon="@Icons.Material.Filled.MarkEmailRead"
-                        Style="color:rgba(255,255,255,.65);">Email Templates</MudNavLink>
-            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/subscriptions")"
-                        Icon="@Icons.Material.Filled.CreditCard"
-                        Style="color:rgba(255,255,255,.65);">Subscription</MudNavLink>
-            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/audit-trail")"
-                        Icon="@Icons.Material.Filled.ManageSearch"
-                        Style="color:rgba(255,255,255,.65);">Audit Trail</MudNavLink>
+            @if (!Auth.IsStaffOnly)
+            {
+                <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);padding:16px 20px 4px;">
+                    Account
+                </div>
+                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/settings")"
+                            Icon="@Icons.Material.Filled.Tune"
+                            Style="color:rgba(255,255,255,.65);">Settings</MudNavLink>
+                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/email-templates")"
+                            Icon="@Icons.Material.Filled.MarkEmailRead"
+                            Style="color:rgba(255,255,255,.65);">Email Templates</MudNavLink>
+                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/subscriptions")"
+                            Icon="@Icons.Material.Filled.CreditCard"
+                            Style="color:rgba(255,255,255,.65);">Subscription</MudNavLink>
+                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/audit-trail")"
+                            Icon="@Icons.Material.Filled.ManageSearch"
+                            Style="color:rgba(255,255,255,.65);">Audit Trail</MudNavLink>
+            }
         </MudNavMenu>
 
         <!-- User footer strip -->
@@ -159,7 +168,7 @@
                 <div style="color:rgba(255,255,255,.8);font-size:.8125rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                     @Auth.UserName
                 </div>
-                <div style="color:rgba(255,255,255,.3);font-size:.7rem;">Administrator</div>
+                <div style="color:rgba(255,255,255,.3);font-size:.7rem;">@(Auth.IsStaffOnly ? "Staff" : Auth.IsManagerOrAbove ? "Administrator" : "User")</div>
             </div>
             <MudIconButton Icon="@Icons.Material.Filled.Logout" Size="Size.Small" Color="Color.Default"
                            OnClick="Logout" Style="opacity:.45;" />

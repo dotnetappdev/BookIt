@@ -30,6 +30,69 @@ else
         }
         else
         {
+            <!-- Seed Credentials Reference Card -->
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Filled.Key" Color="Color.Primary" />
+                            <div>
+                                <MudText Typo="Typo.h6">Seed Account Credentials</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Login details for all built-in demo accounts
+                                </MudText>
+                            </div>
+                        </MudStack>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudPaper Elevation="0" Style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;">
+                                <MudText Typo="Typo.subtitle2" Color="Color.Error" Class="mb-1">Super Admin</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">superadmin@bookit.app</MudText><br/>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">SuperAdmin123!</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudPaper Elevation="0" Style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;">
+                                <MudText Typo="Typo.subtitle2" Color="Color.Warning" Class="mb-1">Tenant Admin</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">admin@demo-barber.com</MudText><br/>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Admin123! <em>(slug: demo-barber)</em></MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudPaper Elevation="0" Style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;">
+                                <MudText Typo="Typo.subtitle2" Color="Color.Info" Class="mb-1">Manager</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">manager@demo-barber.com</MudText><br/>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Manager123! <em>(slug: demo-barber)</em></MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudPaper Elevation="0" Style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;">
+                                <MudText Typo="Typo.subtitle2" Color="Color.Success" Class="mb-1">Staff</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">staff@demo-barber.com</MudText><br/>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Staff123! <em>(slug: demo-barber)</em></MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudPaper Elevation="0" Style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;">
+                                <MudText Typo="Typo.subtitle2" Color="Color.Default" Class="mb-1">Customer</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">customer@example.com</MudText><br/>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Customer123! <em>(slug: demo-barber)</em></MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudPaper Elevation="0" Style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;">
+                                <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mb-1">Seeded Staff (demo)</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">james@elitehair.com, emma@elitehair.com, oliver@urbanstyle.com</MudText><br/>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Staff123! <em>(slug: demo-barber)</em></MudText>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+                </MudCardContent>
+            </MudCard>
+
             <!-- Status Card -->
             <MudCard Elevation="2">
                 <MudCardHeader>
@@ -80,7 +143,7 @@ else
                             <MudText Typo="Typo.body2">2 Client companies with user accounts</MudText>
                         </MudListItem>
                         <MudListItem T="string" Icon="@Icons.Material.Filled.People">
-                            <MudText Typo="Typo.body2">3 Staff members linked to clients</MudText>
+                            <MudText Typo="Typo.body2">3 Staff members with linked user accounts (password: Staff123!)</MudText>
                         </MudListItem>
                         <MudListItem T="string" Icon="@Icons.Material.Filled.Person">
                             <MudText Typo="Typo.body2">20 Customer records</MudText>
