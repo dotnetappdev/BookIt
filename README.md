@@ -36,6 +36,46 @@ Add, edit, delete staff members and assign them to services. Works for any profe
 
 ![Admin Staff Page](https://github.com/user-attachments/assets/4bcb0bd6-c0b4-4949-ace5-f29098400170)
 
+**Add / Edit Staff modal** — two-column grid with icons on all contact fields, scrollable on mobile:
+
+```
+┌──────────────────────────────────────────────────────┐
+│ ✦  Add Staff Member                              [×] │
+├──────────────────────────────────────────────────────┤
+│ First Name *       │ Last Name *                     │
+│ [Jane            ] │ [Smith           ]               │
+│                                                      │
+│ Email                  │ Phone                       │
+│ [✉ jane@salon.com   ]  │ [✆ 07700 900 123 ]          │
+│                                                      │
+│ Photo URL                                            │
+│ [🖼 https://example.com/photo.jpg               ]    │
+│                                                      │
+│ Bio                                                  │
+│ [Senior stylist with 10+ years experience…     ]    │
+│                                                      │
+│ Sort Order  │ ☑ Active                               │
+│ [ 0       ] │                                        │
+│                                          [Cancel] [Save Staff Member] │
+└──────────────────────────────────────────────────────┘
+```
+
+**Assign Services modal** — tick the services each staff member can perform:
+
+```
+┌────────────────────────────────────┐
+│ ☰  Assign Services             [×] │
+├────────────────────────────────────┤
+│ Select services that Jane Smith    │
+│ can perform:                       │
+│  ☑ Haircut         (30 min · £25) │
+│  ☑ Beard Trim      (15 min · £15) │
+│  ☐ Colour          (90 min · £65) │
+│  ☑ Blow Dry        (30 min · £20) │
+│              [Cancel] [Save Assignments] │
+└────────────────────────────────────┘
+```
+
 #### Classes & Group Sessions
 
 Schedule group sessions with date, time, capacity, price, and **multiple instructors**. Any number of staff can be assigned as instructors per session.
@@ -47,6 +87,91 @@ Schedule group sessions with date, time, capacity, price, and **multiple instruc
 Full CRUD for customer profiles. Profiles are created automatically on every booking and can be managed manually by admins.
 
 ![Admin Customers Page](https://github.com/user-attachments/assets/d760ca5c-f5fe-4333-828f-cb3809d1e3fe)
+
+**Add / Edit Customer modal** — fields organised into labelled sections, contact fields with icons, scrollable:
+
+```
+┌──────────────────────────────────────────────────────┐
+│ ✦  Add Customer                                  [×] │
+├──────────────────────────────────────────────────────┤
+│ ── PERSONAL DETAILS ─────────────────────────────── │
+│ First Name *        │ Last Name                      │
+│ [Jane             ] │ [Doe              ]             │
+│ Gender              │ Membership Number               │
+│ [— Not specified —] │ [MBR-001          ]             │
+│                                                      │
+│ ── CONTACT INFORMATION ──────────────────────────── │
+│ Email *                        │ Phone               │
+│ [✉ jane@example.com         ]  │ [✆ 07700 900 123 ]  │
+│ Mobile                                               │
+│ [📱 07700 900 456          ]                         │
+│                                                      │
+│ ── ADDRESS ──────────────────────────────────────── │
+│ Address                                              │
+│ [123 High Street                                 ]   │
+│ City           │ Post Code  │ Country                │
+│ [London      ] │ [SW1A 1AA] │ [UK          ]         │
+│                                                      │
+│ ── NOTES & TAGS ─────────────────────────────────── │
+│ Tags                                                 │
+│ [VIP, New Client                              ]      │
+│ ☑ Marketing Opt-in    ☑ SMS Opt-in                  │
+│ Notes                                                │
+│ [Prefers afternoon appointments…              ]      │
+│                                       [Cancel] [Save Customer] │
+└──────────────────────────────────────────────────────┘
+```
+
+#### Services Management
+
+Manage service offerings with price, duration, buffer time and booking link. The **Edit** modal is fully wired — pre-populates all fields including buffer time, and includes an inline **Delete** action.
+
+```
+┌──────────────────────────────────────────────────────┐
+│ Services                            [+ Add Service]  │
+│ Manage your service offerings                        │
+├──────────┬──────────┬──────────┬────────────────────┤
+│ ┌──────┐ │ ┌──────┐ │ ┌──────┐ │                   │
+│ │ ✂    │ │ │ 🧴   │ │ │ ✂    │ │                   │
+│ │      │ │ │      │ │ │      │ │                   │
+│ │Haircut│ │ │Colour│ │ │Beard │ │                   │
+│ │[cuts] │ │ │      │ │ │Trim  │ │                   │
+│ │ £25  │ │ │ £65  │ │ │ £15  │ │                   │
+│ │30 min│ │ │90 min│ │ │15 min│ │                   │
+│ │[Online]│ │ │[Online]│ │ │[Online]│               │
+│ ├──────┤ │ ├──────┤ │ ├──────┤ │                   │
+│ │ ✏ Edit│ │ │ ✏ Edit│ │ │ ✏ Edit│ │                │
+│ └──────┘ │ └──────┘ │ └──────┘ │                   │
+└──────────┴──────────┴──────────┴────────────────────┘
+```
+
+**Add / Edit Service modal** — consistent `admin-form-grid` layout with icons, slug auto-generation, buffer time and delete:
+
+```
+┌──────────────────────────────────────────────────────┐
+│ ✏  Edit Service                                  [×] │
+├──────────────────────────────────────────────────────┤
+│ Service Name *                  │ Price (£) *        │
+│ [Haircut                      ] │ [25.00    ]        │
+│                                                      │
+│ URL Slug (leave blank to keep current)               │
+│ /demo-barber/book/ [haircut                       ]  │
+│                                                      │
+│ Duration (minutes) *    │ Buffer Time (minutes)      │
+│ [30 minutes          ▼] │ [5                   ]     │
+│                          (cleanup time between appts)│
+│                                                      │
+│ Description                                          │
+│ [Classic scissor & clipper cut, finished with…  ]   │
+│                                                      │
+│ Image URL                                            │
+│ [🖼 https://example.com/haircut.jpg             ]    │
+│                                                      │
+│ ☑ Allow Online Booking                               │
+│                                                      │
+│ [🗑 Delete]               [Cancel] [Save Changes]   │
+└──────────────────────────────────────────────────────┘
+```
 
 #### Booking Forms (admin + mobile)
 
@@ -335,6 +460,20 @@ The Settings page (`/{slug}/admin/settings`) now includes three new sections:
 └───────────────────────────────────────────────────┘
 ```
 
+**Settings layout** — card sections (Business Profile, Branding, Payment Settings, Booking Settings, AI Assistant) are fully dark-mode compatible; section headers use the theme surface colour instead of hard-coded white:
+
+```
+┌ Light mode ──────────────────────────────────────┐  ┌ Dark mode ───────────────────────────────────────┐
+│ 🏢  Business Profile                             │  │ 🏢  Business Profile                             │
+│  Business Name   [Elite Hair Studio            ] │  │  Business Name   [Elite Hair Studio            ] │
+│  Business Type   [Salon               ▼]         │  │  Business Type   [Salon               ▼]         │
+├──────────────────────────────────────────────────┤  ├──────────────────────────────────────────────────┤
+│ 🎨  Branding & Appearance                        │  │ 🎨  Branding & Appearance                        │
+│  Primary Colour  [🟣] [#6c5ce7        ]          │  │  Primary Colour  [🟣] [#6c5ce7        ]          │
+└──────────────────────────────────────────────────┘  └──────────────────────────────────────────────────┘
+ ↑ surface white bg                                     ↑ surface dark bg — no white flash
+```
+
 ### Super Admin Console (`/super-admin`) — new tab
 
 **RevenueCat Config tab** (visible to `SuperAdmin` only):
@@ -419,6 +558,7 @@ No manual scripts needed — just run the API.
 - Works for every business type: barber, salon, gym, physio, spa, recruitment, hotel, etc.
 - API: `GET/POST/PUT/DELETE /api/tenants/{slug}/staff` + `PUT /staff/{id}/services`
 - Admin page at `/{slug}/admin/Staff` with card layout and three modals (Add / Edit / Assign Services)
+- Add / Edit modals use two-column `admin-form-grid` with Bootstrap icons on contact fields (✉ email, ✆ phone, 🖼 photo URL)
 
 ### Classes & Group Sessions (all business types)
 - Schedule group classes/sessions that multiple customers can book into
@@ -436,6 +576,7 @@ No manual scripts needed — just run the API.
 - **Booking form pre-fill** — returning customers who type their email get their name and phone pre-filled ("Welcome back!" hint)
 - Admin CRUD page at `/{slug}/admin/Customers` — searchable table, full Add / Edit / Delete modals
 - Fields: name, email, phone, mobile, address, gender, membership number, tags, notes, marketing/SMS opt-ins
+- Add / Edit modals organised into four labelled sections (Personal Details · Contact Information · Address · Notes & Tags) with Bootstrap icons on contact fields
 - Public lookup endpoint: `GET /api/tenants/{slug}/customers/lookup?email=X`
 - Full REST API: `GET/POST/PUT/DELETE /api/tenants/{slug}/customers`
 - Webhook events: `customer.created`, `customer.updated`, `customer.deleted`

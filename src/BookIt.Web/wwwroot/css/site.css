@@ -882,6 +882,17 @@ body {
 .admin-form-grid > .afc-4  { grid-column: span 4; }
 /* Checkbox cells: centre vertically so they align with adjacent inputs */
 .admin-form-grid .admin-check-cell { display: flex; align-items: center; gap: .5rem; padding-top: .25rem; }
+/* Section labels within the form grid */
+.admin-form-grid .form-section-label {
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    color: var(--text-muted);
+    padding-bottom: .375rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: -.25rem;
+}
 /* Mobile: all fields full width */
 @media (max-width: 575.98px) {
     .admin-form-grid > * { grid-column: span 12 !important; }

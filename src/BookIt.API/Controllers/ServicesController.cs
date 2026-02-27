@@ -45,6 +45,7 @@ public class ServicesController : ControllerBase
                 ImageUrl = s.ImageUrl,
                 Price = s.Price,
                 DurationMinutes = s.DurationMinutes,
+                BufferMinutes = s.BufferMinutes,
                 CategoryName = s.Category != null ? s.Category.Name : null,
                 AllowOnlineBooking = s.AllowOnlineBooking,
                 DefaultMeetingType = s.DefaultMeetingType
@@ -75,6 +76,7 @@ public class ServicesController : ControllerBase
             ImageUrl = s.ImageUrl,
             Price = s.Price,
             DurationMinutes = s.DurationMinutes,
+            BufferMinutes = s.BufferMinutes,
             CategoryName = s.Category?.Name,
             AllowOnlineBooking = s.AllowOnlineBooking,
             DefaultMeetingType = s.DefaultMeetingType
@@ -102,6 +104,7 @@ public class ServicesController : ControllerBase
             ImageUrl = s.ImageUrl,
             Price = s.Price,
             DurationMinutes = s.DurationMinutes,
+            BufferMinutes = s.BufferMinutes,
             CategoryName = s.Category?.Name,
             AllowOnlineBooking = s.AllowOnlineBooking,
             DefaultMeetingType = s.DefaultMeetingType
@@ -155,6 +158,7 @@ public class ServicesController : ControllerBase
             Description = service.Description,
             Price = service.Price,
             DurationMinutes = service.DurationMinutes,
+            BufferMinutes = service.BufferMinutes,
             AllowOnlineBooking = service.AllowOnlineBooking,
             DefaultMeetingType = service.DefaultMeetingType
         });
