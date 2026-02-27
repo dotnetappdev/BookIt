@@ -249,7 +249,7 @@ else
         // Sanitize inputs
         _form.CompanyName = _form.CompanyName?.Trim();
         _form.ContactName = _form.ContactName?.Trim();
-        _form.Email = _form.Email?.Trim().ToLowerInvariant();
+        _form.Email = _form.Email?.Trim()?.ToLowerInvariant();
         _form.Phone = _form.Phone?.Trim();
 
         _saving = true;

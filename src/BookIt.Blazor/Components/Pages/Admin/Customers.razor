@@ -302,8 +302,8 @@ else
 
         // Sanitize inputs
         _form.FirstName = _form.FirstName.Trim();
-        _form.LastName = _form.LastName?.Trim() ?? string.Empty;
-        _form.Email = _form.Email.Trim().ToLowerInvariant();
+        _form.LastName = _form.LastName?.Trim();
+        _form.Email = _form.Email?.Trim()?.ToLowerInvariant();
 
         _saving = true;
         Api.SetToken(Auth.AccessToken);
