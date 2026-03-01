@@ -174,13 +174,13 @@ No manual scripts needed — just run the API.
 | Role | Email | Password |
 |------|-------|----------|
 | SuperAdmin | superadmin@bookit.app | `SuperAdmin123!` |
-| TenantAdmin | admin@demo-barber.com | `Admin123!` |
-| Manager | manager@demo-barber.com | `Manager123!` |
-| Staff (John) | staff@demo-barber.com | `Staff123!` |
-| Staff (James) | james@elitehair.com | `Staff123!` |
-| Staff (Emma) | emma@elitehair.com | `Staff123!` |
-| Staff (Oliver) | oliver@urbanstyle.com | `Staff123!` |
-| Customer | customer@example.com | `Customer123!` |
+| TenantAdmin | admin@demo-barber.example | `Admin123!` |
+| Manager | manager@demo-barber.example | `Manager123!` |
+| Staff (John) | staff@demo-barber.example | `Staff123!` |
+| Staff (James) | james@elitehair.example | `Staff123!` |
+| Staff (Emma) | emma@elitehair.example | `Staff123!` |
+| Staff (Oliver) | oliver@urbanstyle.example | `Staff123!` |
+| Customer | customer@bookit-demo.example | `Customer123!` |
 
 > Tenant slug: **demo-barber**  
 > Full account list with GUIDs, CSV data, and appointment details → **[SEEDS.md](SEEDS.md)**

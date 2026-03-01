@@ -218,6 +218,21 @@ public class BookItApiService
     public Task<bool> SuperAdminDeleteTenantAsync(Guid tenantId) =>
         DeleteAsync($"/api/admin/tenants/{tenantId}");
 
+    public Task<List<UserListResponse>?> GetAllUsersAsync(string? search = null, string? role = null, Guid? tenantId = null)
+    {
+        var qs = new System.Text.StringBuilder("/api/admin/users?");
+        if (!string.IsNullOrEmpty(search)) qs.Append($"search={Uri.EscapeDataString(search)}&");
+        if (!string.IsNullOrEmpty(role)) qs.Append($"role={Uri.EscapeDataString(role)}&");
+        if (tenantId.HasValue) qs.Append($"tenantId={tenantId.Value}&");
+        return GetAsync<List<UserListResponse>>(qs.ToString().TrimEnd('?', '&'));
+    }
+
+    public Task<UserListResponse?> UpdateUserRoleAsync(Guid userId, UpdateUserRoleRequest req) =>
+        PutAsync<UserListResponse>($"/api/admin/users/{userId}/role", req);
+
+    public Task<bool> SuperAdminDeleteUserAsync(Guid userId) =>
+        DeleteAsync($"/api/admin/users/{userId}");
+
     // ── Clients ──
     public Task<List<ClientResponse>?> GetAllClientsAsync() =>
         GetAsync<List<ClientResponse>>("/api/admin/clients");

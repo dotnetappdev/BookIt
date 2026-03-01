@@ -12,11 +12,11 @@ namespace BookIt.Infrastructure.Data.Migrations
         private static readonly Guid TenantId     = new("11111111-1111-1111-1111-111111111111");
 
         // Existing user IDs from earlier migrations
-        private static readonly Guid UserManager  = new("bb000000-0000-0000-0000-000000000004"); // manager@demo-barber.com
-        private static readonly Guid UserStaff    = new("bb000000-0000-0000-0000-000000000002"); // staff@demo-barber.com
-        private static readonly Guid UserCustomer = new("bb000000-0000-0000-0000-000000000003"); // customer@example.com
+        private static readonly Guid UserManager  = new("bb000000-0000-0000-0000-000000000004"); // manager@demo-barber.example
+        private static readonly Guid UserStaff    = new("bb000000-0000-0000-0000-000000000002"); // staff@demo-barber.example
+        private static readonly Guid UserCustomer = new("bb000000-0000-0000-0000-000000000003"); // customer@bookit-demo.example
 
-        // Existing staff record (linked to staff@demo-barber.com)
+        // Existing staff record (linked to staff@demo-barber.example)
         private static readonly Guid StaffJohn    = new("cc000000-0000-0000-0000-000000000001"); // John Barber
 
         // New staff user accounts
@@ -83,8 +83,8 @@ namespace BookIt.Infrastructure.Data.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "CreatedAt", "Email", "EmailConfirmed", "FirstName", "IsDeleted", "LastName", "LockoutEnabled", "LockoutEnd", "MembershipNumber", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "RefreshToken", "RefreshTokenExpiry", "Role", "SecurityStamp", "TenantId", "TwoFactorEnabled", "UpdatedAt", "UserName" },
                 values: new object[,]
                 {
-                    { UserClient1, 0, "client1-concurrency-stamp", new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "sarah@elitehair.com", true, "Sarah", false, "Johnson", false, null, null, "SARAH@ELITEHAIR.COM", "SARAH@ELITEHAIR.COM", "AQAAAAIAAYagAAAAEEg7zuYqljGMg56j3zUnQcWfW3B1ES52Rac1If1LF5QpglTD9iCwA2fjdi++mqLUNQ==", "555-0101", false, null, null, 5, "client1-security-stamp", TenantId, false, null, "sarah@elitehair.com" },
-                    { UserClient2, 0, "client2-concurrency-stamp", new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "michael@urbanstyle.com", true, "Michael", false, "Chen", false, null, null, "MICHAEL@URBANSTYLE.COM", "MICHAEL@URBANSTYLE.COM", "AQAAAAIAAYagAAAAEEg7zuYqljGMg56j3zUnQcWfW3B1ES52Rac1If1LF5QpglTD9iCwA2fjdi++mqLUNQ==", "555-0102", false, null, null, 5, "client2-security-stamp", TenantId, false, null, "michael@urbanstyle.com" }
+                    { UserClient1, 0, "client1-concurrency-stamp", new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "sarah@elitehair.example", true, "Sarah", false, "Johnson", false, null, null, "SARAH@ELITEHAIR.EXAMPLE", "SARAH@ELITEHAIR.EXAMPLE", "AQAAAAIAAYagAAAAEEg7zuYqljGMg56j3zUnQcWfW3B1ES52Rac1If1LF5QpglTD9iCwA2fjdi++mqLUNQ==", "555-0101", false, null, null, 5, "client1-security-stamp", TenantId, false, null, "sarah@elitehair.example" },
+                    { UserClient2, 0, "client2-concurrency-stamp", new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "michael@urbanstyle.example", true, "Michael", false, "Chen", false, null, null, "MICHAEL@URBANSTYLE.EXAMPLE", "MICHAEL@URBANSTYLE.EXAMPLE", "AQAAAAIAAYagAAAAEEg7zuYqljGMg56j3zUnQcWfW3B1ES52Rac1If1LF5QpglTD9iCwA2fjdi++mqLUNQ==", "555-0102", false, null, null, 5, "client2-security-stamp", TenantId, false, null, "michael@urbanstyle.example" }
                 });
 
             migrationBuilder.InsertData(
@@ -102,8 +102,8 @@ namespace BookIt.Infrastructure.Data.Migrations
                 columns: new[] { "Id", "Address", "CompanyName", "ContactName", "CreatedAt", "Email", "IsActive", "IsDeleted", "Notes", "Phone", "TenantId", "UpdatedAt", "UserId" },
                 values: new object[,]
                 {
-                    { Client1, null, "Elite Hair Solutions", "Sarah Johnson", new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "sarah@elitehair.com", true, false, "VIP client — priority scheduling", "555-0101", TenantId, null, UserClient1 },
-                    { Client2, null, "Urban Style Group", "Michael Chen", new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "michael@urbanstyle.com", true, false, null, "555-0102", TenantId, null, UserClient2 }
+                    { Client1, null, "Elite Hair Solutions", "Sarah Johnson", new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "sarah@elitehair.example", true, false, "VIP client — priority scheduling", "555-0101", TenantId, null, UserClient1 },
+                    { Client2, null, "Urban Style Group", "Michael Chen", new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "michael@urbanstyle.example", true, false, null, "555-0102", TenantId, null, UserClient2 }
                 });
 
             // ── Staff user accounts ──────────────────────────────────────────────
@@ -112,9 +112,9 @@ namespace BookIt.Infrastructure.Data.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "CreatedAt", "Email", "EmailConfirmed", "FirstName", "IsDeleted", "LastName", "LockoutEnabled", "LockoutEnd", "MembershipNumber", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "RefreshToken", "RefreshTokenExpiry", "Role", "SecurityStamp", "TenantId", "TwoFactorEnabled", "UpdatedAt", "UserName" },
                 values: new object[,]
                 {
-                    { UserJames,  0, "james-concurrency-stamp",  new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "james@elitehair.com",    true, "James",  false, "Martinez", false, null, null, "JAMES@ELITEHAIR.COM",    "JAMES@ELITEHAIR.COM",    "AQAAAAIAAYagAAAAEJG449ssHHixsjQHRmtQ77ObBnLZBt3s4t54hGgYCLV7/EuqQsTEMNl8VueuB7hknw==", "555-0201", false, null, null, 4, "james-security-stamp",  TenantId, false, null, "james@elitehair.com" },
-                    { UserEmma,   0, "emma-concurrency-stamp",   new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "emma@elitehair.com",     true, "Emma",   false, "Wilson",   false, null, null, "EMMA@ELITEHAIR.COM",     "EMMA@ELITEHAIR.COM",     "AQAAAAIAAYagAAAAEJG449ssHHixsjQHRmtQ77ObBnLZBt3s4t54hGgYCLV7/EuqQsTEMNl8VueuB7hknw==", "555-0202", false, null, null, 4, "emma-security-stamp",   TenantId, false, null, "emma@elitehair.com" },
-                    { UserOliver, 0, "oliver-concurrency-stamp", new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "oliver@urbanstyle.com",  true, "Oliver", false, "Brown",    false, null, null, "OLIVER@URBANSTYLE.COM",  "OLIVER@URBANSTYLE.COM",  "AQAAAAIAAYagAAAAEJG449ssHHixsjQHRmtQ77ObBnLZBt3s4t54hGgYCLV7/EuqQsTEMNl8VueuB7hknw==", "555-0203", false, null, null, 4, "oliver-security-stamp", TenantId, false, null, "oliver@urbanstyle.com" }
+                    { UserJames,  0, "james-concurrency-stamp",  new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "james@elitehair.example",    true, "James",  false, "Martinez", false, null, null, "JAMES@ELITEHAIR.EXAMPLE",    "JAMES@ELITEHAIR.EXAMPLE",    "AQAAAAIAAYagAAAAEJG449ssHHixsjQHRmtQ77ObBnLZBt3s4t54hGgYCLV7/EuqQsTEMNl8VueuB7hknw==", "555-0201", false, null, null, 4, "james-security-stamp",  TenantId, false, null, "james@elitehair.example" },
+                    { UserEmma,   0, "emma-concurrency-stamp",   new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "emma@elitehair.example",     true, "Emma",   false, "Wilson",   false, null, null, "EMMA@ELITEHAIR.EXAMPLE",     "EMMA@ELITEHAIR.EXAMPLE",     "AQAAAAIAAYagAAAAEJG449ssHHixsjQHRmtQ77ObBnLZBt3s4t54hGgYCLV7/EuqQsTEMNl8VueuB7hknw==", "555-0202", false, null, null, 4, "emma-security-stamp",   TenantId, false, null, "emma@elitehair.example" },
+                    { UserOliver, 0, "oliver-concurrency-stamp", new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), "oliver@urbanstyle.example",  true, "Oliver", false, "Brown",    false, null, null, "OLIVER@URBANSTYLE.EXAMPLE",  "OLIVER@URBANSTYLE.EXAMPLE",  "AQAAAAIAAYagAAAAEJG449ssHHixsjQHRmtQ77ObBnLZBt3s4t54hGgYCLV7/EuqQsTEMNl8VueuB7hknw==", "555-0203", false, null, null, 4, "oliver-security-stamp", TenantId, false, null, "oliver@urbanstyle.example" }
                 });
 
             migrationBuilder.InsertData(
@@ -133,9 +133,9 @@ namespace BookIt.Infrastructure.Data.Migrations
                 columns: new[] { "Id", "Bio", "ClientId", "CreatedAt", "CreatedBy", "DeletedAt", "DeletedBy", "EditedAt", "EditedBy", "Email", "FirstName", "IsActive", "IsDeleted", "LastName", "Phone", "PhotoUrl", "SortOrder", "TenantId", "UpdatedAt", "UpdatedBy", "UserId" },
                 values: new object[,]
                 {
-                    { StaffJames,  "Master Barber with 10 years experience", Client1, new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), null, null, null, null, null, "james@elitehair.com",   "James",  true, false, "Martinez", "555-0201", null, 2, TenantId, null, null, UserJames  },
-                    { StaffEmma,   "Specialist in modern cuts and styling",   Client1, new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), null, null, null, null, null, "emma@elitehair.com",    "Emma",   true, false, "Wilson",   "555-0202", null, 3, TenantId, null, null, UserEmma   },
-                    { StaffOliver, "Expert in beard grooming and hot shaves", Client2, new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), null, null, null, null, null, "oliver@urbanstyle.com", "Oliver", true, false, "Brown",    "555-0203", null, 4, TenantId, null, null, UserOliver }
+                    { StaffJames,  "Master Barber with 10 years experience", Client1, new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), null, null, null, null, null, "james@elitehair.example",   "James",  true, false, "Martinez", "555-0201", null, 2, TenantId, null, null, UserJames  },
+                    { StaffEmma,   "Specialist in modern cuts and styling",   Client1, new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), null, null, null, null, null, "emma@elitehair.example",    "Emma",   true, false, "Wilson",   "555-0202", null, 3, TenantId, null, null, UserEmma   },
+                    { StaffOliver, "Expert in beard grooming and hot shaves", Client2, new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), null, null, null, null, null, "oliver@urbanstyle.example", "Oliver", true, false, "Brown",    "555-0203", null, 4, TenantId, null, null, UserOliver }
                 });
 
             // ── Staff ↔ Services ──────────────────────────────────────────────────

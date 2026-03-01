@@ -15,26 +15,26 @@ for hotel, B&B and gym tenants.
 | Role | Email | Password | Tenant |
 |------|-------|----------|--------|
 | SuperAdmin | superadmin@bookit.app | SuperAdmin123! | demo-barber (platform admin) |
-| TenantAdmin | admin@demo-barber.com | Admin123! | demo-barber |
-| Manager | manager@demo-barber.com | Manager123! | demo-barber |
-| Staff | staff@demo-barber.com | Staff123! | demo-barber |
-| Staff | james@elitehair.com | Staff123! | demo-barber |
-| Staff | emma@elitehair.com | Staff123! | demo-barber |
-| Staff | oliver@urbanstyle.com | Staff123! | demo-barber |
-| Customer (client contact) | sarah@elitehair.com | Client123! | demo-barber |
-| Customer (client contact) | michael@urbanstyle.com | Client123! | demo-barber |
-| Customer | customer@example.com | Customer123! | demo-barber |
+| TenantAdmin | admin@demo-barber.example | Admin123! | demo-barber |
+| Manager | manager@demo-barber.example | Manager123! | demo-barber |
+| Staff | staff@demo-barber.example | Staff123! | demo-barber |
+| Staff | james@elitehair.example | Staff123! | demo-barber |
+| Staff | emma@elitehair.example | Staff123! | demo-barber |
+| Staff | oliver@urbanstyle.example | Staff123! | demo-barber |
+| Customer (client contact) | sarah@elitehair.example | Client123! | demo-barber |
+| Customer (client contact) | michael@urbanstyle.example | Client123! | demo-barber |
+| Customer | customer@bookit-demo.example | Customer123! | demo-barber |
 
 ### Seeded demo accounts (created by "Seed Demo Data" button)
 
 | Role | Email | Password | Tenant |
 |------|-------|----------|--------|
-| TenantAdmin | admin@demo-hotel.com | Admin123! | demo-hotel |
-| TenantAdmin | admin@demo-bb.com | Admin123! | demo-bb |
-| TenantAdmin | admin@demo-gym.com | Admin123! | demo-gym |
-| Staff (instructor) | sophie@demo-gym.com | Staff123! | demo-gym |
-| Staff (instructor) | tom@demo-gym.com | Staff123! | demo-gym |
-| Staff (instructor) | priya@demo-gym.com | Staff123! | demo-gym |
+| TenantAdmin | admin@demo-hotel.example | Admin123! | demo-hotel |
+| TenantAdmin | admin@demo-bb.example | Admin123! | demo-bb |
+| TenantAdmin | admin@demo-gym.example | Admin123! | demo-gym |
+| Staff (instructor) | sophie@demo-gym.example | Staff123! | demo-gym |
+| Staff (instructor) | tom@demo-gym.example | Staff123! | demo-gym |
+| Staff (instructor) | priya@demo-gym.example | Staff123! | demo-gym |
 
 > **Login URL (Blazor):** `https://localhost:5001/login`  
 > **Note:** The login page no longer requires a slug — sign in with email and password only.  
@@ -65,8 +65,8 @@ Slug: demo-gym      Name: City Fitness Centre      Type: Gym
 
 ```csv
 Id,CompanyName,ContactName,Email,Phone,TenantId,Notes
-ff000000-0000-0000-0000-000000000001,Elite Hair Solutions,Sarah Johnson,sarah@elitehair.com,555-0101,11111111-1111-1111-1111-111111111111,VIP client - priority scheduling
-ff000000-0000-0000-0000-000000000002,Urban Style Group,Michael Chen,michael@urbanstyle.com,555-0102,11111111-1111-1111-1111-111111111111,
+ff000000-0000-0000-0000-000000000001,Elite Hair Solutions,Sarah Johnson,sarah@elitehair.example,555-0101,11111111-1111-1111-1111-111111111111,VIP client - priority scheduling
+ff000000-0000-0000-0000-000000000002,Urban Style Group,Michael Chen,michael@urbanstyle.example,555-0102,11111111-1111-1111-1111-111111111111,
 ```
 
 ---
@@ -75,10 +75,10 @@ ff000000-0000-0000-0000-000000000002,Urban Style Group,Michael Chen,michael@urba
 
 ```csv
 Id,FirstName,LastName,Email,Phone,ClientId,UserId,Bio,SortOrder
-cc000000-0000-0000-0000-000000000001,John,Barber,staff@demo-barber.com,555-0001,,bb000000-0000-0000-0000-000000000002,Demo barber for testing the staff experience,1
-cc000000-0000-0000-0000-000000000002,James,Martinez,james@elitehair.com,555-0201,ff000000-0000-0000-0000-000000000001,ee000000-0000-0000-0000-000000000001,Master Barber with 10 years experience,2
-cc000000-0000-0000-0000-000000000003,Emma,Wilson,emma@elitehair.com,555-0202,ff000000-0000-0000-0000-000000000001,ee000000-0000-0000-0000-000000000002,Specialist in modern cuts and styling,3
-cc000000-0000-0000-0000-000000000004,Oliver,Brown,oliver@urbanstyle.com,555-0203,ff000000-0000-0000-0000-000000000002,ee000000-0000-0000-0000-000000000003,Expert in beard grooming and hot shaves,4
+cc000000-0000-0000-0000-000000000001,John,Barber,staff@demo-barber.example,555-0001,,bb000000-0000-0000-0000-000000000002,Demo barber for testing the staff experience,1
+cc000000-0000-0000-0000-000000000002,James,Martinez,james@elitehair.example,555-0201,ff000000-0000-0000-0000-000000000001,ee000000-0000-0000-0000-000000000001,Master Barber with 10 years experience,2
+cc000000-0000-0000-0000-000000000003,Emma,Wilson,emma@elitehair.example,555-0202,ff000000-0000-0000-0000-000000000001,ee000000-0000-0000-0000-000000000002,Specialist in modern cuts and styling,3
+cc000000-0000-0000-0000-000000000004,Oliver,Brown,oliver@urbanstyle.example,555-0203,ff000000-0000-0000-0000-000000000002,ee000000-0000-0000-0000-000000000003,Expert in beard grooming and hot shaves,4
 ```
 
 **Staff ↔ Services:**
