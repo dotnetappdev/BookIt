@@ -266,13 +266,27 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
                   .OnDelete(DeleteBehavior.NoAction);
         });
 
-        // Client
+        // Client - configure relationships to prevent cascade cycles
         modelBuilder.Entity<Client>(entity =>
         {
             entity.HasIndex(c => new { c.TenantId, c.Email });
             entity.Property(c => c.CompanyName).HasMaxLength(200).IsRequired();
             entity.Property(c => c.ContactName).HasMaxLength(200).IsRequired();
             entity.Property(c => c.Email).HasMaxLength(256).IsRequired();
+            
+            // Tenant relationship - CASCADE (when tenant is deleted, clients are deleted)
+            entity.HasOne(c => c.Tenant)
+                  .WithMany()
+                  .HasForeignKey(c => c.TenantId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            
+            // User relationship - RESTRICT (prevents cascade cycle)
+            // This breaks the cycle: Tenant -> Users (CASCADE) and Tenant -> Clients (CASCADE)
+            // by preventing Users -> Clients (CASCADE)
+            entity.HasOne(c => c.User)
+                  .WithMany()
+                  .HasForeignKey(c => c.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Customer

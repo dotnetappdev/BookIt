@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace BookIt.Infrastructure.Data.Migrations
+namespace BookIt.Infrastructure.Migrations
 {
     [DbContext(typeof(BookItDbContext))]
-    [Migration("20260301040355_AddTenantSubdomain")]
-    partial class AddTenantSubdomain
+    [Migration("20260301203911_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -262,7 +262,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@DEMO-BARBER.COM",
                             NormalizedUserName = "ADMIN@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHjCffROOR9Kw5lCZz/MPm1r5zSmL7+9h7p1821Mq5c1LJeBHy/t1/NBaOzFyb3qKw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAECiwQ092/UngX1NfqIdIJPgaas6RaQfJguL3TjTu77xUQOtReaOwEhsb3tjHf2mFVQ==",
                             PhoneNumberConfirmed = false,
                             Role = 2,
                             SecurityStamp = "admin-security-stamp-1",
@@ -284,7 +284,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER@DEMO-BARBER.COM",
                             NormalizedUserName = "MANAGER@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEN99ZY6T4sKSsmweyYC7o/xpn9cN9U+PrelTPxvEqkOuUvCxsnpvCwIStHj7h+rB0w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDe+KIGASC48jkv6o6t8FG08dolV5xMUh7gyLgIrABDwYBcwtncuCCoxD8zHkKdNoA==",
                             PhoneNumberConfirmed = false,
                             Role = 3,
                             SecurityStamp = "manager-security-stamp-1",
@@ -306,7 +306,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "STAFF@DEMO-BARBER.COM",
                             NormalizedUserName = "STAFF@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEKjtvcuzZReovKbQVt3u9/rN4pXpuhmQJL0WztNuh2jMb2VpPfhRA6Yu+V0JTTYeQA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBiyVZOyGdHMrVP6HFk2DJ9/42BWW2BgsXKmwuexmb1xPzVkpQR4b1j/ChdRwvcRXQ==",
                             PhoneNumberConfirmed = false,
                             Role = 4,
                             SecurityStamp = "staff-security-stamp-1",
@@ -328,7 +328,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CUSTOMER@EXAMPLE.COM",
                             NormalizedUserName = "CUSTOMER@EXAMPLE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPVPMaFkcxnIBXSfYSZAJ9dBTC3pwFfILRd7RSfYMF1fTQj3ZhL9O0ACD6etSQRsWw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEC5TtNmR1oQp4mqLHwV0UojGhbdFRvcNK3mTh0R6TysLFM/PLg0L2Z2QXUF5Ib57Nw==",
                             PhoneNumberConfirmed = false,
                             Role = 5,
                             SecurityStamp = "customer-security-stamp-1",
@@ -3108,7 +3108,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasOne("BookIt.Core.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Tenant");

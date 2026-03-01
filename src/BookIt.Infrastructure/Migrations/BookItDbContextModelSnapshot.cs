@@ -4,19 +4,16 @@ using BookIt.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace BookIt.Infrastructure.Data.Migrations
+namespace BookIt.Infrastructure.Migrations
 {
     [DbContext(typeof(BookItDbContext))]
-    [Migration("20260227003030_AddManagerRoleAndSeedData")]
-    partial class AddManagerRoleAndSeedData
+    partial class BookItDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,6 +21,66 @@ namespace BookIt.Infrastructure.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("BookIt.Core.Entities.Amenity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AmenityType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EditedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Icon")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("Amenities");
+                });
 
             modelBuilder.Entity("BookIt.Core.Entities.AppConfiguration", b =>
                 {
@@ -202,7 +259,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@DEMO-BARBER.COM",
                             NormalizedUserName = "ADMIN@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGdmkIYYVLqbXdKkZg50IDGpxTrQ0TQPDvwtFcztxwNzTY9a53EwyHQ7Y7b7vmsREg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAECiwQ092/UngX1NfqIdIJPgaas6RaQfJguL3TjTu77xUQOtReaOwEhsb3tjHf2mFVQ==",
                             PhoneNumberConfirmed = false,
                             Role = 2,
                             SecurityStamp = "admin-security-stamp-1",
@@ -224,7 +281,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER@DEMO-BARBER.COM",
                             NormalizedUserName = "MANAGER@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEA3HvWcx1zen0eFthQvU6K02+HXUL7ISmaH/zrfPtt0v4vgrs4gAxuL1ngd/qMap5w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDe+KIGASC48jkv6o6t8FG08dolV5xMUh7gyLgIrABDwYBcwtncuCCoxD8zHkKdNoA==",
                             PhoneNumberConfirmed = false,
                             Role = 3,
                             SecurityStamp = "manager-security-stamp-1",
@@ -246,7 +303,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "STAFF@DEMO-BARBER.COM",
                             NormalizedUserName = "STAFF@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHb5w4xLoZYRtU1kBVpUMw2NgI1x+W+OmJiO7ptQtjcdfEOeuvGxdPSNrOp2DFaXBw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBiyVZOyGdHMrVP6HFk2DJ9/42BWW2BgsXKmwuexmb1xPzVkpQR4b1j/ChdRwvcRXQ==",
                             PhoneNumberConfirmed = false,
                             Role = 4,
                             SecurityStamp = "staff-security-stamp-1",
@@ -268,7 +325,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CUSTOMER@EXAMPLE.COM",
                             NormalizedUserName = "CUSTOMER@EXAMPLE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJHOhmVqv9bxzg/kHo580N5Ew2N4VwAUcN2hfI0NEYZDlJeDfya/6m3WWXyixcpxDA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEC5TtNmR1oQp4mqLHwV0UojGhbdFRvcNK3mTh0R6TysLFM/PLg0L2Z2QXUF5Ib57Nw==",
                             PhoneNumberConfirmed = false,
                             Role = 5,
                             SecurityStamp = "customer-security-stamp-1",
@@ -852,6 +909,129 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.ToTable("CandidateInvitations");
                 });
 
+            modelBuilder.Entity("BookIt.Core.Entities.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChatSessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EditedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAgentMessage")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatSessionId");
+
+                    b.ToTable("ChatMessages");
+                });
+
+            modelBuilder.Entity("BookIt.Core.Entities.ChatSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("CustomerName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EditedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HasUnreadAgentMessages")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastMessageAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SessionId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastMessageAt");
+
+                    b.HasIndex("TenantId", "SessionId")
+                        .IsUnique();
+
+                    b.ToTable("ChatSessions");
+                });
+
             modelBuilder.Entity("BookIt.Core.Entities.ClassSession", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1300,6 +1480,87 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.ToTable("InterviewSlots");
                 });
 
+            modelBuilder.Entity("BookIt.Core.Entities.LodgingProperty", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("City")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EditedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IconUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PostCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Website")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("LodgingProperties");
+                });
+
             modelBuilder.Entity("BookIt.Core.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1383,6 +1644,203 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.ToTable("Payments");
                 });
 
+            modelBuilder.Entity("BookIt.Core.Entities.Room", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("BaseRate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EditedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("LodgingPropertyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("RoomType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LodgingPropertyId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("Rooms");
+                });
+
+            modelBuilder.Entity("BookIt.Core.Entities.RoomAmenity", b =>
+                {
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AmenityId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("RoomId", "AmenityId");
+
+                    b.HasIndex("AmenityId");
+
+                    b.ToTable("RoomAmenities");
+                });
+
+            modelBuilder.Entity("BookIt.Core.Entities.RoomPhoto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Caption")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EditedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
+
+                    b.ToTable("RoomPhotos");
+                });
+
+            modelBuilder.Entity("BookIt.Core.Entities.RoomRate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EditedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
+
+                    b.ToTable("RoomRates");
+                });
+
             modelBuilder.Entity("BookIt.Core.Entities.Service", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1454,6 +1912,10 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
@@ -1470,7 +1932,9 @@ namespace BookIt.Infrastructure.Data.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("TenantId", "Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Services");
 
@@ -1492,6 +1956,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             MaxConcurrentBookings = 1,
                             Name = "Mens Haircut",
                             Price = 25.00m,
+                            Slug = "mens-haircut",
                             SortOrder = 1,
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111")
                         },
@@ -1512,6 +1977,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             MaxConcurrentBookings = 1,
                             Name = "Hair & Beard Combo",
                             Price = 40.00m,
+                            Slug = "hair-beard-combo",
                             SortOrder = 2,
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111")
                         },
@@ -1532,6 +1998,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             MaxConcurrentBookings = 1,
                             Name = "Beard Trim",
                             Price = 15.00m,
+                            Slug = "beard-trim",
                             SortOrder = 1,
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111")
                         },
@@ -1552,6 +2019,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             MaxConcurrentBookings = 1,
                             Name = "Hot Towel Shave",
                             Price = 35.00m,
+                            Slug = "hot-towel-shave",
                             SortOrder = 2,
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111")
                         });
@@ -1961,6 +2429,9 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.Property<bool>("EnableSmsReminders")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("EnableSoftDelete")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("EnableStripe")
                         .HasColumnType("bit");
 
@@ -2037,6 +2508,12 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.Property<string>("StripeSecretKey")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Subdomain")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("SubdomainApproved")
+                        .HasColumnType("bit");
+
                     b.Property<int>("Theme")
                         .HasColumnType("int");
 
@@ -2093,6 +2570,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             EnablePayPal = false,
                             EnableSmsNotifications = false,
                             EnableSmsReminders = false,
+                            EnableSoftDelete = true,
                             EnableStripe = false,
                             IsActive = true,
                             IsDeleted = false,
@@ -2104,6 +2582,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                             SendReminders = true,
                             Slug = "demo-barber",
                             SmsProvider = 0,
+                            SubdomainApproved = false,
                             Theme = 0,
                             TimeZone = "Europe/London"
                         });
@@ -2427,6 +2906,17 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("BookIt.Core.Entities.Amenity", b =>
+                {
+                    b.HasOne("BookIt.Core.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("BookIt.Core.Entities.ApplicationUser", b =>
                 {
                     b.HasOne("BookIt.Core.Entities.Tenant", "Tenant")
@@ -2472,7 +2962,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasOne("BookIt.Core.Entities.Service", "Service")
                         .WithMany("AppointmentServices")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Appointment");
@@ -2538,6 +3028,28 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("BookIt.Core.Entities.ChatMessage", b =>
+                {
+                    b.HasOne("BookIt.Core.Entities.ChatSession", "ChatSession")
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChatSession");
+                });
+
+            modelBuilder.Entity("BookIt.Core.Entities.ChatSession", b =>
+                {
+                    b.HasOne("BookIt.Core.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("BookIt.Core.Entities.ClassSession", b =>
                 {
                     b.HasOne("BookIt.Core.Entities.Service", "Service")
@@ -2568,7 +3080,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasOne("BookIt.Core.Entities.Appointment", "Appointment")
                         .WithMany()
                         .HasForeignKey("AppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BookIt.Core.Entities.ClassSession", "ClassSession")
@@ -2593,7 +3105,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasOne("BookIt.Core.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Tenant");
@@ -2654,6 +3166,17 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("BookIt.Core.Entities.LodgingProperty", b =>
+                {
+                    b.HasOne("BookIt.Core.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("BookIt.Core.Entities.Payment", b =>
                 {
                     b.HasOne("BookIt.Core.Entities.Appointment", "Appointment")
@@ -2663,6 +3186,64 @@ namespace BookIt.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Appointment");
+                });
+
+            modelBuilder.Entity("BookIt.Core.Entities.Room", b =>
+                {
+                    b.HasOne("BookIt.Core.Entities.LodgingProperty", "LodgingProperty")
+                        .WithMany("Rooms")
+                        .HasForeignKey("LodgingPropertyId");
+
+                    b.HasOne("BookIt.Core.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LodgingProperty");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("BookIt.Core.Entities.RoomAmenity", b =>
+                {
+                    b.HasOne("BookIt.Core.Entities.Amenity", "Amenity")
+                        .WithMany("RoomAmenities")
+                        .HasForeignKey("AmenityId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BookIt.Core.Entities.Room", "Room")
+                        .WithMany("RoomAmenities")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Amenity");
+
+                    b.Navigation("Room");
+                });
+
+            modelBuilder.Entity("BookIt.Core.Entities.RoomPhoto", b =>
+                {
+                    b.HasOne("BookIt.Core.Entities.Room", "Room")
+                        .WithMany("Photos")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+                });
+
+            modelBuilder.Entity("BookIt.Core.Entities.RoomRate", b =>
+                {
+                    b.HasOne("BookIt.Core.Entities.Room", "Room")
+                        .WithMany("Rates")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Room");
                 });
 
             modelBuilder.Entity("BookIt.Core.Entities.Service", b =>
@@ -2846,6 +3427,11 @@ namespace BookIt.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("BookIt.Core.Entities.Amenity", b =>
+                {
+                    b.Navigation("RoomAmenities");
+                });
+
             modelBuilder.Entity("BookIt.Core.Entities.Appointment", b =>
                 {
                     b.Navigation("Payments");
@@ -2858,6 +3444,11 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.Navigation("Fields");
                 });
 
+            modelBuilder.Entity("BookIt.Core.Entities.ChatSession", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
             modelBuilder.Entity("BookIt.Core.Entities.ClassSession", b =>
                 {
                     b.Navigation("Bookings");
@@ -2866,6 +3457,20 @@ namespace BookIt.Infrastructure.Data.Migrations
             modelBuilder.Entity("BookIt.Core.Entities.Client", b =>
                 {
                     b.Navigation("Staff");
+                });
+
+            modelBuilder.Entity("BookIt.Core.Entities.LodgingProperty", b =>
+                {
+                    b.Navigation("Rooms");
+                });
+
+            modelBuilder.Entity("BookIt.Core.Entities.Room", b =>
+                {
+                    b.Navigation("Photos");
+
+                    b.Navigation("Rates");
+
+                    b.Navigation("RoomAmenities");
                 });
 
             modelBuilder.Entity("BookIt.Core.Entities.Service", b =>
