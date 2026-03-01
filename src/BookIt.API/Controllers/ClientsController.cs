@@ -98,6 +98,7 @@ public class ClientsController : ControllerBase
 
         _context.Clients.Add(client);
         tenant.EnableSoftDelete = request.EnableSoftDelete;
+        tenant.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         // Reload with relationships
