@@ -545,9 +545,13 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
 
     public string? CurrentUserEmail { get; set; }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
+
+        // Convert hard deletes to soft deletes for tenants that have EnableSoftDelete = true
+        await ApplySoftDeleteAsync(now, cancellationToken);
+
         var auditEntries = new List<AuditLog>();
 
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
@@ -583,7 +587,63 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         if (auditEntries.Any())
             AuditLogs.AddRange(auditEntries);
 
-        return base.SaveChangesAsync(cancellationToken);
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    private Guid? ResolveEntityTenantId(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<BaseEntity> entry)
+    {
+        var tidProp = entry.Properties.FirstOrDefault(p => p.Metadata.Name == "TenantId");
+        if (tidProp?.CurrentValue is Guid tid) return tid;
+        return _tenantId;
+    }
+
+    private async Task ApplySoftDeleteAsync(DateTime now, CancellationToken cancellationToken)
+    {
+        var deletedEntries = ChangeTracker.Entries<BaseEntity>()
+            .Where(e => e.State == EntityState.Deleted)
+            .ToList();
+
+        if (deletedEntries.Count == 0) return;
+
+        // Collect distinct tenant IDs that might need the setting resolved
+        var tenantIds = new HashSet<Guid>();
+        if (_tenantId.HasValue) tenantIds.Add(_tenantId.Value);
+        foreach (var entry in deletedEntries)
+        {
+            var tid = ResolveEntityTenantId(entry);
+            if (tid.HasValue) tenantIds.Add(tid.Value);
+        }
+
+        // Load EnableSoftDelete for all relevant tenants in a single query
+        var softDeleteByTenant = new Dictionary<Guid, bool>();
+        if (tenantIds.Count > 0)
+        {
+            var settings = await Tenants
+                .IgnoreQueryFilters()
+                .Where(t => tenantIds.Contains(t.Id))
+                .Select(t => new { t.Id, t.EnableSoftDelete })
+                .ToListAsync(cancellationToken);
+
+            foreach (var s in settings)
+                softDeleteByTenant[s.Id] = s.EnableSoftDelete;
+        }
+
+        foreach (var entry in deletedEntries)
+        {
+            var tenantId = ResolveEntityTenantId(entry);
+
+            bool softDelete = tenantId.HasValue
+                && softDeleteByTenant.TryGetValue(tenantId.Value, out var sd)
+                && sd;
+
+            if (softDelete)
+            {
+                entry.State = EntityState.Modified;
+                entry.Entity.IsDeleted = true;
+                entry.Entity.DeletedAt = now;
+                entry.Entity.DeletedBy = CurrentUserEmail;
+            }
+        }
     }
 
     private AuditLog BuildAuditLog(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<BaseEntity> entry, string action, DateTime now)

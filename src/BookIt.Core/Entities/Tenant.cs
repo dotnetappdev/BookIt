@@ -75,6 +75,9 @@ public class Tenant : BaseEntity
     public bool EnableEmailReminders { get; set; } = true;
     public bool EnableSmsReminders { get; set; } = false;
 
+    // Soft delete behaviour
+    public bool EnableSoftDelete { get; set; } = true;
+
     // Booking page branding
     public string? BookingPageTitle { get; set; }
     public string? BannerImageUrl { get; set; }

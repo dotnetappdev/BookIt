@@ -78,6 +78,7 @@ public class TenantsController : ControllerBase
         tenant.ElevenLabsVoiceId = request.ElevenLabsVoiceId;
         tenant.VapiPublicKey = request.VapiPublicKey;
         tenant.EnableAiChat = request.EnableAiChat;
+        tenant.EnableSoftDelete = request.EnableSoftDelete;
         tenant.UpdatedAt = DateTime.UtcNow;
 
         if (!string.IsNullOrEmpty(request.StripeSecretKey))
@@ -180,6 +181,7 @@ public class TenantsController : ControllerBase
         EnablePayPal = t.EnablePayPal,
         EnableApplePay = t.EnableApplePay,
         StripePublishableKey = t.StripePublishableKey,
-        PayPalClientId = t.PayPalClientId
+        PayPalClientId = t.PayPalClientId,
+        EnableSoftDelete = t.EnableSoftDelete
     };
 }

@@ -4,6 +4,7 @@ using BookIt.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookIt.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(BookItDbContext))]
-    partial class BookItDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260301014654_AddEnableSoftDeleteToTenant")]
+    partial class AddEnableSoftDeleteToTenant
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2430,7 +2433,6 @@ namespace BookIt.Infrastructure.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("EnableSoftDelete")
-                        .HasDefaultValue(true)
                         .HasColumnType("bit");
 
                     b.Property<bool>("EnableStripe")

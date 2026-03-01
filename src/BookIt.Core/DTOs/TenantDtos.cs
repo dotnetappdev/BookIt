@@ -54,6 +54,7 @@ public class TenantResponse
     public string? ReminderAlerts { get; set; }
     public bool EnableEmailReminders { get; set; }
     public bool EnableSmsReminders { get; set; }
+    public bool EnableSoftDelete { get; set; } = true;
 }
 
 public class UpdateTenantRequest
@@ -176,4 +177,5 @@ public class UpdateTenantRequest
     public string? ReminderAlerts { get; set; }
     public bool EnableEmailReminders { get; set; }
     public bool EnableSmsReminders { get; set; }
+    public bool EnableSoftDelete { get; set; } = true;
 }
