@@ -1,4 +1,5 @@
 using BookIt.Blazor.Components;
+using BookIt.Blazor.Middleware;
 using BookIt.UI.Shared;
 using Serilog;
 using Serilog.Events;
@@ -64,6 +65,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<SubdomainRewriteMiddleware>();
 app.UseSession();
 app.UseStaticFiles();
 app.UseAntiforgery();

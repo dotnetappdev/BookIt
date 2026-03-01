@@ -15,7 +15,14 @@
                 Welcome back
             </h1>
             <p style="color:rgba(255,255,255,.45);font-size:.875rem;margin:0;">
-                Enter your business slug and credentials to continue
+                @if (!string.IsNullOrEmpty(InitialSlug))
+                {
+                    <text>Signing in to <strong>@InitialSlug</strong></text>
+                }
+                else
+                {
+                    <text>Enter your business slug and credentials to continue</text>
+                }
             </p>
         </div>
 
@@ -25,19 +32,22 @@
             <MudCardContent Style="padding:2rem !important;">
                 <MudForm @ref="_form" @bind-IsValid="_valid">
                     <MudStack Spacing="3">
-                        <MudTextField @bind-Value="_slug" Label="Business Slug" Variant="Variant.Outlined"
-                                      Placeholder="e.g. my-barber-shop" Required="true"
-                                      RequiredError="Business slug is required."
-                                      Pattern="^[a-z0-9\-]{2,100}$"
-                                      Validation="@((string v) => ValidateSlug(v))"
-                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Store"
-                                      Immediate="true"
-                                      aria-label="Business Slug"
-                                      aria-describedby="slug-hint"
-                                      aria-required="true" />
-                        <span id="slug-hint" style="font-size:.75rem;color:rgba(255,255,255,.4);">
-                            Lowercase letters, numbers, and hyphens only.
-                        </span>
+                        @if (string.IsNullOrEmpty(InitialSlug))
+                        {
+                            <MudTextField @bind-Value="_slug" Label="Business Slug" Variant="Variant.Outlined"
+                                          Placeholder="e.g. my-barber-shop" Required="true"
+                                          RequiredError="Business slug is required."
+                                          Pattern="^[a-z0-9\-]{2,100}$"
+                                          Validation="@((string v) => ValidateSlug(v))"
+                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Store"
+                                          Immediate="true"
+                                          aria-label="Business Slug"
+                                          aria-describedby="slug-hint"
+                                          aria-required="true" />
+                            <span id="slug-hint" style="font-size:.75rem;color:rgba(255,255,255,.4);">
+                                Lowercase letters, numbers, and hyphens only.
+                            </span>
+                        }
 
                         <MudTextField @bind-Value="_email" Label="Email Address" Variant="Variant.Outlined"
                                       InputType="InputType.Email" Required="true"
@@ -88,6 +98,11 @@
 </div>
 
 @code {
+    /// <summary>
+    /// When set (e.g. from a tenant subdomain), pre-fills the slug and hides the slug input field.
+    /// </summary>
+    [Parameter] public string? InitialSlug { get; set; }
+
     [Parameter] public string? ReturnUrl { get; set; }
 
     private MudForm? _form;
@@ -104,6 +119,12 @@
 
     private static readonly System.Text.RegularExpressions.Regex EmailPattern =
         new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrEmpty(InitialSlug))
+            _slug = InitialSlug;
+    }
 
     private static string? ValidateSlug(string? value)
     {
@@ -130,8 +151,8 @@
         await _form!.Validate();
         if (!_valid) return;
 
-        // Sanitize inputs before sending to the API
-        var slug = _slug.Trim().ToLowerInvariant();
+        // Use InitialSlug if slug field was hidden, otherwise use entered value
+        var slug = (!string.IsNullOrEmpty(InitialSlug) ? InitialSlug : _slug).Trim().ToLowerInvariant();
         var email = _email.Trim().ToLowerInvariant();
 
         _busy = true;
