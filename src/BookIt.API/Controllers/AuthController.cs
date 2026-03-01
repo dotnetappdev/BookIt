@@ -58,6 +58,22 @@ public class AuthController : ControllerBase
 
                 user = await _userManager.Users
                     .FirstOrDefaultAsync(u => u.TenantId == tenant.Id && u.Email == request.Email && !u.IsDeleted);
+
+                // Super admin fallback: if not found in the specified tenant, allow a global SuperAdmin
+                // login so super admins can sign in from any subdomain's login page.
+                if (user == null)
+                {
+                    var superAdmin = await _userManager.Users
+                        .Include(u => u.Tenant)
+                        .FirstOrDefaultAsync(u => u.Email == request.Email
+                                               && u.Role == UserRole.SuperAdmin
+                                               && !u.IsDeleted);
+                    if (superAdmin?.Tenant != null)
+                    {
+                        user = superAdmin;
+                        tenant = superAdmin.Tenant;
+                    }
+                }
             }
             else
             {
