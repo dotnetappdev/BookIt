@@ -3,9 +3,14 @@
 All demo data is installed automatically at API startup via EF Core migrations.  
 No manual steps needed — just run the API and the data is ready.
 
+Use the **Super Admin → Database Management** page to seed or clear additional demo data
+for hotel, B&B and gym tenants.
+
 ---
 
 ## User Accounts
+
+### Core accounts (from migrations — always present)
 
 | Role | Email | Password | Tenant |
 |------|-------|----------|--------|
@@ -16,26 +21,47 @@ No manual steps needed — just run the API and the data is ready.
 | Staff | james@elitehair.com | Staff123! | demo-barber |
 | Staff | emma@elitehair.com | Staff123! | demo-barber |
 | Staff | oliver@urbanstyle.com | Staff123! | demo-barber |
-| Customer (client contact) | sarah@elitehair.com | Customer123! | demo-barber |
-| Customer (client contact) | michael@urbanstyle.com | Customer123! | demo-barber |
+| Customer (client contact) | sarah@elitehair.com | Client123! | demo-barber |
+| Customer (client contact) | michael@urbanstyle.com | Client123! | demo-barber |
 | Customer | customer@example.com | Customer123! | demo-barber |
 
+### Seeded demo accounts (created by "Seed Demo Data" button)
+
+| Role | Email | Password | Tenant |
+|------|-------|----------|--------|
+| TenantAdmin | admin@demo-hotel.com | Admin123! | demo-hotel |
+| TenantAdmin | admin@demo-bb.com | Admin123! | demo-bb |
+| TenantAdmin | admin@demo-gym.com | Admin123! | demo-gym |
+| Staff (instructor) | sophie@demo-gym.com | Staff123! | demo-gym |
+| Staff (instructor) | tom@demo-gym.com | Staff123! | demo-gym |
+| Staff (instructor) | priya@demo-gym.com | Staff123! | demo-gym |
+
 > **Login URL (Blazor):** `https://localhost:5001/login`  
-> **Org / tenant slug:** `demo-barber`
+> **Note:** The login page no longer requires a slug — sign in with email and password only.  
+> Super admins can access the optional slug field by clicking "Super admin?" link.
 
 ---
 
-## Tenant
+## Tenants
 
+### Static (from migrations)
 ```
 Id:   11111111-1111-1111-1111-111111111111
 Slug: demo-barber
 Name: Demo Barber Shop
+Type: Barber
+```
+
+### Dynamic (created by seeder)
+```
+Slug: demo-hotel    Name: Grand Palace Hotel       Type: Hotel
+Slug: demo-bb       Name: Rose Cottage B&B         Type: BedAndBreakfast
+Slug: demo-gym      Name: City Fitness Centre      Type: Gym
 ```
 
 ---
 
-## Client Companies
+## Client Companies (demo-barber)
 
 ```csv
 Id,CompanyName,ContactName,Email,Phone,TenantId,Notes
@@ -45,7 +71,7 @@ ff000000-0000-0000-0000-000000000002,Urban Style Group,Michael Chen,michael@urba
 
 ---
 
-## Staff Members
+## Staff Members (demo-barber)
 
 ```csv
 Id,FirstName,LastName,Email,Phone,ClientId,UserId,Bio,SortOrder
@@ -66,7 +92,7 @@ cc000000-0000-0000-0000-000000000004,Oliver,Brown,oliver@urbanstyle.com,555-0203
 
 ---
 
-## Services
+## Services (demo-barber)
 
 ```csv
 Id,Name,Price,DurationMinutes,CategoryId
@@ -75,6 +101,49 @@ Id,Name,Price,DurationMinutes,CategoryId
 44444444-4444-4444-4444-444444444403,Beard Trim,15.00,20,33333333-3333-3333-3333-333333333302
 44444444-4444-4444-4444-444444444404,Hot Towel Shave,35.00,45,33333333-3333-3333-3333-333333333302
 ```
+
+---
+
+## Seeded Demo Data
+
+### Hotel (demo-hotel) — seeded on demand
+
+**Lodging Property:** Grand Palace Hotel, 1 Palace Road, London SW1A 2AA
+
+**Amenities (12):** Swimming Pool · Spa & Wellness · Fitness Centre · Free WiFi · Valet Parking ·
+Fine Dining · Bar & Lounge · Air Conditioning · Hot Tub · Garden & Terrace · Room Service · Pet Friendly
+
+**Rooms (6):**
+| Name | Type | Capacity | Base Rate |
+|------|------|----------|-----------|
+| Standard Double Room | Double | 2 | £120/night |
+| Superior King Room | Double | 2 | £175/night |
+| Executive Suite | Suite | 2 | £295/night |
+| Deluxe Twin Room | Twin | 2 | £145/night |
+| Family Room | Family | 4 | £220/night |
+| Penthouse Suite | Suite | 3 | £550/night |
+
+### B&B (demo-bb) — seeded on demand
+
+**Lodging Property:** Rose Cottage, 12 Mill Lane, Bourton-on-the-Water GL54 2AN
+
+**Amenities (7):** Free WiFi · Full Breakfast · Cottage Garden · Free Parking · Pet Friendly · Garden Terrace · Laundry Service
+
+**Rooms (4):**
+| Name | Type | Capacity | Base Rate |
+|------|------|----------|-----------|
+| The Garden Room | Double | 2 | £95/night |
+| The Orchard Room | Double | 2 | £85/night |
+| The Village Room | Twin | 2 | £80/night |
+| The Heritage Suite | Suite | 2 | £130/night |
+
+### Gym (demo-gym) — seeded on demand
+
+**Services (7):** Yoga · Spinning · HIIT · Body Pump · Zumba · Swimming · Aqua Aerobics
+
+**Instructors:** Sophie Clarke · Tom Hughes · Priya Sharma
+
+**Class Sessions:** ~60 sessions across 6 weeks (past 2 + next 3 weeks) with calendar bookings
 
 ---
 
@@ -89,9 +158,11 @@ dd000000-0000-0000-0000-000000000004,David,Harrison,david.harrison@example.com,5
 dd000000-0000-0000-0000-000000000005,Eve,Jackson,eve.jackson@example.com,555-1005,Bristol,MBR-005,4,160.00,regular
 ```
 
+Additional customers (20 barber · 15 hotel · 10 B&B · 20 gym) are generated by the seeder.
+
 ---
 
-## Appointments
+## Appointments (demo-barber — from migrations)
 
 ```csv
 Id,CustomerName,CustomerEmail,StaffId,Service,StartTime,EndTime,Status,TotalAmount,BookingPin,Notes
@@ -121,7 +192,7 @@ aa100000-0000-0000-0000-000000000015,David Harrison,david.harrison@example.com,c
 ```
 SuperAdmin  →  full platform access (all tenants)
 TenantAdmin →  full access within their tenant
-Manager     →  manage staff / services within tenant (TenantId hidden)
+Manager     →  manage staff / services within tenant
 Staff       →  view own appointments, cancel own bookings with reason, view customers
 Customer    →  book appointments, view own bookings
 ```
@@ -130,7 +201,7 @@ Customer    →  book appointments, view own bookings
 
 ## Migrations
 
-All seed data is defined in EF Core migrations and applied automatically when the API starts via `MigrateAsync()`:
+All core seed data is defined in EF Core migrations and applied automatically when the API starts via `MigrateAsync()`:
 
 | Migration | Description |
 |-----------|-------------|

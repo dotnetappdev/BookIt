@@ -10,15 +10,19 @@
 
 **Home page** — hero, stats bar, features grid, "How it works", CTA
 
-![BookIt Home Page](https://github.com/user-attachments/assets/47dac52a-65ba-44f7-9037-8c563a5a913b)
+![BookIt Home Page](https://github.com/user-attachments/assets/d2a6354e-cf3d-437b-8b6a-59a2bad036fb)
 
 **Pricing page** — 4-tier plans (Free / Starter / Pro / Enterprise), monthly/annual toggle
 
-![BookIt Pricing Page](https://github.com/user-attachments/assets/de158db6-e5ab-4045-b986-337bcdd2cc15)
+![BookIt Pricing Page](https://github.com/user-attachments/assets/81aa988c-5fac-40ea-9ef2-a728c31f5dc6)
 
-**Login page** — business slug + email/password, show/hide password, dark theme
+**Login page** — email and password only (no slug required — tenant resolved from JWT claims)
 
-![BookIt Login](https://github.com/user-attachments/assets/bffa3e6a-fbe7-489c-9f25-f940b459d971)
+![BookIt Login](https://github.com/user-attachments/assets/ae9a3e71-5cc5-4ca6-9f4b-6b822f8e8888)
+
+**Super admin login** — optional business slug field revealed via "Super admin?" link for cross-tenant access
+
+![BookIt Super Admin Login](https://github.com/user-attachments/assets/2243020a-fcf1-4e85-b5c0-185e985cf3b6)
 
 **Public Booking Page** — step-by-step service selection for customers
 
