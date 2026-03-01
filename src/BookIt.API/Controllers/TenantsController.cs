@@ -21,6 +21,24 @@ public class TenantsController : ControllerBase
         _tenantService = tenantService;
     }
 
+    [HttpGet("by-subdomain/{subdomain}")]
+    public async Task<ActionResult<object>> GetTenantBySubdomain(string subdomain)
+    {
+        if (string.IsNullOrWhiteSpace(subdomain))
+            return BadRequest();
+
+        var normalized = subdomain.ToLowerInvariant().Trim();
+        var tenant = await _context.Tenants
+            .FirstOrDefaultAsync(t => t.Subdomain == normalized
+                                   && t.SubdomainApproved
+                                   && !t.IsDeleted
+                                   && t.IsActive);
+
+        if (tenant == null) return NotFound();
+
+        return Ok(new { slug = tenant.Slug });
+    }
+
     [HttpGet("{slug}")]
     public async Task<ActionResult<TenantResponse>> GetTenant(string slug)
     {
@@ -80,6 +98,27 @@ public class TenantsController : ControllerBase
         tenant.EnableAiChat = request.EnableAiChat;
         tenant.EnableSoftDelete = request.EnableSoftDelete;
         tenant.UpdatedAt = DateTime.UtcNow;
+
+        // Subdomain update — validate uniqueness
+        if (!string.IsNullOrWhiteSpace(request.Subdomain))
+        {
+            var normalized = request.Subdomain.ToLowerInvariant().Trim();
+            var conflict = await _context.Tenants
+                .FirstOrDefaultAsync(t => t.Subdomain == normalized && t.Id != tenant.Id && !t.IsDeleted);
+            if (conflict != null)
+                return Conflict(new { message = $"Subdomain '{normalized}' is already in use." });
+            tenant.Subdomain = normalized;
+        }
+        else
+        {
+            tenant.Subdomain = null;
+        }
+
+        // Only super admins may approve a subdomain; TenantAdmins can request but not approve.
+        var isSuperAdmin = User.IsInRole("SuperAdmin");
+        if (isSuperAdmin)
+            tenant.SubdomainApproved = request.SubdomainApproved;
+        // else: SubdomainApproved is left unchanged (non-superadmin callers cannot grant approval)
 
         if (!string.IsNullOrEmpty(request.StripeSecretKey))
             tenant.StripeSecretKey = request.StripeSecretKey;
@@ -182,6 +221,8 @@ public class TenantsController : ControllerBase
         EnableApplePay = t.EnableApplePay,
         StripePublishableKey = t.StripePublishableKey,
         PayPalClientId = t.PayPalClientId,
-        EnableSoftDelete = t.EnableSoftDelete
+        EnableSoftDelete = t.EnableSoftDelete,
+        Subdomain = t.Subdomain,
+        SubdomainApproved = t.SubdomainApproved
     };
 }

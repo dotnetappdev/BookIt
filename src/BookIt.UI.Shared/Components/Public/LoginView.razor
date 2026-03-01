@@ -15,7 +15,24 @@
                 Welcome back
             </h1>
             <p style="color:rgba(255,255,255,.45);font-size:.875rem;margin:0;">
-                Enter your business slug and credentials to continue
+                @if (!string.IsNullOrEmpty(InitialSlug) && !_superAdminMode)
+                {
+                    <text>Signing in to <strong>@InitialSlug</strong> &nbsp;·&nbsp;
+                        <span style="cursor:pointer;color:rgba(162,155,254,.8);text-decoration:underline;"
+                              @onclick="EnableSuperAdminMode">Super admin?</span>
+                    </text>
+                }
+                else if (_superAdminMode)
+                {
+                    <text>Super admin sign-in &nbsp;·&nbsp;
+                        <span style="cursor:pointer;color:rgba(162,155,254,.8);text-decoration:underline;"
+                              @onclick="DisableSuperAdminMode">Back</span>
+                    </text>
+                }
+                else
+                {
+                    <text>Enter your business slug and credentials to continue</text>
+                }
             </p>
         </div>
 
@@ -25,19 +42,25 @@
             <MudCardContent Style="padding:2rem !important;">
                 <MudForm @ref="_form" @bind-IsValid="_valid">
                     <MudStack Spacing="3">
-                        <MudTextField @bind-Value="_slug" Label="Business Slug" Variant="Variant.Outlined"
-                                      Placeholder="e.g. my-barber-shop" Required="true"
-                                      RequiredError="Business slug is required."
-                                      Pattern="^[a-z0-9\-]{2,100}$"
-                                      Validation="@((string v) => ValidateSlug(v))"
-                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Store"
-                                      Immediate="true"
-                                      aria-label="Business Slug"
-                                      aria-describedby="slug-hint"
-                                      aria-required="true" />
-                        <span id="slug-hint" style="font-size:.75rem;color:rgba(255,255,255,.4);">
-                            Lowercase letters, numbers, and hyphens only.
-                        </span>
+                        @if (string.IsNullOrEmpty(InitialSlug) || _superAdminMode)
+                        {
+                            <MudTextField @bind-Value="_slug" Label="Business Slug" Variant="Variant.Outlined"
+                                          Placeholder="e.g. my-barber-shop" Required="@(!_superAdminMode)"
+                                          RequiredError="Business slug is required."
+                                          Validation="@((string v) => (!_superAdminMode || !string.IsNullOrWhiteSpace(v)) ? ValidateSlug(v) : null)"
+                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Store"
+                                          Immediate="true"
+                                          HelperText="@(_superAdminMode ? "Leave blank to use your super admin credentials globally" : "")"
+                                          aria-label="Business Slug"
+                                          aria-describedby="slug-hint"
+                                          aria-required="@(!_superAdminMode)" />
+                            @if (!_superAdminMode)
+                            {
+                                <span id="slug-hint" style="font-size:.75rem;color:rgba(255,255,255,.4);">
+                                    Lowercase letters, numbers, and hyphens only.
+                                </span>
+                            }
+                        }
 
                         <MudTextField @bind-Value="_email" Label="Email Address" Variant="Variant.Outlined"
                                       InputType="InputType.Email" Required="true"
@@ -88,12 +111,18 @@
 </div>
 
 @code {
+    /// <summary>
+    /// When set (e.g. from a tenant subdomain), pre-fills the slug and hides the slug input field.
+    /// </summary>
+    [Parameter] public string? InitialSlug { get; set; }
+
     [Parameter] public string? ReturnUrl { get; set; }
 
     private MudForm? _form;
     private bool _valid;
     private bool _busy;
     private bool _showPw;
+    private bool _superAdminMode;
     private string _slug = "";
     private string _email = "";
     private string _password = "";
@@ -104,6 +133,12 @@
 
     private static readonly System.Text.RegularExpressions.Regex EmailPattern =
         new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrEmpty(InitialSlug))
+            _slug = InitialSlug;
+    }
 
     private static string? ValidateSlug(string? value)
     {
@@ -125,20 +160,41 @@
         return null;
     }
 
+    private void EnableSuperAdminMode()
+    {
+        _superAdminMode = true;
+        _slug = "";
+        _error = "";
+    }
+
+    private void DisableSuperAdminMode()
+    {
+        _superAdminMode = false;
+        _slug = InitialSlug ?? "";
+        _error = "";
+    }
+
     private async Task DoLogin()
     {
         await _form!.Validate();
         if (!_valid) return;
 
-        // Sanitize inputs before sending to the API
-        var slug = _slug.Trim().ToLowerInvariant();
+        // In super admin mode the slug field is shown but optional; the API will do a cross-tenant
+        // super admin lookup when the email doesn't belong to the specified tenant.
+        // In normal subdomain mode, use InitialSlug; in normal non-subdomain mode use entered _slug.
+        string? tenantSlug;
+        if (_superAdminMode)
+            tenantSlug = string.IsNullOrWhiteSpace(_slug) ? null : _slug.Trim().ToLowerInvariant();
+        else
+            tenantSlug = !string.IsNullOrEmpty(InitialSlug) ? InitialSlug : _slug.Trim().ToLowerInvariant();
+
         var email = _email.Trim().ToLowerInvariant();
 
         _busy = true;
         _error = "";
         var result = await Api.LoginAsync(new LoginRequest
         {
-            TenantSlug = slug,
+            TenantSlug = tenantSlug,
             Email = email,
             Password = _password
         });

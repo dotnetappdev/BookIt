@@ -1,13 +1,11 @@
 @page "/superadmin/clients"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @layout BookIt.UI.Shared.Components.Admin.AdminLayout
-@using Microsoft.AspNetCore.Authorization
 @using BookIt.Core.DTOs
 @inject BookItApiService Api
 @inject BookItAuthState Auth
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
-@attribute [Authorize(Roles = "SuperAdmin")]
 
 <PageTitle>Clients — BookIt Super Admin</PageTitle>
 
@@ -164,6 +162,21 @@ else
                     When enabled, deleted records are marked as deleted rather than permanently removed.
                 </MudText>
             </MudItem>
+            <MudItem xs="12">
+                <MudDivider Class="my-2" />
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Subdomain Routing</MudText>
+                <MudTextField @bind-Value="_form.Subdomain" Label="Custom Subdomain" Variant="Variant.Outlined"
+                              Placeholder="e.g. my-barber-shop" MaxLength="100" Immediate="true"
+                              HelperText="Lowercase letters, numbers and hyphens only. Leave blank to use the default path-based URL."
+                              Validation="@((string? v) => ValidateSubdomain(v))"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Language" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSwitch @bind-Value="_form.SubdomainApproved" Color="Color.Success" Label="Approve subdomain" />
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                    Tick once DNS has been configured and the subdomain is ready to use.
+                </MudText>
+            </MudItem>
         </MudGrid>
         </MudForm>
     </DialogContent>
@@ -191,10 +204,21 @@ else
     private static readonly System.Text.RegularExpressions.Regex EmailRegex =
         new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", System.Text.RegularExpressions.RegexOptions.Compiled);
 
+    private static readonly System.Text.RegularExpressions.Regex SubdomainRegex =
+        new(@"^[a-z0-9\-]{2,100}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
     private static string? ValidateEmail(string? v)
     {
         if (string.IsNullOrWhiteSpace(v)) return "Email address is required.";
         if (!EmailRegex.IsMatch(v)) return "Please enter a valid email address.";
+        return null;
+    }
+
+    private static string? ValidateSubdomain(string? v)
+    {
+        if (string.IsNullOrWhiteSpace(v)) return null; // optional field
+        if (!SubdomainRegex.IsMatch(v.Trim().ToLowerInvariant()))
+            return "Subdomain may only contain lowercase letters, digits and hyphens (2–100 characters).";
         return null;
     }
 
@@ -241,7 +265,9 @@ else
             Address = c.Address,
             Notes = c.Notes,
             IsActive = c.IsActive,
-            EnableSoftDelete = c.EnableSoftDelete
+            EnableSoftDelete = c.EnableSoftDelete,
+            Subdomain = c.Subdomain,
+            SubdomainApproved = c.SubdomainApproved
         };
         _dialogOpen = true;
     }
@@ -275,7 +301,8 @@ else
                 Notes = _form.Notes,
                 Password = _form.Password!,
                 IsActive = _form.IsActive,
-                EnableSoftDelete = _form.EnableSoftDelete
+                EnableSoftDelete = _form.EnableSoftDelete,
+                Subdomain = string.IsNullOrWhiteSpace(_form.Subdomain) ? null : _form.Subdomain.Trim().ToLowerInvariant()
             };
             var created = await Api.CreateClientAsync(req);
             if (created != null)
@@ -296,7 +323,9 @@ else
                 Address = _form.Address,
                 Notes = _form.Notes,
                 IsActive = _form.IsActive,
-                EnableSoftDelete = _form.EnableSoftDelete
+                EnableSoftDelete = _form.EnableSoftDelete,
+                Subdomain = string.IsNullOrWhiteSpace(_form.Subdomain) ? null : _form.Subdomain.Trim().ToLowerInvariant(),
+                SubdomainApproved = _form.SubdomainApproved
             };
             var updated = await Api.UpdateClientAsync(_editClient.Id, req);
             if (updated != null)
@@ -339,5 +368,7 @@ else
         public string? Password { get; set; }
         public bool IsActive { get; set; } = true;
         public bool EnableSoftDelete { get; set; } = true;
+        public string? Subdomain { get; set; }
+        public bool SubdomainApproved { get; set; }
     }
 }

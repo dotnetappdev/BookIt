@@ -6,315 +6,106 @@
 
 ## Screenshots
 
-### Public Front End (Blazor + MudBlazor)
+### Public Front End
 
 **Home page** — hero, stats bar, features grid, "How it works", CTA
 
-![BookIt Home Page](https://github.com/user-attachments/assets/5ecaa36f-551a-49a8-9c00-0218bdbc006e)
+![BookIt Home Page](https://github.com/user-attachments/assets/47dac52a-65ba-44f7-9037-8c563a5a913b)
 
-**Pricing page** — 4-tier plans (Free / Starter / Pro / Enterprise), monthly/annual toggle with Apple Pay badge on Starter+
+**Pricing page** — 4-tier plans (Free / Starter / Pro / Enterprise), monthly/annual toggle
 
-![BookIt Pricing Page](https://github.com/user-attachments/assets/b5c3f532-d7eb-4bf6-8010-9c5dfe501047)
+![BookIt Pricing Page](https://github.com/user-attachments/assets/de158db6-e5ab-4045-b986-337bcdd2cc15)
 
-**Login page** — glassmorphism card on dark gradient, show/hide password
+**Login page** — business slug + email/password, show/hide password, dark theme
 
-![BookIt Login](https://github.com/user-attachments/assets/e8e8dda8-879e-4bd2-8c82-fdbf8177f1a0)
+![BookIt Login](https://github.com/user-attachments/assets/bffa3e6a-fbe7-489c-9f25-f940b459d971)
 
-### Admin Back End (Blazor + MudBlazor)
+**Public Booking Page** — step-by-step service selection for customers
 
-**Admin Dashboard** — dark sidebar, stat cards, today's schedule, quick actions
-
-![BookIt Admin Dashboard](https://github.com/user-attachments/assets/88cc84d7-b714-4af7-add2-4d553073a2db)
-
-### Admin Panel — MVC Back End (new screens)
-
-**Admin sidebar** now includes: Services · **Staff** · **Classes** · **Customers** · Forms · Interviews — all available for every business type.
-
-#### Staff Management
-
-Add, edit, delete staff members and assign them to services. Works for any profession (barber, gym instructor, physio, consultant, etc.).
-
-![Admin Staff Page](https://github.com/user-attachments/assets/4bcb0bd6-c0b4-4949-ace5-f29098400170)
-
-**Add / Edit Staff modal** — two-column grid with icons on all contact fields, scrollable on mobile:
-
-```
-┌──────────────────────────────────────────────────────┐
-│ ✦  Add Staff Member                              [×] │
-├──────────────────────────────────────────────────────┤
-│ First Name *       │ Last Name *                     │
-│ [Jane            ] │ [Smith           ]               │
-│                                                      │
-│ Email                  │ Phone                       │
-│ [✉ jane@salon.com   ]  │ [✆ 07700 900 123 ]          │
-│                                                      │
-│ Photo URL                                            │
-│ [🖼 https://example.com/photo.jpg               ]    │
-│                                                      │
-│ Bio                                                  │
-│ [Senior stylist with 10+ years experience…     ]    │
-│                                                      │
-│ Sort Order  │ ☑ Active                               │
-│ [ 0       ] │                                        │
-│                                          [Cancel] [Save Staff Member] │
-└──────────────────────────────────────────────────────┘
-```
-
-**Assign Services modal** — tick the services each staff member can perform:
-
-```
-┌────────────────────────────────────┐
-│ ☰  Assign Services             [×] │
-├────────────────────────────────────┤
-│ Select services that Jane Smith    │
-│ can perform:                       │
-│  ☑ Haircut         (30 min · £25) │
-│  ☑ Beard Trim      (15 min · £15) │
-│  ☐ Colour          (90 min · £65) │
-│  ☑ Blow Dry        (30 min · £20) │
-│              [Cancel] [Save Assignments] │
-└────────────────────────────────────┘
-```
-
-#### Classes & Group Sessions
-
-Schedule group sessions with date, time, capacity, price, and **multiple instructors**. Any number of staff can be assigned as instructors per session.
-
-![Admin Classes Page](https://github.com/user-attachments/assets/e36dc566-8372-4b17-923d-842b6e111a4e)
-
-#### Customers CRM
-
-Full CRUD for customer profiles. Profiles are created automatically on every booking and can be managed manually by admins.
-
-![Admin Customers Page](https://github.com/user-attachments/assets/d760ca5c-f5fe-4333-828f-cb3809d1e3fe)
-
-**Add / Edit Customer modal** — fields organised into labelled sections, contact fields with icons, scrollable:
-
-```
-┌──────────────────────────────────────────────────────┐
-│ ✦  Add Customer                                  [×] │
-├──────────────────────────────────────────────────────┤
-│ ── PERSONAL DETAILS ─────────────────────────────── │
-│ First Name *        │ Last Name                      │
-│ [Jane             ] │ [Doe              ]             │
-│ Gender              │ Membership Number               │
-│ [— Not specified —] │ [MBR-001          ]             │
-│                                                      │
-│ ── CONTACT INFORMATION ──────────────────────────── │
-│ Email *                        │ Phone               │
-│ [✉ jane@example.com         ]  │ [✆ 07700 900 123 ]  │
-│ Mobile                                               │
-│ [📱 07700 900 456          ]                         │
-│                                                      │
-│ ── ADDRESS ──────────────────────────────────────── │
-│ Address                                              │
-│ [123 High Street                                 ]   │
-│ City           │ Post Code  │ Country                │
-│ [London      ] │ [SW1A 1AA] │ [UK          ]         │
-│                                                      │
-│ ── NOTES & TAGS ─────────────────────────────────── │
-│ Tags                                                 │
-│ [VIP, New Client                              ]      │
-│ ☑ Marketing Opt-in    ☑ SMS Opt-in                  │
-│ Notes                                                │
-│ [Prefers afternoon appointments…              ]      │
-│                                       [Cancel] [Save Customer] │
-└──────────────────────────────────────────────────────┘
-```
-
-#### Services Management
-
-Manage service offerings with price, duration, buffer time and booking link. The **Edit** modal is fully wired — pre-populates all fields including buffer time, and includes an inline **Delete** action.
-
-```
-┌──────────────────────────────────────────────────────┐
-│ Services                            [+ Add Service]  │
-│ Manage your service offerings                        │
-├──────────┬──────────┬──────────┬────────────────────┤
-│ ┌──────┐ │ ┌──────┐ │ ┌──────┐ │                   │
-│ │ ✂    │ │ │ 🧴   │ │ │ ✂    │ │                   │
-│ │      │ │ │      │ │ │      │ │                   │
-│ │Haircut│ │ │Colour│ │ │Beard │ │                   │
-│ │[cuts] │ │ │      │ │ │Trim  │ │                   │
-│ │ £25  │ │ │ £65  │ │ │ £15  │ │                   │
-│ │30 min│ │ │90 min│ │ │15 min│ │                   │
-│ │[Online]│ │ │[Online]│ │ │[Online]│               │
-│ ├──────┤ │ ├──────┤ │ ├──────┤ │                   │
-│ │ ✏ Edit│ │ │ ✏ Edit│ │ │ ✏ Edit│ │                │
-│ └──────┘ │ └──────┘ │ └──────┘ │                   │
-└──────────┴──────────┴──────────┴────────────────────┘
-```
-
-**Add / Edit Service modal** — consistent `admin-form-grid` layout with icons, slug auto-generation, buffer time and delete:
-
-```
-┌──────────────────────────────────────────────────────┐
-│ ✏  Edit Service                                  [×] │
-├──────────────────────────────────────────────────────┤
-│ Service Name *                  │ Price (£) *        │
-│ [Haircut                      ] │ [25.00    ]        │
-│                                                      │
-│ URL Slug (leave blank to keep current)               │
-│ /demo-barber/book/ [haircut                       ]  │
-│                                                      │
-│ Duration (minutes) *    │ Buffer Time (minutes)      │
-│ [30 minutes          ▼] │ [5                   ]     │
-│                          (cleanup time between appts)│
-│                                                      │
-│ Description                                          │
-│ [Classic scissor & clipper cut, finished with…  ]   │
-│                                                      │
-│ Image URL                                            │
-│ [🖼 https://example.com/haircut.jpg             ]    │
-│                                                      │
-│ ☑ Allow Online Booking                               │
-│                                                      │
-│ [🗑 Delete]               [Cancel] [Save Changes]   │
-└──────────────────────────────────────────────────────┘
-```
-
-#### Booking Forms (admin + mobile)
-
-Build and manage booking forms. The form builder is fully mobile-responsive (collapses to single column on screens < 992 px).
-
-![Admin Booking Forms Page](https://github.com/user-attachments/assets/ed361fb4-2b42-4b41-9f94-78355ee4e361)
-
-### Admin Panel — New Screens (Blazor Dark Mode)
-
-#### Customers — Data Grid with Membership Number
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Customers                               [+ Add Customer]    │
-│ All customers for this business                             │
-├─────────────────────────────────────────────────────────────┤
-│ 🔍 [Search by name, email or phone…]                       │
-├────────┬──────────────┬────────────┬───────┬───────┬───────┤
-│Customer│    Phone     │Membership  │ City  │Bookings│Spent  │
-├────────┼──────────────┼────────────┼───────┼────────┼───────┤
-│ JD     │07700 900 123 │MBR-001     │London │  [5]   │£320   │
-│Jane Doe│jane@ex.com   │            │       │        │       │
-├────────┼──────────────┼────────────┼───────┼────────┼───────┤
-│ JS     │07700 900 456 │GYM-2024    │Bristol│  [2]   │£85    │
-└────────┴──────────────┴────────────┴───────┴────────┴───────┘
-```
-
-Add/Edit dialog includes a **Membership Number** field for gym / club / loyalty schemes.
-
-#### Booking Forms — Full CRUD Data Grid
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Booking Forms                           [+ New Form]        │
-├──────────────┬────────┬─────────┬───────────────────────── │
-│ Form Name    │ Fields │ Default │ Actions                   │
-├──────────────┼────────┼─────────┼───────────────────────── │
-│ Default Form │  [8]   │[Default]│ ⚙ Settings  🔨 Builder 🗑 │
-│ Intake Form  │  [5]   │         │ ⚙ Settings  🔨 Builder 🗑 │
-│ Consultation │  [12]  │         │ ⚙ Settings  🔨 Builder 🗑 │
-└──────────────┴────────┴─────────┴───────────────────────── │
-```
-
-**⚙ Settings dialog** for inline rename/metadata editing without navigating to the builder:
-```
-┌──────────────────────────────────────────┐
-│  Edit Form Settings                      │
-├──────────────────────────────────────────┤
-│  Form Name      [Default Booking Form   ]│
-│  Description    [Standard intake…      ]│
-│  Welcome Msg    [Welcome! Please fill…  ]│
-│  Confirm Msg    [Thank you! We'll see…  ]│
-│  ● Collect phone      ● Collect notes   │
-│  ● Set as default form                  │
-│             [Cancel]  [Save Changes]    │
-└──────────────────────────────────────────┘
-```
-
-#### Booking Form (Dark Mode)
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  ◀ Back                     Book Appointment           🌙   │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  💈  My Salon · 123 High Street, London             │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  Services          ✓ Haircut £25    Beard Trim £15          │
-│                                                             │
-│  Select a date                                              │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │    March 2026                          ‹  ›          │   │
-│  │  Mo  Tu  We  Th  Fr  Sa  Su                          │   │
-│  │                         [4]  5   6   7   8           │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  Available times:  [9:00] [10:00] [11:00] [14:00] [15:00]  │
-│                                                             │
-│  Your details                                               │
-│  Full name [Jane Smith    ]  Email [jane@example.com    ]   │
-│  Phone     [07700 900 123 ]  Notes [Any special requests]   │
-│                                                             │
-│         [ Book Appointment →                  £25.00 ]      │
-└─────────────────────────────────────────────────────────────┘
-```
-
-Toggle the moon/sun icon (top-right) to switch light/dark — saved to `localStorage`.
-
-#### Interviews — Add Slot with Video Conference
-
-```
-┌──────────────────────────────────────────────┐
-│  Add Interview Slot                          │
-├──────────────────────────────────────────────┤
-│  Date [04/03/2026]    Time [10:00 am]        │
-│  Duration [60 min]                           │
-│  Interviewer Name [Jane Smith              ] │
-│  Location [Head Office, Room 3A            ] │
-│                                              │
-│  ──── 📹 Video Conference ─────────────      │
-│  Provider [Microsoft Teams ▼]               │
-│  (Teams / Zoom / Google Meet / Webex / ...)  │
-│  Meeting URL   [https://teams.microsoft.com] │
-│  Meeting ID    [123 456 7890               ] │
-│  Password/PIN  [abc123                     ] │
-│  Host URL      [https://teams.…/host       ] │
-│  Dial-In       [+44 20 1234 5678           ] │
-│                                              │
-│                  [Cancel]  [Create Slot]     │
-└──────────────────────────────────────────────┘
-```
+![BookIt Booking Page](https://github.com/user-attachments/assets/7f728e92-c63b-4ff6-9e69-f2c3077a80c5)
 
 ---
 
-### MAUI Mobile App Screens
+### Admin Portal (Blazor + MudBlazor)
 
-#### Login / Sign Up (Light + Dark)
+**Dashboard** — stat cards (Today, Upcoming, Revenue, Unpaid), today's schedule, quick actions
 
-```
-┌─────────────────────────────────────────┐
-│           📅  BookIt                    │
-│   Sign in to manage your bookings       │
-│                                         │
-│   [ Sign In ]  [ Sign Up ]              │
-│                                         │
-│  Email    [jane@example.com          ]  │
-│  Password [•••••••••••••            ] 👁 │
-│  Org code [my-salon                  ]  │
-│                                         │
-│  ┌─────────────────────────────────┐   │
-│  │          Sign In →              │   │
-│  └─────────────────────────────────┘   │
-└─────────────────────────────────────────┘
-```
+![Admin Dashboard](https://github.com/user-attachments/assets/a6825129-ca56-44be-a3f7-aed235bcc1b9)
 
-Sign Up tab adds: First name · Last name · **Membership number (optional)**.
+**Calendar** — week/day/month view, time slots, colour-coded appointments
+
+![Admin Calendar](https://github.com/user-attachments/assets/ea02cd3d-fb68-4af3-acf2-a611c8c10442)
+
+**Services** — manage bookable services with price, duration and online booking toggle
+
+![Admin Services](https://github.com/user-attachments/assets/94db25b2-2d28-4502-9fc1-271cd9b2b2ad)
+
+**Customers** — searchable CRM with Add Customer action
+
+![Admin Customers](https://github.com/user-attachments/assets/a18912e8-c932-4180-b391-47b8267b9d83)
+
+**Rooms & Lodging** — manage properties, rooms, amenities and seasonal rates
+
+![Admin Rooms & Lodging](https://github.com/user-attachments/assets/1481259d-ada7-4ef3-a8d8-0b04dfd81782)
+
+**Booking Forms** — custom pre-booking question forms with form builder
+
+![Admin Booking Forms](https://github.com/user-attachments/assets/ba1d9734-3658-49cb-8da6-e544cbb4b64e)
+
+**Interviews** — interview slots and candidate invitations for recruitment businesses
+
+![Admin Interviews](https://github.com/user-attachments/assets/5031ebeb-e709-4c4f-87de-c2962f5ebc9a)
+
+**Settings** — business profile, branding, payment, booking, SMS/email notifications, reminder alerts
+
+![Admin Settings](https://github.com/user-attachments/assets/f3ac994a-4fd0-4bff-bc30-9cf12d225eb0)
+
+**Email Templates** — custom HTML templates per notification type with placeholder reference
+
+![Admin Email Templates](https://github.com/user-attachments/assets/c8281bda-f8e1-4908-990b-8bbfef8dd46a)
+
+**Subscription** — current plan status, feature access overview, plan upgrade options
+
+![Admin Subscription](https://github.com/user-attachments/assets/25db834b-8a8b-4361-9145-b30d1c9a059a)
+
+**Audit Trail** — filterable data grid tracking all changes across the account
+
+![Admin Audit Trail](https://github.com/user-attachments/assets/56b46abe-13ce-4140-a8cd-b82d218f4ce0)
+
+---
+
+### Super Admin — Clients CRUD
+
+The Super Admin portal (`/superadmin/clients`) provides full client management across all tenants.
+
+**Clients list** — data grid with company, contact, email, phone, subdomain, staff count and status
+
+![Super Admin Clients List](https://github.com/user-attachments/assets/1742d041-a373-46c0-8f3a-96b51e8e1b47)
+
+**Add Client dialog** — create a new tenant with company details, credentials, subdomain routing and soft-delete toggle
+
+![Super Admin Add Client](https://github.com/user-attachments/assets/0ab06c6c-cdb1-4922-b5bd-d6434d9d1d36)
+
+**Edit Client dialog** — update existing client details including subdomain approval
+
+![Super Admin Edit Client](https://github.com/user-attachments/assets/b2b02cb3-93c4-4bcf-aaea-fff2c27ee7b9)
+
+**Database Management** — seed demo data, view account credentials and clear demo data
+
+![Super Admin Database Management](https://github.com/user-attachments/assets/478c57c2-34f5-4f77-abe9-eb8e7aea8255)
+
+---
+
+### MAUI Mobile App (`BookIt.Maui`)
+
+The cross-platform Blazor Hybrid app shares `BookIt.UI.Shared` components and targets iOS, Android, macOS and Windows.
+
+**5-tab bottom navigation:** Dashboard · Calendar · Bookings · Wallet · Profile
 
 #### Dashboard Tab
-
 ```
 ┌─────────────────────────────────────────┐
-│  Dashboard                        [JD]  │
+│  Dashboard                        [AJ]  │
 │  ┌────────┐  ┌─────────┐  ┌─────────┐  │
 │  │Today  3│  │Week  14 │  │Rev £420 │  │
 │  └────────┘  └─────────┘  └─────────┘  │
@@ -327,15 +118,14 @@ Sign Up tab adds: First name · Last name · **Membership number (optional)**.
 └────────┴────────┴────────┴──────┴──────┘
 ```
 
-#### My Bookings Tab
-
+#### Bookings Tab
 ```
 ┌─────────────────────────────────────────┐
 │  My Bookings                            │
 │  ┌───────────────────────────────────┐  │
 │  │ ┌────┐  Haircut + Beard Trim     │  │
 │  │ │ 4  │  10:00 am – 11:30 am     │  │
-│  │ │MAR │  · Jane Smith             │  │
+│  │ │MAR │  · Emma Wilson            │  │
 │  │ └────┘  [Confirmed ✓]  [QR]     │  │
 │  │                        £40.00    │  │
 │  └───────────────────────────────────┘  │
@@ -343,143 +133,30 @@ Sign Up tab adds: First name · Last name · **Membership number (optional)**.
 ```
 
 #### QR Wallet Tab
-
 ```
 ┌─────────────────────────────────────────┐
 │  Wallet · Your upcoming booking pass    │
-│                                         │
 │  ┌─────────────────────────────────┐   │
-│  │ ┌────┐  My Salon               │   │  ← branded header
+│  │ ┌────┐  BookIt                 │   │
 │  │ │ B  │  Booking Confirmation   │   │
 │  │ └────┘                         │   │
-│  │─────────────────────────────────│   │
-│  │  Jane Doe                       │   │
-│  │  Wed, 4 March 2026              │   │
+│  │  Jane Doe  ·  4 March 2026      │   │
 │  │  10:00 am – 11:00 am            │   │
 │  │  Haircut, Beard Trim            │   │
-│  │                                 │   │
 │  │  ┌─────────────────────────┐    │   │
 │  │  │  ▓▓▓▓ ░░░ ▓▓▓▓ ░░░░    │    │   │
-│  │  │  ░░░░ ▓▓▓ ░░░░ ▓▓▓▓    │    │   │  ← QR code
-│  │  │  ▓▓▓▓ ░░░ ▓▓▓▓ ░░░░    │    │   │
+│  │  │  ░░░░ ▓▓▓ ░░░░ ▓▓▓▓    │    │   │
 │  │  └─────────────────────────┘    │   │
-│  │                                 │   │
 │  │  BOOKING PIN:    4 8 2 9        │   │
-│  │  MEMBERSHIP NO:  MBR-001        │   │  ← membership number
-│  │─────────────────────────────────│   │
-│  │  Generated 4 Mar 2026 · BookIt  │   │
+│  │  MEMBERSHIP NO:  MBR-001        │   │
 │  └─────────────────────────────────┘   │
-│                                         │
-│  ┌──────────────────┐ ┌─────────────┐  │
-│  │ 📅 Add to Calendar│ │ ↗ Share Pass│  │  ← wallet actions
-│  └──────────────────┘ └─────────────┘  │
-│                                         │
-│  2 more upcoming bookings               │
-│  Thu 5 Mar · 2:00 pm  Haircut  [Confirmed] [📅] │
-│  Mon 9 Mar · 10:00 am Colour   [Pending ]  [📅] │
+│  [ 📅 Add to Calendar ] [ ↗ Share Pass ]│
 ├────────┬────────┬────────┬──────┬──────┤
 │Dashboard│Calendar│Bookings│Wallet│Profile│
 └────────┴────────┴────────┴──────┴──────┘
 ```
 
-**QR code data**: `BOOKIT:{appointmentId}:{pin}:{startYYYYMMDDHHmm}:{membershipNumber|NONE}`
-
-**📅 Add to Calendar** → generates ICS event → opens iOS Calendar / Google Calendar
-**↗ Share Pass** → generates PNG QR → native share sheet (AirDrop / Messages / Save to Photos)
-
-#### Profile Tab
-
-```
-┌─────────────────────────────────────────┐
-│            ┌────┐                       │
-│            │ JD │  Jane Doe             │
-│            └────┘  jane@example.com     │
-│                    [Customer]           │
-│  ─────────────────────────────────      │
-│  Organisation     my-salon              │
-│  Role             Customer              │
-│  ─────────────────────────────────      │
-│  🔔 Notification preferences            │
-│  🔒 Change password                     │
-│  🗑 Delete account                       │
-│                                         │
-│  [ Sign Out ]                           │
-└─────────────────────────────────────────┘
-```
-
----
-
-### Admin Settings — Notifications
-
-The Settings page (`/{slug}/admin/settings`) now includes three new sections:
-
-**SMS Notifications** — enable/disable, choose ClickSend or Twilio, enter credentials (API keys masked):
-
-```
-┌───────────────────────────────────────────────────┐
-│ 💬  SMS Notifications                             │
-├───────────────────────────────────────────────────┤
-│  ● Enable SMS notifications                       │
-│  Provider:  [ClickSend ▼]                         │
-│  Username   [______________________]              │
-│  API Key    [•••••••••••••••••••••] (masked)      │
-│  From       [+447700900000]                       │
-└───────────────────────────────────────────────────┘
-```
-
-**Email Notifications (SendGrid)** — enable/disable, SendGrid API key, from address:
-
-```
-┌───────────────────────────────────────────────────┐
-│ ✉️  Email Notifications (SendGrid)                │
-├───────────────────────────────────────────────────┤
-│  ● Enable booking confirmation & reminder emails  │
-│  SendGrid API Key  [SG.•••••••••••] (masked)      │
-│  From Email        [noreply@yourdomain.com]        │
-│  From Name         [Your Business Name]            │
-└───────────────────────────────────────────────────┘
-```
-
-**Reminder Alerts** — iOS Calendar-style multi-select chip UI with independent email/SMS toggles and a custom offset input:
-
-```
-┌───────────────────────────────────────────────────┐
-│ 🔔  Reminder Alerts                               │
-├───────────────────────────────────────────────────┤
-│  Choose when to send reminders before each        │
-│  appointment. Multiple alerts — like iOS Calendar │
-│                                                   │
-│  [✓] Email reminders    [ ] SMS reminders         │
-│                                                   │
-│  [5 min] [10 min] [15 min] [30 min] [1 hour]      │
-│  [2 hours] [3 hours] [6 hours] [12 hours]         │
-│  [🔔 1 day ✓] [2 days] [1 week]                  │
-│                                                   │
-│  Custom:  [3] [Weeks ▼] [+ Add]                  │
-│           ↳ adds "3 weeks" chip (removable)       │
-└───────────────────────────────────────────────────┘
-```
-
-**Settings layout** — card sections (Business Profile, Branding, Payment Settings, Booking Settings, AI Assistant) are fully dark-mode compatible; section headers use the theme surface colour instead of hard-coded white:
-
-```
-┌ Light mode ──────────────────────────────────────┐  ┌ Dark mode ───────────────────────────────────────┐
-│ 🏢  Business Profile                             │  │ 🏢  Business Profile                             │
-│  Business Name   [Elite Hair Studio            ] │  │  Business Name   [Elite Hair Studio            ] │
-│  Business Type   [Salon               ▼]         │  │  Business Type   [Salon               ▼]         │
-├──────────────────────────────────────────────────┤  ├──────────────────────────────────────────────────┤
-│ 🎨  Branding & Appearance                        │  │ 🎨  Branding & Appearance                        │
-│  Primary Colour  [🟣] [#6c5ce7        ]          │  │  Primary Colour  [🟣] [#6c5ce7        ]          │
-└──────────────────────────────────────────────────┘  └──────────────────────────────────────────────────┘
- ↑ surface white bg                                     ↑ surface dark bg — no white flash
-```
-
-### Super Admin Console (`/super-admin`) — new tab
-
-**RevenueCat Config tab** (visible to `SuperAdmin` only):
-- Set the RevenueCat platform API key and entitlement identifier
-- Configure monthly/annual prices and RevenueCat product IDs per tier (Free → Enterprise)
-- Tenant management: search, copy Tenant ID, delete
+**QR data format**: `BOOKIT:{appointmentId}:{pin}:{startYYYYMMDDHHmm}:{membershipNumber|NONE}`
 
 ---
 

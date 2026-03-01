@@ -55,6 +55,9 @@ public class TenantResponse
     public bool EnableEmailReminders { get; set; }
     public bool EnableSmsReminders { get; set; }
     public bool EnableSoftDelete { get; set; } = true;
+    // Subdomain routing
+    public string? Subdomain { get; set; }
+    public bool SubdomainApproved { get; set; }
 }
 
 public class UpdateTenantRequest
@@ -178,4 +181,11 @@ public class UpdateTenantRequest
     public bool EnableEmailReminders { get; set; }
     public bool EnableSmsReminders { get; set; }
     public bool EnableSoftDelete { get; set; } = true;
+
+    // Subdomain routing
+    [RegularExpression(@"^[a-z0-9\-]{2,100}$", ErrorMessage = "Subdomain may only contain lowercase letters, digits and hyphens (2–100 characters).")]
+    [StringLength(100, ErrorMessage = "Subdomain must not exceed 100 characters.")]
+    public string? Subdomain { get; set; }
+
+    public bool SubdomainApproved { get; set; }
 }

@@ -97,11 +97,11 @@
                         <input type="password" class="form-control" id="password" name="Password" required autocomplete="current-password" placeholder="••••••••" />
                     </div>
                 </div>
-                <div class="mb-4">
+                <div class="mb-4 @(!string.IsNullOrEmpty(tenantSlug) ? "d-none" : "")">
                     <label for="tenantSlugInput" class="form-label">Business Slug</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-building"></i></span>
-                        <input type="text" class="form-control" id="tenantSlugInput" name="TenantSlug" value="@tenantSlug" required placeholder="your-business-name" autocomplete="off" />
+                        <input type="text" class="form-control" id="tenantSlugInput" name="TenantSlug" value="@tenantSlug" @(string.IsNullOrEmpty(tenantSlug) ? "required" : "readonly") placeholder="your-business-name" autocomplete="off" />
                     </div>
                     <div class="form-text">The URL slug for your business (e.g. <code>demo-barber</code>)</div>
                 </div>

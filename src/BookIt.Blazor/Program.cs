@@ -1,4 +1,5 @@
 using BookIt.Blazor.Components;
+using BookIt.Blazor.Middleware;
 using BookIt.UI.Shared;
 using Serilog;
 using Serilog.Events;
@@ -52,6 +53,8 @@ builder.Services.AddBookItUI(apiBaseUrl);
 
 // Session for storing auth state on page refresh
 builder.Services.AddDistributedMemoryCache();
+builder.Services.AddMemoryCache(); // IMemoryCache for SubdomainRewriteMiddleware
+builder.Services.AddHttpClient(); // IHttpClientFactory for SubdomainRewriteMiddleware
 builder.Services.AddSession(o => o.IdleTimeout = TimeSpan.FromHours(8));
 builder.Services.AddHttpContextAccessor();
 
@@ -64,6 +67,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<SubdomainRewriteMiddleware>();
 app.UseSession();
 app.UseStaticFiles();
 app.UseAntiforgery();

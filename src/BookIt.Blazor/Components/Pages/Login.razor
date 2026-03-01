@@ -1,7 +1,20 @@
 @page "/login"
 @rendermode InteractiveServer
 @layout MainLayout
+@inject IConfiguration Config
+@inject NavigationManager Nav
 
 <PageTitle>Sign In — BookIt</PageTitle>
 
-<BookIt.UI.Shared.Components.Public.LoginView />
+<BookIt.UI.Shared.Components.Public.LoginView InitialSlug="@_subdomainSlug" />
+
+@code {
+    private string? _subdomainSlug;
+
+    protected override void OnInitialized()
+    {
+        var authority = new Uri(Nav.Uri).Authority; // "tenant.bookit.com" or "tenant.bookit.com:5000"
+        _subdomainSlug = BookIt.Core.Helpers.SubdomainHelper.ExtractTenantSlug(
+            authority, Config["SubdomainConfig:BaseDomain"]);
+    }
+}
