@@ -224,6 +224,13 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         {
             entity.HasIndex(c => c.Token).IsUnique();
             entity.HasIndex(c => new { c.TenantId, c.CandidateEmail });
+
+            // Break multiple cascade path: Tenants -> Services (CASCADE) -> CandidateInvitations
+            // and Tenants -> CandidateInvitations (CASCADE) would both cascade to this table.
+            entity.HasOne(c => c.Service)
+                  .WithMany()
+                  .HasForeignKey(c => c.ServiceId)
+                  .OnDelete(DeleteBehavior.NoAction);
         });
 
         // StaffInvitation
@@ -246,7 +253,7 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
                   .OnDelete(DeleteBehavior.NoAction);
 
             entity.HasOne(ss => ss.Service)
-                  .WithMany()
+                  .WithMany(s => s.StaffServices)
                   .HasForeignKey(ss => ss.ServiceId)
                   .OnDelete(DeleteBehavior.NoAction);
         });
@@ -273,7 +280,7 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         modelBuilder.Entity<WebhookDelivery>(entity =>
         {
             entity.HasOne(wd => wd.Webhook)
-                  .WithMany()
+                  .WithMany(w => w.Deliveries)
                   .HasForeignKey(wd => wd.WebhookId)
                   .OnDelete(DeleteBehavior.NoAction);
         });

@@ -259,7 +259,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@DEMO-BARBER.COM",
                             NormalizedUserName = "ADMIN@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEMjIDAsWsWpib7UXHbMo4q6GUzJcD/EHCMpN95+JWy9c381xHwhBoXye9U2s/5XOcg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOrpz+1/S4f/oZ0KZZ/ayfwQbC1IjRmSdbn0bzqiTNuUovThGA1uZARcsVYtntc2qA==",
                             PhoneNumberConfirmed = false,
                             Role = 2,
                             SecurityStamp = "admin-security-stamp-1",
@@ -281,7 +281,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER@DEMO-BARBER.COM",
                             NormalizedUserName = "MANAGER@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEAArXAC7NGvJJ89PI+q3vNuIAf293SGZ9LGort4XR8nR6GU3Jp43R+Ad8Iy7P58C9A==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPia+Ijls54RNyoc5yEV4ZyqNx5rkXitSUxppn25mPHnPC2CS+enJxWgB/okkW+wtg==",
                             PhoneNumberConfirmed = false,
                             Role = 3,
                             SecurityStamp = "manager-security-stamp-1",
@@ -303,7 +303,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "STAFF@DEMO-BARBER.COM",
                             NormalizedUserName = "STAFF@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJ0UTgwMW6oKoR+1bZZZU/mU6hyygIWsyGuCWa6uFqRFNzPVAvSKCO1xpCCLE7FEXw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJfa98SNJ5Zr1R0Ebc5RQcH75DgtQhz1Cb7d7xX8yDpujxfaIU4RyCqobHg3B6sYCQ==",
                             PhoneNumberConfirmed = false,
                             Role = 4,
                             SecurityStamp = "staff-security-stamp-1",
@@ -325,7 +325,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CUSTOMER@EXAMPLE.COM",
                             NormalizedUserName = "CUSTOMER@EXAMPLE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIIdYoGOGYub5BTc+zViWy++fgD1lMSLf6S4W/S6cxzL7SCCxyUmEv675xZZWFF8tg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFAVL4g5zlB49o0SLuDVn9nSVi6763EMx9QSPpdsYRQ89JKjMcTAJ5BtJ7meEl++Gg==",
                             PhoneNumberConfirmed = false,
                             Role = 5,
                             SecurityStamp = "customer-security-stamp-1",
@@ -2318,14 +2318,9 @@ namespace BookIt.Infrastructure.Migrations
                     b.Property<Guid>("ServiceId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ServiceId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("StaffId", "ServiceId");
 
                     b.HasIndex("ServiceId");
-
-                    b.HasIndex("ServiceId1");
 
                     b.ToTable("StaffServices");
                 });
@@ -2704,14 +2699,9 @@ namespace BookIt.Infrastructure.Migrations
                     b.Property<Guid>("WebhookId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("WebhookId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
                     b.HasIndex("WebhookId");
-
-                    b.HasIndex("WebhookId1");
 
                     b.ToTable("WebhookDeliveries");
                 });
@@ -3012,7 +3002,7 @@ namespace BookIt.Infrastructure.Migrations
                     b.HasOne("BookIt.Core.Entities.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BookIt.Core.Entities.Tenant", "Tenant")
@@ -3330,14 +3320,10 @@ namespace BookIt.Infrastructure.Migrations
             modelBuilder.Entity("BookIt.Core.Entities.StaffService", b =>
                 {
                     b.HasOne("BookIt.Core.Entities.Service", "Service")
-                        .WithMany()
+                        .WithMany("StaffServices")
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
-
-                    b.HasOne("BookIt.Core.Entities.Service", null)
-                        .WithMany("StaffServices")
-                        .HasForeignKey("ServiceId1");
 
                     b.HasOne("BookIt.Core.Entities.Staff", "Staff")
                         .WithMany("Services")
@@ -3364,14 +3350,10 @@ namespace BookIt.Infrastructure.Migrations
             modelBuilder.Entity("BookIt.Core.Entities.WebhookDelivery", b =>
                 {
                     b.HasOne("BookIt.Core.Entities.Webhook", "Webhook")
-                        .WithMany()
+                        .WithMany("Deliveries")
                         .HasForeignKey("WebhookId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
-
-                    b.HasOne("BookIt.Core.Entities.Webhook", null)
-                        .WithMany("Deliveries")
-                        .HasForeignKey("WebhookId1");
 
                     b.Navigation("Webhook");
                 });
