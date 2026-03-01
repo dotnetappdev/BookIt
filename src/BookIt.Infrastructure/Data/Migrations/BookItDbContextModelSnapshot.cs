@@ -3264,7 +3264,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasOne("BookIt.Core.Entities.Service", "Service")
                         .WithMany("AppointmentServices")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Appointment");
@@ -3382,7 +3382,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                     b.HasOne("BookIt.Core.Entities.Appointment", "Appointment")
                         .WithMany()
                         .HasForeignKey("AppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BookIt.Core.Entities.ClassSession", "ClassSession")

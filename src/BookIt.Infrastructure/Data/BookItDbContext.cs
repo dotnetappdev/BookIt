@@ -137,10 +137,34 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
             entity.Property(p => p.RefundAmount).HasColumnType("decimal(18,2)");
         });
 
-        // AppointmentService price
+        // AppointmentService price and relationships
         modelBuilder.Entity<AppointmentService>(entity =>
         {
             entity.Property(a => a.PriceAtBooking).HasColumnType("decimal(18,2)");
+
+            entity.HasOne(a => a.Appointment)
+                  .WithMany(ap => ap.Services)
+                  .HasForeignKey(a => a.AppointmentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(a => a.Service)
+                  .WithMany(s => s.AppointmentServices)
+                  .HasForeignKey(a => a.ServiceId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // ClassSessionBooking relationships
+        modelBuilder.Entity<ClassSessionBooking>(entity =>
+        {
+            entity.HasOne(csb => csb.ClassSession)
+                  .WithMany(cs => cs.Bookings)
+                  .HasForeignKey(csb => csb.ClassSessionId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(csb => csb.Appointment)
+                  .WithMany()
+                  .HasForeignKey(csb => csb.AppointmentId)
+                  .OnDelete(DeleteBehavior.NoAction);
         });
 
         // AppConfiguration
