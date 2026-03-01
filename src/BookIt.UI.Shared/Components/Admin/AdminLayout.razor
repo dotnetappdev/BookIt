@@ -226,7 +226,14 @@
         _                  => "Dashboard"
     };
 
-    protected override void OnInitialized() => Auth.OnChange += StateHasChanged;
+    protected override void OnInitialized()
+    {
+        Auth.OnChange += StateHasChanged;
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+        => StateHasChanged();
 
     private async Task ToggleDark()
     {
@@ -263,5 +270,9 @@
         Nav.NavigateTo("/login");
     }
 
-    public void Dispose() => Auth.OnChange -= StateHasChanged;
+    public void Dispose()
+    {
+        Auth.OnChange -= StateHasChanged;
+        Nav.LocationChanged -= OnLocationChanged;
+    }
 }
