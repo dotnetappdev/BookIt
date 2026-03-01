@@ -16,6 +16,10 @@ public class ClientResponse
     public bool IsActive { get; set; }
     public int StaffCount { get; set; }
     public bool EnableSoftDelete { get; set; } = true;
+    /// <summary>Custom subdomain slug for this client's tenant (e.g. "demo-barber").</summary>
+    public string? Subdomain { get; set; }
+    /// <summary>Whether the subdomain has been approved by a super admin.</summary>
+    public bool SubdomainApproved { get; set; }
 }
 
 public class CreateClientRequest
@@ -51,6 +55,10 @@ public class CreateClientRequest
 
     public bool IsActive { get; set; } = true;
     public bool EnableSoftDelete { get; set; } = true;
+
+    [RegularExpression(@"^[a-z0-9\-]{2,100}$", ErrorMessage = "Subdomain may only contain lowercase letters, digits and hyphens (2–100 characters).")]
+    [StringLength(100, ErrorMessage = "Subdomain must not exceed 100 characters.")]
+    public string? Subdomain { get; set; }
 }
 
 public class UpdateClientRequest
@@ -80,4 +88,11 @@ public class UpdateClientRequest
 
     public bool IsActive { get; set; }
     public bool EnableSoftDelete { get; set; } = true;
+
+    [RegularExpression(@"^[a-z0-9\-]{2,100}$", ErrorMessage = "Subdomain may only contain lowercase letters, digits and hyphens (2–100 characters).")]
+    [StringLength(100, ErrorMessage = "Subdomain must not exceed 100 characters.")]
+    public string? Subdomain { get; set; }
+
+    /// <summary>Super admin approval flag — only super admins should set this to true.</summary>
+    public bool SubdomainApproved { get; set; }
 }

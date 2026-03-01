@@ -53,6 +53,8 @@ builder.Services.AddBookItUI(apiBaseUrl);
 
 // Session for storing auth state on page refresh
 builder.Services.AddDistributedMemoryCache();
+builder.Services.AddMemoryCache(); // IMemoryCache for SubdomainRewriteMiddleware
+builder.Services.AddHttpClient(); // IHttpClientFactory for SubdomainRewriteMiddleware
 builder.Services.AddSession(o => o.IdleTimeout = TimeSpan.FromHours(8));
 builder.Services.AddHttpContextAccessor();
 

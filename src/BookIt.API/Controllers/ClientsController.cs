@@ -96,6 +96,18 @@ public class ClientsController : ControllerBase
             CreatedAt = DateTime.UtcNow
         };
 
+        // Apply subdomain if requested — validate uniqueness
+        if (!string.IsNullOrWhiteSpace(request.Subdomain))
+        {
+            var normalizedSub = request.Subdomain.ToLowerInvariant().Trim();
+            var conflict = await _context.Tenants
+                .FirstOrDefaultAsync(t => t.Subdomain == normalizedSub && t.Id != tenant.Id && !t.IsDeleted);
+            if (conflict != null)
+                return Conflict(new { message = $"Subdomain '{normalizedSub}' is already in use." });
+            tenant.Subdomain = normalizedSub;
+            tenant.SubdomainApproved = false; // requires super admin approval
+        }
+
         _context.Clients.Add(client);
         tenant.EnableSoftDelete = request.EnableSoftDelete;
         tenant.UpdatedAt = DateTime.UtcNow;
@@ -133,6 +145,24 @@ public class ClientsController : ControllerBase
         // Propagate soft-delete preference to the owning tenant
         client.Tenant.EnableSoftDelete = request.EnableSoftDelete;
         client.Tenant.UpdatedAt = DateTime.UtcNow;
+
+        // Update subdomain if provided — validate uniqueness
+        if (!string.IsNullOrWhiteSpace(request.Subdomain))
+        {
+            var normalizedSub = request.Subdomain.ToLowerInvariant().Trim();
+            var conflict = await _context.Tenants
+                .FirstOrDefaultAsync(t => t.Subdomain == normalizedSub && t.Id != client.TenantId && !t.IsDeleted);
+            if (conflict != null)
+                return Conflict(new { message = $"Subdomain '{normalizedSub}' is already in use." });
+            client.Tenant.Subdomain = normalizedSub;
+        }
+        else
+        {
+            client.Tenant.Subdomain = null;
+        }
+
+        // Only super admins can approve a subdomain; the flag is passed directly from the request
+        client.Tenant.SubdomainApproved = request.SubdomainApproved;
 
         // Update user email if changed
         if (client.Email != request.Email)
@@ -184,6 +214,8 @@ public class ClientsController : ControllerBase
         Notes = c.Notes,
         IsActive = c.IsActive,
         StaffCount = c.Staff?.Count ?? 0,
-        EnableSoftDelete = c.Tenant.EnableSoftDelete
+        EnableSoftDelete = c.Tenant.EnableSoftDelete,
+        Subdomain = c.Tenant.Subdomain,
+        SubdomainApproved = c.Tenant.SubdomainApproved
     };
 }

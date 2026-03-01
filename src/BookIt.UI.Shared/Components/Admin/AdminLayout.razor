@@ -41,7 +41,7 @@
         {
             <MudTooltip Text="View booking page">
                 <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Color="Color.Default" Size="Size.Small"
-                               Href="@($"/{Auth.TenantSlug}/book")" Target="_blank"
+                               Href="@($"/{NavTenantSlug}/book")" Target="_blank"
                                Style="opacity:.6;" />
             </MudTooltip>
 
@@ -59,11 +59,11 @@
                         <div style="font-size:.75rem;opacity:.5;margin-top:1px;">@Auth.UserEmail</div>
                     </div>
                     <MudMenuItem Icon="@Icons.Material.Filled.Dashboard"
-                                 Href="@($"/{Auth.TenantSlug}/admin")">Dashboard</MudMenuItem>
+                                 Href="@($"/{NavTenantSlug}/admin")">Dashboard</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Filled.ManageAccounts"
-                                 Href="@($"/{Auth.TenantSlug}/admin/settings")">Profile &amp; Settings</MudMenuItem>
+                                 Href="@($"/{NavTenantSlug}/admin/settings")">Profile &amp; Settings</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Filled.CreditCard"
-                                 Href="@($"/{Auth.TenantSlug}/admin/subscriptions")">Subscription</MudMenuItem>
+                                 Href="@($"/{NavTenantSlug}/admin/subscriptions")">Subscription</MudMenuItem>
                     <MudDivider />
                     <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="Logout"
                                  IconColor="Color.Error">Sign Out</MudMenuItem>
@@ -95,10 +95,10 @@
             <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);padding:16px 20px 4px;">
                 Main Menu
             </div>
-            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin")" Match="NavLinkMatch.All"
+            <MudNavLink Href="@($"/{NavTenantSlug}/admin")" Match="NavLinkMatch.All"
                         Icon="@Icons.Material.Filled.GridView"
                         Style="color:rgba(255,255,255,.65);">Dashboard</MudNavLink>
-            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/calendar")"
+            <MudNavLink Href="@($"/{NavTenantSlug}/admin/calendar")"
                         Icon="@Icons.Material.Filled.CalendarMonth"
                         Style="color:rgba(255,255,255,.65);">Calendar</MudNavLink>
 
@@ -108,32 +108,32 @@
             </div>
             @if (!Auth.IsStaffOnly)
             {
-                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/services")"
+                <MudNavLink Href="@($"/{NavTenantSlug}/admin/services")"
                             Icon="@Icons.Material.Filled.Spa"
                             Style="color:rgba(255,255,255,.65);">Services</MudNavLink>
-                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/rooms")"
+                <MudNavLink Href="@($"/{NavTenantSlug}/admin/rooms")"
                             Icon="@Icons.Material.Filled.Hotel"
                             Style="color:rgba(255,255,255,.65);">Rooms &amp; Lodging</MudNavLink>
             }
-            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/customers")"
+            <MudNavLink Href="@($"/{NavTenantSlug}/admin/customers")"
                         Icon="@Icons.Material.Filled.People"
                         Style="color:rgba(255,255,255,.65);">Customers</MudNavLink>
             @if (!Auth.IsStaffOnly)
             {
                 <MudNavGroup Title="Booking Forms" Icon="@Icons.Material.Filled.Assignment"
                              Style="color:rgba(255,255,255,.65);">
-                    <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/forms")"
+                    <MudNavLink Href="@($"/{NavTenantSlug}/admin/forms")"
                                 Icon="@Icons.Material.Filled.List"
                                 Style="color:rgba(255,255,255,.65);">All Forms</MudNavLink>
-                    <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/forms/builder")"
+                    <MudNavLink Href="@($"/{NavTenantSlug}/admin/forms/builder")"
                                 Icon="@Icons.Material.Filled.Build"
                                 Style="color:rgba(255,255,255,.65);">Form Builder</MudNavLink>
                 </MudNavGroup>
             }
-            <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/interviews")"
+            <MudNavLink Href="@($"/{NavTenantSlug}/admin/interviews")"
                         Icon="@Icons.Material.Filled.Groups"
                         Style="color:rgba(255,255,255,.65);">Interviews</MudNavLink>
-            <MudNavLink Href="@($"/{Auth.TenantSlug}/book")" Target="_blank"
+            <MudNavLink Href="@($"/{NavTenantSlug}/book")" Target="_blank"
                         Icon="@Icons.Material.Filled.OpenInNew"
                         Style="color:rgba(255,255,255,.65);">Booking Page</MudNavLink>
 
@@ -143,16 +143,16 @@
                 <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);padding:16px 20px 4px;">
                     Account
                 </div>
-                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/settings")"
+                <MudNavLink Href="@($"/{NavTenantSlug}/admin/settings")"
                             Icon="@Icons.Material.Filled.Tune"
                             Style="color:rgba(255,255,255,.65);">Settings</MudNavLink>
-                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/email-templates")"
+                <MudNavLink Href="@($"/{NavTenantSlug}/admin/email-templates")"
                             Icon="@Icons.Material.Filled.MarkEmailRead"
                             Style="color:rgba(255,255,255,.65);">Email Templates</MudNavLink>
-                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/subscriptions")"
+                <MudNavLink Href="@($"/{NavTenantSlug}/admin/subscriptions")"
                             Icon="@Icons.Material.Filled.CreditCard"
                             Style="color:rgba(255,255,255,.65);">Subscription</MudNavLink>
-                <MudNavLink Href="@($"/{Auth.TenantSlug}/admin/audit-trail")"
+                <MudNavLink Href="@($"/{NavTenantSlug}/admin/audit-trail")"
                             Icon="@Icons.Material.Filled.ManageSearch"
                             Style="color:rgba(255,255,255,.65);">Audit Trail</MudNavLink>
             }
@@ -189,6 +189,25 @@
     private MudTheme _theme = BookItTheme.Default;
     private string _themePrimary = BookItTheme.PrimaryOf(TenantTheme.Indigo);
     private string _themeSecondary = BookItTheme.SecondaryOf(TenantTheme.Indigo);
+
+    /// <summary>
+    /// Returns the tenant slug to use for nav links.
+    /// When a super admin browses a different tenant's admin pages (e.g. /demo-barber/admin),
+    /// the URL-based slug takes priority over <c>Auth.TenantSlug</c> so that sidebar
+    /// links stay scoped to the tenant being viewed.
+    /// </summary>
+    private string NavTenantSlug
+    {
+        get
+        {
+            // Extract /{slug}/admin... pattern from current URL
+            var path = new Uri(Nav.Uri).AbsolutePath.TrimStart('/');
+            var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length >= 2 && segments[1].Equals("admin", StringComparison.OrdinalIgnoreCase))
+                return segments[0];
+            return Auth.TenantSlug ?? "";
+        }
+    }
 
     private string _pageTitle => Nav.Uri.TrimEnd('/').Split('/').LastOrDefault(x => !string.IsNullOrEmpty(x)) switch
     {

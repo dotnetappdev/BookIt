@@ -75,6 +75,12 @@ public class Tenant : BaseEntity
     public bool EnableEmailReminders { get; set; } = true;
     public bool EnableSmsReminders { get; set; } = false;
 
+    // Wildcard subdomain routing
+    /// <summary>Custom subdomain slug requested by the tenant (e.g. "demo-barber" for demo-barber.bookit.com).</summary>
+    public string? Subdomain { get; set; }
+    /// <summary>Set to true by a super admin once the subdomain has been approved and DNS is ready.</summary>
+    public bool SubdomainApproved { get; set; } = false;
+
     // Soft delete behaviour
     public bool EnableSoftDelete { get; set; } = true;
 

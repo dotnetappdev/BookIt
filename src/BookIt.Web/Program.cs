@@ -9,6 +9,8 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add<SubdomainTenantFilter>();
 });
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient(); // IHttpClientFactory for SubdomainTenantMiddleware
 
 builder.Services.AddSession(options =>
 {
