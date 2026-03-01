@@ -73,10 +73,13 @@ public class TenantsController : ControllerBase
         tenant.AllowedEmbedDomains = request.AllowedEmbedDomains;
         tenant.CustomCss = request.CustomCss;
         tenant.DefaultMeetingLink = request.DefaultMeetingLink;
-        tenant.OpenAiApiKey = request.OpenAiApiKey;
-        tenant.ElevenLabsApiKey = request.ElevenLabsApiKey;
+        if (!string.IsNullOrEmpty(request.OpenAiApiKey))
+            tenant.OpenAiApiKey = request.OpenAiApiKey;
+        if (!string.IsNullOrEmpty(request.ElevenLabsApiKey))
+            tenant.ElevenLabsApiKey = request.ElevenLabsApiKey;
         tenant.ElevenLabsVoiceId = request.ElevenLabsVoiceId;
         tenant.VapiPublicKey = request.VapiPublicKey;
+        tenant.VapiPhoneNumber = request.VapiPhoneNumber;
         tenant.EnableAiChat = request.EnableAiChat;
         tenant.UpdatedAt = DateTime.UtcNow;
 
@@ -180,6 +183,13 @@ public class TenantsController : ControllerBase
         EnablePayPal = t.EnablePayPal,
         EnableApplePay = t.EnableApplePay,
         StripePublishableKey = t.StripePublishableKey,
-        PayPalClientId = t.PayPalClientId
+        PayPalClientId = t.PayPalClientId,
+        // AI chat & voice
+        EnableAiChat = t.EnableAiChat,
+        VapiPublicKey = t.VapiPublicKey,
+        VapiPhoneNumber = t.VapiPhoneNumber,
+        ElevenLabsVoiceId = t.ElevenLabsVoiceId,
+        HasOpenAiApiKey = !string.IsNullOrEmpty(t.OpenAiApiKey),
+        HasElevenLabsApiKey = !string.IsNullOrEmpty(t.ElevenLabsApiKey),
     };
 }

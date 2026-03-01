@@ -52,6 +52,7 @@ public class Tenant : BaseEntity
     public string? ElevenLabsApiKey { get; set; }
     public string? ElevenLabsVoiceId { get; set; }
     public string? VapiPublicKey { get; set; }
+    public string? VapiPhoneNumber { get; set; }
     public bool EnableAiChat { get; set; } = true;
 
     // SMS notifications
