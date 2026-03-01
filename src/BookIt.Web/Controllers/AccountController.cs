@@ -16,7 +16,9 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Login(string? tenantSlug = null)
     {
-        ViewBag.TenantSlug = tenantSlug;
+        // Prefer route/query parameter; fall back to subdomain detection
+        var slug = tenantSlug ?? HttpContext.Items["TenantSlug"] as string;
+        ViewBag.TenantSlug = slug;
         return View();
     }
 

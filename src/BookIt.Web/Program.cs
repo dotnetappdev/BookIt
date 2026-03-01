@@ -1,8 +1,13 @@
+using BookIt.Web.Filters;
+using BookIt.Web.Middleware;
 using BookIt.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<SubdomainTenantFilter>();
+});
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddSession(options =>
@@ -30,8 +35,32 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseMiddleware<SubdomainTenantMiddleware>();
 app.UseSession();
 app.UseAuthorization();
+
+// ── Subdomain-based routes (tenantSlug resolved from subdomain by middleware) ──
+app.MapControllerRoute(
+    name: "subdomainBook",
+    pattern: "book",
+    defaults: new { controller = "Booking", action = "Index" });
+
+app.MapControllerRoute(
+    name: "subdomainServiceBook",
+    pattern: "book/{serviceSlug}",
+    defaults: new { controller = "Booking", action = "ServiceLanding" });
+
+app.MapControllerRoute(
+    name: "subdomainAdmin",
+    pattern: "admin/{action=Index}/{id?}",
+    defaults: new { controller = "Admin" });
+
+app.MapControllerRoute(
+    name: "subdomainLogin",
+    pattern: "login",
+    defaults: new { controller = "Account", action = "Login" });
+
+// ── Path-based routes (legacy / non-subdomain access) ──
 
 app.MapControllerRoute(
     name: "tenant",
