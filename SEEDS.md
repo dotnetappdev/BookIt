@@ -29,12 +29,12 @@ for hotel, B&B and gym tenants.
 
 | Role | Email | Password | Tenant |
 |------|-------|----------|--------|
-| TenantAdmin | admin@demo-hotel.com | Admin123! | demo-hotel |
-| TenantAdmin | admin@demo-bb.com | Admin123! | demo-bb |
-| TenantAdmin | admin@demo-gym.com | Admin123! | demo-gym |
-| Staff (instructor) | sophie@demo-gym.com | Staff123! | demo-gym |
-| Staff (instructor) | tom@demo-gym.com | Staff123! | demo-gym |
-| Staff (instructor) | priya@demo-gym.com | Staff123! | demo-gym |
+| TenantAdmin | admin@demo-hotel.example | Admin123! | demo-hotel |
+| TenantAdmin | admin@demo-bb.example | Admin123! | demo-bb |
+| TenantAdmin | admin@demo-gym.example | Admin123! | demo-gym |
+| Staff (instructor) | sophie@demo-gym.example | Staff123! | demo-gym |
+| Staff (instructor) | tom@demo-gym.example | Staff123! | demo-gym |
+| Staff (instructor) | priya@demo-gym.example | Staff123! | demo-gym |
 
 > **Login URL (Blazor):** `https://localhost:5001/login`  
 > **Note:** The login page no longer requires a slug — sign in with email and password only.  

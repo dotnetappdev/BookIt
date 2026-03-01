@@ -77,7 +77,7 @@ public class DatabaseSeederService : IDatabaseSeederService
         {
             var hotelId = await CreateExtraTenantAsync(
                 "demo-hotel", "Grand Palace Hotel", BusinessType.Hotel,
-                "admin@demo-hotel.com", "London", "SW1A 2AA", "United Kingdom");
+                "admin@demo-hotel.example", "London", "SW1A 2AA", "United Kingdom");
 
             var hotelAmenities = await SeedAmenitiesAsync(hotelId, new[]
             {
@@ -110,7 +110,7 @@ public class DatabaseSeederService : IDatabaseSeederService
         {
             var bbId = await CreateExtraTenantAsync(
                 "demo-bb", "Rose Cottage B&B", BusinessType.BedAndBreakfast,
-                "admin@demo-bb.com", "Bourton-on-the-Water", "GL54 2AN", "United Kingdom");
+                "admin@demo-bb.example", "Bourton-on-the-Water", "GL54 2AN", "United Kingdom");
 
             var bbAmenities = await SeedAmenitiesAsync(bbId, new[]
             {
@@ -138,7 +138,7 @@ public class DatabaseSeederService : IDatabaseSeederService
         {
             var gymId = await CreateExtraTenantAsync(
                 "demo-gym", "City Fitness Centre", BusinessType.Gym,
-                "admin@demo-gym.com", "Manchester", "M1 1AB", "United Kingdom");
+                "admin@demo-gym.example", "Manchester", "M1 1AB", "United Kingdom");
 
             var gymServices = await SeedGymServicesAsync(gymId);
             var gymStaff    = await SeedGymInstructorsAsync(gymId, gymServices);
@@ -575,9 +575,9 @@ public class DatabaseSeederService : IDatabaseSeederService
     {
         var instructors = new[]
         {
-            (First: "Sophie", Last: "Clarke",  Email: "sophie@demo-gym.com",  Phone: "555-3001", Bio: "Certified yoga and pilates instructor with 8 years experience"),
-            (First: "Tom",    Last: "Hughes",   Email: "tom@demo-gym.com",     Phone: "555-3002", Bio: "Ex-professional cyclist and HIIT specialist"),
-            (First: "Priya",  Last: "Sharma",   Email: "priya@demo-gym.com",   Phone: "555-3003", Bio: "Aquatics coach and swimming instructor"),
+            (First: "Sophie", Last: "Clarke",  Email: "sophie@demo-gym.example",  Phone: "555-3001", Bio: "Certified yoga and pilates instructor with 8 years experience"),
+            (First: "Tom",    Last: "Hughes",   Email: "tom@demo-gym.example",     Phone: "555-3002", Bio: "Ex-professional cyclist and HIIT specialist"),
+            (First: "Priya",  Last: "Sharma",   Email: "priya@demo-gym.example",   Phone: "555-3003", Bio: "Aquatics coach and swimming instructor"),
         };
 
         var staffList = new List<Staff>();
