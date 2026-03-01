@@ -1,5 +1,5 @@
 @page "/{tenantSlug}/admin/calendar"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @layout BookIt.UI.Shared.Components.Admin.AdminLayout
 @inject BookItApiService Api
 @inject BookItAuthState Auth

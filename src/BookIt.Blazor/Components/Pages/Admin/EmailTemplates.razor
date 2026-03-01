@@ -1,5 +1,5 @@
 @page "/{tenantSlug}/admin/email-templates"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @layout BookIt.UI.Shared.Components.Admin.AdminLayout
 @inject BookItAuthState Auth
 @inject NavigationManager Nav

@@ -1,13 +1,11 @@
 @page "/superadmin/clients"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @layout BookIt.UI.Shared.Components.Admin.AdminLayout
-@using Microsoft.AspNetCore.Authorization
 @using BookIt.Core.DTOs
 @inject BookItApiService Api
 @inject BookItAuthState Auth
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
-@attribute [Authorize(Roles = "SuperAdmin")]
 
 <PageTitle>Clients — BookIt Super Admin</PageTitle>
 
