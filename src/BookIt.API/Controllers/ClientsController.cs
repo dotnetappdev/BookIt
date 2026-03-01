@@ -97,6 +97,8 @@ public class ClientsController : ControllerBase
         };
 
         _context.Clients.Add(client);
+        tenant.EnableSoftDelete = request.EnableSoftDelete;
+        tenant.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         // Reload with relationships
@@ -127,6 +129,10 @@ public class ClientsController : ControllerBase
         client.Notes = request.Notes;
         client.IsActive = request.IsActive;
         client.UpdatedAt = DateTime.UtcNow;
+
+        // Propagate soft-delete preference to the owning tenant
+        client.Tenant.EnableSoftDelete = request.EnableSoftDelete;
+        client.Tenant.UpdatedAt = DateTime.UtcNow;
 
         // Update user email if changed
         if (client.Email != request.Email)
@@ -177,6 +183,7 @@ public class ClientsController : ControllerBase
         Address = c.Address,
         Notes = c.Notes,
         IsActive = c.IsActive,
-        StaffCount = c.Staff?.Count ?? 0
+        StaffCount = c.Staff?.Count ?? 0,
+        EnableSoftDelete = c.Tenant.EnableSoftDelete
     };
 }

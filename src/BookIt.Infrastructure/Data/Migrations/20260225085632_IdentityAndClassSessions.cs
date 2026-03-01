@@ -269,7 +269,7 @@ namespace BookIt.Infrastructure.Data.Migrations
                         column: x => x.AppointmentId,
                         principalTable: "Appointments",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_ClassSessionBookings_ClassSessions_ClassSessionId",
                         column: x => x.ClassSessionId,

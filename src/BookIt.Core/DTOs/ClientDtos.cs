@@ -15,6 +15,7 @@ public class ClientResponse
     public string? Notes { get; set; }
     public bool IsActive { get; set; }
     public int StaffCount { get; set; }
+    public bool EnableSoftDelete { get; set; } = true;
 }
 
 public class CreateClientRequest
@@ -49,6 +50,7 @@ public class CreateClientRequest
     public string Password { get; set; } = string.Empty;
 
     public bool IsActive { get; set; } = true;
+    public bool EnableSoftDelete { get; set; } = true;
 }
 
 public class UpdateClientRequest
@@ -77,4 +79,5 @@ public class UpdateClientRequest
     public string? Notes { get; set; }
 
     public bool IsActive { get; set; }
+    public bool EnableSoftDelete { get; set; } = true;
 }

@@ -158,6 +158,12 @@ else
             <MudItem xs="12">
                 <MudSwitch @bind-Value="_form.IsActive" Color="Color.Primary" Label="Active" />
             </MudItem>
+            <MudItem xs="12">
+                <MudSwitch @bind-Value="_form.EnableSoftDelete" Color="Color.Secondary" Label="Enable soft delete" />
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                    When enabled, deleted records are marked as deleted rather than permanently removed.
+                </MudText>
+            </MudItem>
         </MudGrid>
         </MudForm>
     </DialogContent>
@@ -234,7 +240,8 @@ else
             Phone = c.Phone,
             Address = c.Address,
             Notes = c.Notes,
-            IsActive = c.IsActive
+            IsActive = c.IsActive,
+            EnableSoftDelete = c.EnableSoftDelete
         };
         _dialogOpen = true;
     }
@@ -267,7 +274,8 @@ else
                 Address = _form.Address,
                 Notes = _form.Notes,
                 Password = _form.Password!,
-                IsActive = _form.IsActive
+                IsActive = _form.IsActive,
+                EnableSoftDelete = _form.EnableSoftDelete
             };
             var created = await Api.CreateClientAsync(req);
             if (created != null)
@@ -287,7 +295,8 @@ else
                 Phone = _form.Phone ?? string.Empty,
                 Address = _form.Address,
                 Notes = _form.Notes,
-                IsActive = _form.IsActive
+                IsActive = _form.IsActive,
+                EnableSoftDelete = _form.EnableSoftDelete
             };
             var updated = await Api.UpdateClientAsync(_editClient.Id, req);
             if (updated != null)
@@ -329,5 +338,6 @@ else
         public string? Notes { get; set; }
         public string? Password { get; set; }
         public bool IsActive { get; set; } = true;
+        public bool EnableSoftDelete { get; set; } = true;
     }
 }
