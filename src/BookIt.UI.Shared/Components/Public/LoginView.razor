@@ -31,7 +31,10 @@
                 }
                 else
                 {
-                    <text>Enter your business slug and credentials to continue</text>
+                    <text>Enter your email and password to continue &nbsp;·&nbsp;
+                        <span style="cursor:pointer;color:rgba(162,155,254,.8);text-decoration:underline;"
+                              @onclick="EnableSuperAdminMode">Super admin?</span>
+                    </text>
                 }
             </p>
         </div>
@@ -42,24 +45,15 @@
             <MudCardContent Style="padding:2rem !important;">
                 <MudForm @ref="_form" @bind-IsValid="_valid">
                     <MudStack Spacing="3">
-                        @if (string.IsNullOrEmpty(InitialSlug) || _superAdminMode)
+                        @if (_superAdminMode)
                         {
-                            <MudTextField @bind-Value="_slug" Label="Business Slug" Variant="Variant.Outlined"
-                                          Placeholder="e.g. my-barber-shop" Required="@(!_superAdminMode)"
-                                          RequiredError="Business slug is required."
-                                          Validation="@((string v) => (!_superAdminMode || !string.IsNullOrWhiteSpace(v)) ? ValidateSlug(v) : null)"
+                            <MudTextField @bind-Value="_slug" Label="Business Slug (optional)" Variant="Variant.Outlined"
+                                          Placeholder="e.g. my-barber-shop"
+                                          Validation="@((string v) => string.IsNullOrWhiteSpace(v) ? null : ValidateSlug(v))"
                                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Store"
                                           Immediate="true"
-                                          HelperText="@(_superAdminMode ? "Leave blank to use your super admin credentials globally" : "")"
-                                          aria-label="Business Slug"
-                                          aria-describedby="slug-hint"
-                                          aria-required="@(!_superAdminMode)" />
-                            @if (!_superAdminMode)
-                            {
-                                <span id="slug-hint" style="font-size:.75rem;color:rgba(255,255,255,.4);">
-                                    Lowercase letters, numbers, and hyphens only.
-                                </span>
-                            }
+                                          HelperText="Leave blank to sign in globally as super admin"
+                                          aria-label="Business Slug" />
                         }
 
                         <MudTextField @bind-Value="_email" Label="Email Address" Variant="Variant.Outlined"
@@ -179,14 +173,12 @@
         await _form!.Validate();
         if (!_valid) return;
 
-        // In super admin mode the slug field is shown but optional; the API will do a cross-tenant
-        // super admin lookup when the email doesn't belong to the specified tenant.
-        // In normal subdomain mode, use InitialSlug; in normal non-subdomain mode use entered _slug.
+        // Tenant slug: use subdomain slug if set, or slug field in super-admin mode, or null (API resolves from email).
         string? tenantSlug;
         if (_superAdminMode)
             tenantSlug = string.IsNullOrWhiteSpace(_slug) ? null : _slug.Trim().ToLowerInvariant();
         else
-            tenantSlug = !string.IsNullOrEmpty(InitialSlug) ? InitialSlug : _slug.Trim().ToLowerInvariant();
+            tenantSlug = !string.IsNullOrEmpty(InitialSlug) ? InitialSlug : null;
 
         var email = _email.Trim().ToLowerInvariant();
 
@@ -207,7 +199,7 @@
         }
         else
         {
-            _error = "Invalid credentials. Please check your slug and password.";
+            _error = "Invalid credentials. Please check your email and password.";
         }
     }
 }
