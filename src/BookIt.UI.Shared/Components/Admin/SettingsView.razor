@@ -398,23 +398,6 @@
                         </MudCard>
                     }
 
-                    <!-- Data Management -->
-                    <MudCard Elevation="1" Class="mb-4">
-                        <MudCardHeader>
-                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.DeleteSweep" Color="Color.Primary" /></CardHeaderAvatar>
-                            <CardHeaderContent><MudText Typo="Typo.h6">Data Management</MudText></CardHeaderContent>
-                        </MudCardHeader>
-                        <MudCardContent>
-                            <MudStack Spacing="2">
-                                <MudSwitch @bind-Value="_enableSoftDelete" Label="Enable soft delete" Color="Color.Primary" />
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" />
-                                    When enabled, records are never permanently removed — they are marked as deleted (IsDeleted = true) with a DeletedAt timestamp and DeletedBy user. Disable only if you want records to be physically removed from the database.
-                                </MudText>
-                            </MudStack>
-                        </MudCardContent>
-                    </MudCard>
-
                     <MudStack Row="true" Justify="Justify.FlexEnd">
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save"
                                    OnClick="Save" Disabled="_saving">
@@ -499,7 +482,6 @@
     // Reminder alert fields
     private bool _enableEmailReminders = true;
     private bool _enableSmsReminders;
-    private bool _enableSoftDelete = true;
     private List<int> _selectedAlerts = new() { MinutesPerDay };
     private int _customAlertValue = 1;
     private string _customAlertUnit = "hours";
@@ -658,7 +640,6 @@
             // Reminders
             _enableEmailReminders = _tenant.EnableEmailReminders;
             _enableSmsReminders = _tenant.EnableSmsReminders;
-            _enableSoftDelete = _tenant.EnableSoftDelete;
             if (!string.IsNullOrEmpty(_tenant.ReminderAlerts))
             {
                 _selectedAlerts = _tenant.ReminderAlerts.Split(',')
@@ -720,7 +701,6 @@
             ReminderAlerts = _selectedAlerts.Any() ? string.Join(",", _selectedAlerts) : null,
             EnableEmailReminders = _enableEmailReminders,
             EnableSmsReminders = _enableSmsReminders,
-            EnableSoftDelete = _enableSoftDelete,
         };
         var result = await Api.UpdateTenantAsync(TenantSlug, req);
         _saving = false;
