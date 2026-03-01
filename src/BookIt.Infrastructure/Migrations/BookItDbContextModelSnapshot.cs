@@ -259,7 +259,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@DEMO-BARBER.COM",
                             NormalizedUserName = "ADMIN@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAECiwQ092/UngX1NfqIdIJPgaas6RaQfJguL3TjTu77xUQOtReaOwEhsb3tjHf2mFVQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEMjIDAsWsWpib7UXHbMo4q6GUzJcD/EHCMpN95+JWy9c381xHwhBoXye9U2s/5XOcg==",
                             PhoneNumberConfirmed = false,
                             Role = 2,
                             SecurityStamp = "admin-security-stamp-1",
@@ -281,7 +281,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER@DEMO-BARBER.COM",
                             NormalizedUserName = "MANAGER@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEDe+KIGASC48jkv6o6t8FG08dolV5xMUh7gyLgIrABDwYBcwtncuCCoxD8zHkKdNoA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAArXAC7NGvJJ89PI+q3vNuIAf293SGZ9LGort4XR8nR6GU3Jp43R+Ad8Iy7P58C9A==",
                             PhoneNumberConfirmed = false,
                             Role = 3,
                             SecurityStamp = "manager-security-stamp-1",
@@ -303,7 +303,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "STAFF@DEMO-BARBER.COM",
                             NormalizedUserName = "STAFF@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBiyVZOyGdHMrVP6HFk2DJ9/42BWW2BgsXKmwuexmb1xPzVkpQR4b1j/ChdRwvcRXQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJ0UTgwMW6oKoR+1bZZZU/mU6hyygIWsyGuCWa6uFqRFNzPVAvSKCO1xpCCLE7FEXw==",
                             PhoneNumberConfirmed = false,
                             Role = 4,
                             SecurityStamp = "staff-security-stamp-1",
@@ -325,7 +325,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CUSTOMER@EXAMPLE.COM",
                             NormalizedUserName = "CUSTOMER@EXAMPLE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEC5TtNmR1oQp4mqLHwV0UojGhbdFRvcNK3mTh0R6TysLFM/PLg0L2Z2QXUF5Ib57Nw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEIIdYoGOGYub5BTc+zViWy++fgD1lMSLf6S4W/S6cxzL7SCCxyUmEv675xZZWFF8tg==",
                             PhoneNumberConfirmed = false,
                             Role = 5,
                             SecurityStamp = "customer-security-stamp-1",
@@ -3055,7 +3055,7 @@ namespace BookIt.Infrastructure.Migrations
                     b.HasOne("BookIt.Core.Entities.Service", "Service")
                         .WithMany("ClassSessions")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("BookIt.Core.Entities.Staff", "Staff")

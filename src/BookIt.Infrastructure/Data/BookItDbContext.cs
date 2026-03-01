@@ -192,12 +192,24 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
                 v => v.ToTimeSpan(), v => TimeOnly.FromTimeSpan(v));
         });
 
-        // ClassSession - handle TimeOnly
+        // ClassSession - handle TimeOnly and prevent cascade cycles
         modelBuilder.Entity<ClassSession>(entity =>
         {
             entity.Property(cs => cs.StartTime).HasConversion(
                 v => v.ToTimeSpan(), v => TimeOnly.FromTimeSpan(v));
             entity.Property(cs => cs.Price).HasColumnType("decimal(18,2)");
+            
+            // Prevent cascade cycle: Tenant -> Service (CASCADE) + Tenant -> ClassSession (CASCADE) + Service -> ClassSession (CASCADE)
+            entity.HasOne(cs => cs.Service)
+                  .WithMany(s => s.ClassSessions)
+                  .HasForeignKey(cs => cs.ServiceId)
+                  .OnDelete(DeleteBehavior.Restrict);
+                  
+            // Keep Tenant cascade so class sessions are deleted with tenant
+            entity.HasOne(cs => cs.Tenant)
+                  .WithMany()
+                  .HasForeignKey(cs => cs.TenantId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         // InterviewSlot
