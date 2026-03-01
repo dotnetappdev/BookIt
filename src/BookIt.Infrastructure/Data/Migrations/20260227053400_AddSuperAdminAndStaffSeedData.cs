@@ -26,7 +26,7 @@ namespace BookIt.Infrastructure.Data.Migrations
             migrationBuilder.InsertData(
                 table: "Staff",
                 columns: new[] { "Id", "Bio", "ClientId", "CreatedAt", "CreatedBy", "DeletedAt", "DeletedBy", "EditedAt", "EditedBy", "Email", "FirstName", "IsActive", "IsDeleted", "LastName", "Phone", "PhotoUrl", "SortOrder", "TenantId", "UpdatedAt", "UpdatedBy", "UserId" },
-                values: new object[] { new Guid("cc000000-0000-0000-0000-000000000001"), "Demo barber for testing the staff experience", null, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, null, null, "staff@demo-barber.com", "John", true, false, "Barber", "555-0001", null, 1, new Guid("11111111-1111-1111-1111-111111111111"), null, null, new Guid("bb000000-0000-0000-0000-000000000002") });
+                values: new object[] { new Guid("cc000000-0000-0000-0000-000000000001"), "Demo barber for testing the staff experience", null, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, null, null, "staff@demo-barber.example", "John", true, false, "Barber", "555-0001", null, 1, new Guid("11111111-1111-1111-1111-111111111111"), null, null, new Guid("bb000000-0000-0000-0000-000000000002") });
         }
 
         /// <inheritdoc />

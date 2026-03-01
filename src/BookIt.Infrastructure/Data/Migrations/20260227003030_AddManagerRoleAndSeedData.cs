@@ -40,7 +40,7 @@ namespace BookIt.Infrastructure.Data.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "CreatedAt", "Email", "EmailConfirmed", "FirstName", "IsDeleted", "LastName", "LockoutEnabled", "LockoutEnd", "MembershipNumber", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "RefreshToken", "RefreshTokenExpiry", "Role", "SecurityStamp", "TenantId", "TwoFactorEnabled", "UpdatedAt", "UserName" },
-                values: new object[] { new Guid("bb000000-0000-0000-0000-000000000004"), 0, "manager-concurrency-stamp-1", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "manager@demo-barber.com", true, "Sarah", false, "Manager", false, null, null, "MANAGER@DEMO-BARBER.COM", "MANAGER@DEMO-BARBER.COM", "AQAAAAIAAYagAAAAEA3HvWcx1zen0eFthQvU6K02+HXUL7ISmaH/zrfPtt0v4vgrs4gAxuL1ngd/qMap5w==", null, false, null, null, 3, "manager-security-stamp-1", new Guid("11111111-1111-1111-1111-111111111111"), false, null, "manager@demo-barber.com" });
+                values: new object[] { new Guid("bb000000-0000-0000-0000-000000000004"), 0, "manager-concurrency-stamp-1", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "manager@demo-barber.example", true, "Sarah", false, "Manager", false, null, null, "MANAGER@DEMO-BARBER.EXAMPLE", "MANAGER@DEMO-BARBER.EXAMPLE", "AQAAAAIAAYagAAAAEA3HvWcx1zen0eFthQvU6K02+HXUL7ISmaH/zrfPtt0v4vgrs4gAxuL1ngd/qMap5w==", null, false, null, null, 3, "manager-security-stamp-1", new Guid("11111111-1111-1111-1111-111111111111"), false, null, "manager@demo-barber.example" });
 
             migrationBuilder.InsertData(
                 table: "UserRoles",

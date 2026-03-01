@@ -142,3 +142,22 @@ public class TenantListResponse
     public int CustomerCount { get; set; }
     public int AppointmentCount { get; set; }
 }
+
+public class UserListResponse
+{
+    public Guid Id { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
+    public BookIt.Core.Enums.UserRole Role { get; set; }
+    public string RoleName { get; set; } = string.Empty;
+    public Guid TenantId { get; set; }
+    public string TenantName { get; set; } = string.Empty;
+    public string TenantSlug { get; set; } = string.Empty;
+    public bool IsDeleted { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class UpdateUserRoleRequest
+{
+    public BookIt.Core.Enums.UserRole Role { get; set; }
+}

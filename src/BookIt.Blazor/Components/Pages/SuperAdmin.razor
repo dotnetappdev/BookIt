@@ -231,6 +231,141 @@
                     </div>
                 </MudTabPanel>
 
+                <!-- Users Tab -->
+                <MudTabPanel Text="Users" Icon="@Icons.Material.Filled.People" OnClick="LoadUsers">
+                    <MudStack Spacing="3" Class="mt-2">
+                        <!-- Header + search -->
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-1">
+                            <div>
+                                <MudText Typo="Typo.h5" Style="color:white;font-weight:700;">Application Users</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">View and manage all user accounts and their roles</MudText>
+                            </div>
+                            <MudStack Row="true" Spacing="2">
+                                <MudTextField @bind-Value="_userSearch" Placeholder="Search users…"
+                                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                              Variant="Variant.Outlined" Margin="Margin.Dense" Style="min-width:200px;"
+                                              Immediate="true" />
+                                <MudSelect T="string" @bind-Value="_userRoleFilter" Label="Role" Variant="Variant.Outlined"
+                                           Margin="Margin.Dense" Style="min-width:140px;">
+                                    <MudSelectItem T="string" Value='""'>All Roles</MudSelectItem>
+                                    <MudSelectItem T="string" Value='"SuperAdmin"'>SuperAdmin</MudSelectItem>
+                                    <MudSelectItem T="string" Value='"TenantAdmin"'>TenantAdmin</MudSelectItem>
+                                    <MudSelectItem T="string" Value='"Manager"'>Manager</MudSelectItem>
+                                    <MudSelectItem T="string" Value='"Staff"'>Staff</MudSelectItem>
+                                    <MudSelectItem T="string" Value='"Customer"'>Customer</MudSelectItem>
+                                </MudSelect>
+                            </MudStack>
+                        </MudStack>
+
+                        @if (_usersLoading)
+                        {
+                            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+                        }
+                        else if (!FilteredUsers.Any())
+                        {
+                            <div style="background:#0d1117;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:48px;text-align:center;">
+                                <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Style="opacity:.3;" />
+                                <MudText Typo="Typo.body1" Style="margin-top:12px;opacity:.5;">No users found.</MudText>
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="background:#0d1117;border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;">
+                                <table style="width:100%;border-collapse:collapse;">
+                                    <thead>
+                                        <tr style="border-bottom:1px solid rgba(255,255,255,.07);">
+                                            <th style="padding:12px 16px;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">User</th>
+                                            <th style="padding:12px 16px;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">Role</th>
+                                            <th style="padding:12px 16px;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">Tenant</th>
+                                            <th style="padding:12px 16px;text-align:center;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">Status</th>
+                                            <th style="padding:12px 16px;text-align:right;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var u in FilteredUsers)
+                                        {
+                                            <tr style="border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;"
+                                                onmouseenter="this.style.background='rgba(108,92,231,.06)'"
+                                                onmouseleave="this.style.background='transparent'">
+                                                <td style="padding:14px 16px;">
+                                                    <div style="font-weight:600;font-size:.9rem;">@u.FullName</div>
+                                                    <div style="font-size:.75rem;color:rgba(255,255,255,.4);">@u.Email</div>
+                                                </td>
+                                                <td style="padding:14px 16px;">
+                                                    @{
+                                                        var roleColor = u.RoleName switch {
+                                                            "SuperAdmin"  => "#e17055",
+                                                            "TenantAdmin" => "#6c5ce7",
+                                                            "Manager"     => "#0984e3",
+                                                            "Staff"       => "#00b894",
+                                                            _             => "#636e72"
+                                                        };
+                                                        var roleBg = u.RoleName switch {
+                                                            "SuperAdmin"  => "rgba(225,112,85,.15)",
+                                                            "TenantAdmin" => "rgba(108,92,231,.15)",
+                                                            "Manager"     => "rgba(9,132,227,.15)",
+                                                            "Staff"       => "rgba(0,184,148,.15)",
+                                                            _             => "rgba(99,110,114,.15)"
+                                                        };
+                                                    }
+                                                    <span style="font-size:.78rem;background:@roleBg;color:@roleColor;padding:3px 8px;border-radius:20px;">
+                                                        @u.RoleName
+                                                    </span>
+                                                </td>
+                                                <td style="padding:14px 16px;">
+                                                    <div style="font-size:.82rem;">@u.TenantName</div>
+                                                    <div style="font-size:.75rem;color:rgba(255,255,255,.4);">/@u.TenantSlug</div>
+                                                </td>
+                                                <td style="padding:14px 16px;text-align:center;">
+                                                    @if (u.IsDeleted)
+                                                    {
+                                                        <span style="font-size:.75rem;background:rgba(225,112,85,.15);color:#fab1a0;padding:3px 9px;border-radius:20px;">Disabled</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span style="font-size:.75rem;background:rgba(0,184,148,.15);color:#55efc4;padding:3px 9px;border-radius:20px;">Active</span>
+                                                    }
+                                                </td>
+                                                <td style="padding:14px 16px;text-align:right;">
+                                                    <MudTooltip Text="Change role">
+                                                        <MudSelect T="BookIt.Core.Enums.UserRole"
+                                                                   Value="u.Role"
+                                                                   ValueChanged="@(r => ChangeUserRole(u, r))"
+                                                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                                   Style="min-width:120px;font-size:.8rem;"
+                                                                   Dense="true">
+                                                            @foreach (var r in Enum.GetValues<BookIt.Core.Enums.UserRole>())
+                                                            {
+                                                                <MudSelectItem T="BookIt.Core.Enums.UserRole" Value="r">@r</MudSelectItem>
+                                                            }
+                                                        </MudSelect>
+                                                    </MudTooltip>
+                                                    @if (!u.IsDeleted)
+                                                    {
+                                                        @if (_pendingDeleteUserId == u.Id)
+                                                        {
+                                                            <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
+                                                                       OnClick="@(() => ConfirmDeleteUser(u))">Disable?</MudButton>
+                                                            <MudButton Size="Size.Small" Style="color:rgba(255,255,255,.5);"
+                                                                       OnClick="@(() => _pendingDeleteUserId = null)">Cancel</MudButton>
+                                                        }
+                                                        else
+                                                        {
+                                                            <MudIconButton Icon="@Icons.Material.Filled.PersonOff" Size="Size.Small"
+                                                                           Style="color:#e17055;"
+                                                                           OnClick="@(() => _pendingDeleteUserId = u.Id)" />
+                                                        }
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </MudStack>
+                </MudTabPanel>
+
                 <!-- Database Management Tab -->
                 <MudTabPanel Text="Database" Icon="@Icons.Material.Filled.Storage">
                     <div style="text-align:center;padding:60px 20px;">
@@ -328,6 +463,22 @@
     private string _search = "";
     private Guid? _pendingDeleteId;
 
+    // Users tab
+    private List<UserListResponse> _users = new();
+    private bool _usersLoading;
+    private bool _usersLoaded;
+    private string _userSearch = "";
+    private string _userRoleFilter = "";
+    private Guid? _pendingDeleteUserId;
+
+    private IEnumerable<UserListResponse> FilteredUsers =>
+        _users.Where(u =>
+            (string.IsNullOrWhiteSpace(_userSearch) ||
+             u.Email.Contains(_userSearch, StringComparison.OrdinalIgnoreCase) ||
+             u.FullName.Contains(_userSearch, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrWhiteSpace(_userRoleFilter) ||
+             u.RoleName.Equals(_userRoleFilter, StringComparison.OrdinalIgnoreCase)));
+
     // RevenueCat config
     private string _rcApiKey = "";
     private string _rcEntitlementId = "premium";
@@ -401,5 +552,52 @@
     {
         // TODO: persist to AppConfiguration via the API.
         Snackbar.Add("RevenueCat configuration saved (demo — persistence not yet wired to API).", Severity.Info);
+    }
+
+    private async Task LoadUsers()
+    {
+        if (_usersLoaded) return;
+        _usersLoading = true;
+        StateHasChanged();
+        Api.SetToken(Auth.AccessToken);
+        _users = await Api.GetAllUsersAsync() ?? new();
+        _usersLoaded = true;
+        _usersLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task ChangeUserRole(UserListResponse u, BookIt.Core.Enums.UserRole newRole)
+    {
+        if (u.Role == newRole) return;
+        Api.SetToken(Auth.AccessToken);
+        var updated = await Api.UpdateUserRoleAsync(u.Id, new UpdateUserRoleRequest { Role = newRole });
+        if (updated != null)
+        {
+            u.Role = updated.Role;
+            u.RoleName = updated.RoleName;
+            Snackbar.Add($"Role updated for {u.Email}.", Severity.Success);
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add("Could not update role.", Severity.Error);
+        }
+    }
+
+    private async Task ConfirmDeleteUser(UserListResponse u)
+    {
+        _pendingDeleteUserId = null;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.SuperAdminDeleteUserAsync(u.Id);
+        if (ok)
+        {
+            u.IsDeleted = true;
+            Snackbar.Add($"User '{u.Email}' disabled.", Severity.Success);
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add("Could not disable user.", Severity.Error);
+        }
     }
 }

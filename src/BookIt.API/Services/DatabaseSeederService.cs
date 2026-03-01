@@ -59,13 +59,13 @@ public class DatabaseSeederService : IDatabaseSeederService
         if (demoTenant != null && !await _context.Staff.AnyAsync())
         {
             var client1Id = await SeedClient(demoTenant.Id,
-                "Elite Hair Solutions", "Sarah Johnson", "sarah@elitehair.com", "555-0101");
+                "Elite Hair Solutions", "Sarah Johnson", "sarah@elitehair.example", "555-0101");
             var client2Id = await SeedClient(demoTenant.Id,
-                "Urban Style Group", "Michael Chen", "michael@urbanstyle.com", "555-0102");
+                "Urban Style Group", "Michael Chen", "michael@urbanstyle.example", "555-0102");
 
-            await SeedStaff(demoTenant.Id, client1Id, "James", "Martinez", "james@elitehair.com", "555-0201", "Master Barber with 10 years experience");
-            await SeedStaff(demoTenant.Id, client1Id, "Emma", "Wilson", "emma@elitehair.com", "555-0202", "Specialist in modern cuts and styling");
-            await SeedStaff(demoTenant.Id, client2Id, "Oliver", "Brown", "oliver@urbanstyle.com", "555-0203", "Expert in beard grooming and hot shaves");
+            await SeedStaff(demoTenant.Id, client1Id, "James", "Martinez", "james@elitehair.example", "555-0201", "Master Barber with 10 years experience");
+            await SeedStaff(demoTenant.Id, client1Id, "Emma", "Wilson", "emma@elitehair.example", "555-0202", "Specialist in modern cuts and styling");
+            await SeedStaff(demoTenant.Id, client2Id, "Oliver", "Brown", "oliver@urbanstyle.example", "555-0203", "Expert in beard grooming and hot shaves");
 
             await SeedCustomers(demoTenant.Id, 20);
             await SeedAppointments(demoTenant.Id);

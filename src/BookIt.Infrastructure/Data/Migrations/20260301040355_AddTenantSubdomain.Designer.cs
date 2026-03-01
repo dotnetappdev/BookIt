@@ -254,21 +254,21 @@ namespace BookIt.Infrastructure.Data.Migrations
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "admin-concurrency-stamp-1",
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "admin@demo-barber.com",
+                            Email = "admin@demo-barber.example",
                             EmailConfirmed = true,
                             FirstName = "Demo",
                             IsDeleted = false,
                             LastName = "Admin",
                             LockoutEnabled = false,
-                            NormalizedEmail = "ADMIN@DEMO-BARBER.COM",
-                            NormalizedUserName = "ADMIN@DEMO-BARBER.COM",
+                            NormalizedEmail = "ADMIN@DEMO-BARBER.EXAMPLE",
+                            NormalizedUserName = "ADMIN@DEMO-BARBER.EXAMPLE",
                             PasswordHash = "AQAAAAIAAYagAAAAEHjCffROOR9Kw5lCZz/MPm1r5zSmL7+9h7p1821Mq5c1LJeBHy/t1/NBaOzFyb3qKw==",
                             PhoneNumberConfirmed = false,
                             Role = 2,
                             SecurityStamp = "admin-security-stamp-1",
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
                             TwoFactorEnabled = false,
-                            UserName = "admin@demo-barber.com"
+                            UserName = "admin@demo-barber.example"
                         },
                         new
                         {
@@ -276,21 +276,21 @@ namespace BookIt.Infrastructure.Data.Migrations
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "manager-concurrency-stamp-1",
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "manager@demo-barber.com",
+                            Email = "manager@demo-barber.example",
                             EmailConfirmed = true,
                             FirstName = "Sarah",
                             IsDeleted = false,
                             LastName = "Manager",
                             LockoutEnabled = false,
-                            NormalizedEmail = "MANAGER@DEMO-BARBER.COM",
-                            NormalizedUserName = "MANAGER@DEMO-BARBER.COM",
+                            NormalizedEmail = "MANAGER@DEMO-BARBER.EXAMPLE",
+                            NormalizedUserName = "MANAGER@DEMO-BARBER.EXAMPLE",
                             PasswordHash = "AQAAAAIAAYagAAAAEN99ZY6T4sKSsmweyYC7o/xpn9cN9U+PrelTPxvEqkOuUvCxsnpvCwIStHj7h+rB0w==",
                             PhoneNumberConfirmed = false,
                             Role = 3,
                             SecurityStamp = "manager-security-stamp-1",
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
                             TwoFactorEnabled = false,
-                            UserName = "manager@demo-barber.com"
+                            UserName = "manager@demo-barber.example"
                         },
                         new
                         {
@@ -298,21 +298,21 @@ namespace BookIt.Infrastructure.Data.Migrations
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "staff-concurrency-stamp-1",
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "staff@demo-barber.com",
+                            Email = "staff@demo-barber.example",
                             EmailConfirmed = true,
                             FirstName = "John",
                             IsDeleted = false,
                             LastName = "Barber",
                             LockoutEnabled = false,
-                            NormalizedEmail = "STAFF@DEMO-BARBER.COM",
-                            NormalizedUserName = "STAFF@DEMO-BARBER.COM",
+                            NormalizedEmail = "STAFF@DEMO-BARBER.EXAMPLE",
+                            NormalizedUserName = "STAFF@DEMO-BARBER.EXAMPLE",
                             PasswordHash = "AQAAAAIAAYagAAAAEKjtvcuzZReovKbQVt3u9/rN4pXpuhmQJL0WztNuh2jMb2VpPfhRA6Yu+V0JTTYeQA==",
                             PhoneNumberConfirmed = false,
                             Role = 4,
                             SecurityStamp = "staff-security-stamp-1",
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
                             TwoFactorEnabled = false,
-                            UserName = "staff@demo-barber.com"
+                            UserName = "staff@demo-barber.example"
                         },
                         new
                         {
@@ -320,21 +320,21 @@ namespace BookIt.Infrastructure.Data.Migrations
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "customer-concurrency-stamp-1",
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "customer@example.com",
+                            Email = "customer@bookit-demo.example",
                             EmailConfirmed = true,
                             FirstName = "Jane",
                             IsDeleted = false,
                             LastName = "Customer",
                             LockoutEnabled = false,
-                            NormalizedEmail = "CUSTOMER@EXAMPLE.COM",
-                            NormalizedUserName = "CUSTOMER@EXAMPLE.COM",
+                            NormalizedEmail = "CUSTOMER@BOOKIT-DEMO.EXAMPLE",
+                            NormalizedUserName = "CUSTOMER@BOOKIT-DEMO.EXAMPLE",
                             PasswordHash = "AQAAAAIAAYagAAAAEPVPMaFkcxnIBXSfYSZAJ9dBTC3pwFfILRd7RSfYMF1fTQj3ZhL9O0ACD6etSQRsWw==",
                             PhoneNumberConfirmed = false,
                             Role = 5,
                             SecurityStamp = "customer-security-stamp-1",
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
                             TwoFactorEnabled = false,
-                            UserName = "customer@example.com"
+                            UserName = "customer@bookit-demo.example"
                         });
                 });
 
