@@ -328,4 +328,22 @@ public class AdminController : Controller
         TempData["Success"] = "Booking declined.";
         return RedirectToAction(nameof(Bookings), new { tenantSlug });
     }
+
+    public async Task<IActionResult> Rooms(string tenantSlug)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var properties = await _apiClient.GetPropertiesAsync(tenantSlug);
+        var amenities = await _apiClient.GetAmenitiesAsync(tenantSlug);
+
+        ViewBag.Tenant = tenant;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.Properties = properties;
+        ViewBag.Amenities = amenities;
+        ViewBag.AccessToken = HttpContext.Session.GetString("AccessToken") ?? "";
+        return View();
+    }
 }

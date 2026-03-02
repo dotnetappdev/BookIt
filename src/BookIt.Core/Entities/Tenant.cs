@@ -7,6 +7,8 @@ public class Tenant : BaseEntity
     public string Name { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty; // URL-friendly identifier
     public BusinessType BusinessType { get; set; }
+    /// <summary>Free-text business type used when BusinessType is set to Other (or for display override).</summary>
+    public string? CustomBusinessType { get; set; }
     public string? LogoUrl { get; set; }
     public string? PrimaryColor { get; set; }
     public string? SecondaryColor { get; set; }

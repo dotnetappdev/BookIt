@@ -51,8 +51,10 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
     public DbSet<LodgingProperty> LodgingProperties => Set<LodgingProperty>();
     public DbSet<Room> Rooms => Set<Room>();
     public DbSet<RoomPhoto> RoomPhotos => Set<RoomPhoto>();
+    public DbSet<PropertyPhoto> PropertyPhotos => Set<PropertyPhoto>();
     public DbSet<Amenity> Amenities => Set<Amenity>();
     public DbSet<RoomAmenity> RoomAmenities => Set<RoomAmenity>();
+    public DbSet<PropertyAmenity> PropertyAmenities => Set<PropertyAmenity>();
     public DbSet<RoomRate> RoomRates => Set<RoomRate>();
     public DbSet<ChatSession> ChatSessions => Set<ChatSession>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
@@ -368,6 +370,27 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
             entity.HasOne(ra => ra.Amenity)
                   .WithMany(a => a.RoomAmenities)
                   .HasForeignKey(ra => ra.AmenityId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // PropertyPhoto
+        modelBuilder.Entity<PropertyPhoto>(entity =>
+        {
+            entity.Property(e => e.Url).HasMaxLength(2000).IsRequired();
+            entity.Property(e => e.Caption).HasMaxLength(500);
+        });
+
+        // PropertyAmenity composite key
+        modelBuilder.Entity<PropertyAmenity>().HasKey(pa => new { pa.LodgingPropertyId, pa.AmenityId });
+        modelBuilder.Entity<PropertyAmenity>(entity =>
+        {
+            entity.HasOne(pa => pa.LodgingProperty)
+                  .WithMany(p => p.PropertyAmenities)
+                  .HasForeignKey(pa => pa.LodgingPropertyId)
+                  .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne(pa => pa.Amenity)
+                  .WithMany(a => a.PropertyAmenities)
+                  .HasForeignKey(pa => pa.AmenityId)
                   .OnDelete(DeleteBehavior.NoAction);
         });
 

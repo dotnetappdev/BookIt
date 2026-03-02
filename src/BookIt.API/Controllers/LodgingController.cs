@@ -33,29 +33,13 @@ public class LodgingController : ControllerBase
         if (tenant == null) return NotFound();
 
         var props = await _context.LodgingProperties
+            .Include(p => p.Photos)
+            .Include(p => p.PropertyAmenities).ThenInclude(pa => pa.Amenity)
             .Where(p => p.TenantId == tenant.Id && !p.IsDeleted)
             .OrderBy(p => p.SortOrder).ThenBy(p => p.Name)
-            .Select(p => new LodgingPropertyResponse
-            {
-                Id = p.Id,
-                TenantId = p.TenantId,
-                Name = p.Name,
-                Description = p.Description,
-                Address = p.Address,
-                City = p.City,
-                PostCode = p.PostCode,
-                Country = p.Country,
-                PhoneNumber = p.PhoneNumber,
-                Email = p.Email,
-                Website = p.Website,
-                IconUrl = p.IconUrl,
-                IsActive = p.IsActive,
-                SortOrder = p.SortOrder,
-                RoomCount = p.Rooms.Count(r => !r.IsDeleted)
-            })
             .ToListAsync();
 
-        return Ok(props);
+        return Ok(props.Select(p => MapPropertyResponse(p)));
     }
 
     [HttpGet("properties/{id}")]
@@ -66,27 +50,12 @@ public class LodgingController : ControllerBase
 
         var p = await _context.LodgingProperties
             .Include(x => x.Rooms)
+            .Include(x => x.Photos)
+            .Include(x => x.PropertyAmenities).ThenInclude(pa => pa.Amenity)
             .FirstOrDefaultAsync(x => x.TenantId == tenant.Id && x.Id == id && !x.IsDeleted);
         if (p == null) return NotFound();
 
-        return Ok(new LodgingPropertyResponse
-        {
-            Id = p.Id,
-            TenantId = p.TenantId,
-            Name = p.Name,
-            Description = p.Description,
-            Address = p.Address,
-            City = p.City,
-            PostCode = p.PostCode,
-            Country = p.Country,
-            PhoneNumber = p.PhoneNumber,
-            Email = p.Email,
-            Website = p.Website,
-            IconUrl = p.IconUrl,
-            IsActive = p.IsActive,
-            SortOrder = p.SortOrder,
-            RoomCount = p.Rooms.Count(r => !r.IsDeleted)
-        });
+        return Ok(MapPropertyResponse(p));
     }
 
     [Authorize]
@@ -117,23 +86,7 @@ public class LodgingController : ControllerBase
         _context.LodgingProperties.Add(prop);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetProperty), new { tenantSlug, id = prop.Id }, new LodgingPropertyResponse
-        {
-            Id = prop.Id,
-            TenantId = prop.TenantId,
-            Name = prop.Name,
-            Description = prop.Description,
-            Address = prop.Address,
-            City = prop.City,
-            PostCode = prop.PostCode,
-            Country = prop.Country,
-            PhoneNumber = prop.PhoneNumber,
-            Email = prop.Email,
-            Website = prop.Website,
-            IconUrl = prop.IconUrl,
-            IsActive = prop.IsActive,
-            SortOrder = prop.SortOrder
-        });
+        return CreatedAtAction(nameof(GetProperty), new { tenantSlug, id = prop.Id }, MapPropertyResponse(prop));
     }
 
     [Authorize]
@@ -178,6 +131,86 @@ public class LodgingController : ControllerBase
         if (prop == null) return NotFound();
 
         prop.IsDeleted = true;
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    // ── Property Photos ──
+
+    [Authorize]
+    [HttpPost("properties/{propertyId}/photos")]
+    public async Task<ActionResult<PropertyPhotoResponse>> AddPropertyPhoto(string tenantSlug, Guid propertyId, [FromBody] AddPropertyPhotoRequest request)
+    {
+        var tenant = await GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+        if (!_tenantService.IsValidTenantAccess(tenant.Id)) return Forbid();
+
+        var prop = await _context.LodgingProperties
+            .FirstOrDefaultAsync(p => p.TenantId == tenant.Id && p.Id == propertyId && !p.IsDeleted);
+        if (prop == null) return NotFound();
+
+        var photo = new PropertyPhoto
+        {
+            LodgingPropertyId = propertyId,
+            Url = request.Url,
+            Caption = request.Caption,
+            SortOrder = request.SortOrder,
+            IsPrimary = request.IsPrimary
+        };
+
+        _context.PropertyPhotos.Add(photo);
+        await _context.SaveChangesAsync();
+
+        return Ok(new PropertyPhotoResponse
+        {
+            Id = photo.Id,
+            Url = photo.Url,
+            Caption = photo.Caption,
+            SortOrder = photo.SortOrder,
+            IsPrimary = photo.IsPrimary
+        });
+    }
+
+    [Authorize]
+    [HttpDelete("properties/{propertyId}/photos/{photoId}")]
+    public async Task<IActionResult> DeletePropertyPhoto(string tenantSlug, Guid propertyId, Guid photoId)
+    {
+        var tenant = await GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+        if (!_tenantService.IsValidTenantAccess(tenant.Id)) return Forbid();
+
+        var prop = await _context.LodgingProperties
+            .FirstOrDefaultAsync(p => p.TenantId == tenant.Id && p.Id == propertyId && !p.IsDeleted);
+        if (prop == null) return NotFound();
+
+        var photo = await _context.PropertyPhotos.FirstOrDefaultAsync(p => p.Id == photoId && p.LodgingPropertyId == propertyId);
+        if (photo == null) return NotFound();
+
+        _context.PropertyPhotos.Remove(photo);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    // ── Property Amenities ──
+
+    [Authorize]
+    [HttpPost("properties/{propertyId}/amenities")]
+    public async Task<IActionResult> AssignPropertyAmenities(string tenantSlug, Guid propertyId, [FromBody] AssignPropertyAmenitiesRequest request)
+    {
+        var tenant = await GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+        if (!_tenantService.IsValidTenantAccess(tenant.Id)) return Forbid();
+
+        var prop = await _context.LodgingProperties
+            .Include(p => p.PropertyAmenities)
+            .FirstOrDefaultAsync(p => p.TenantId == tenant.Id && p.Id == propertyId && !p.IsDeleted);
+        if (prop == null) return NotFound();
+
+        _context.PropertyAmenities.RemoveRange(prop.PropertyAmenities);
+
+        foreach (var amenityId in request.AmenityIds.Distinct())
+            _context.PropertyAmenities.Add(new PropertyAmenity { LodgingPropertyId = propertyId, AmenityId = amenityId });
+
         await _context.SaveChangesAsync();
         return NoContent();
     }
@@ -617,5 +650,42 @@ public class LodgingController : ControllerBase
             Description = ra.Amenity.Description,
             IsActive = ra.Amenity.IsActive
         }).ToList()
+    };
+
+    private static LodgingPropertyResponse MapPropertyResponse(LodgingProperty p) => new()
+    {
+        Id = p.Id,
+        TenantId = p.TenantId,
+        Name = p.Name,
+        Description = p.Description,
+        Address = p.Address,
+        City = p.City,
+        PostCode = p.PostCode,
+        Country = p.Country,
+        PhoneNumber = p.PhoneNumber,
+        Email = p.Email,
+        Website = p.Website,
+        IconUrl = p.IconUrl,
+        IsActive = p.IsActive,
+        SortOrder = p.SortOrder,
+        RoomCount = p.Rooms is { Count: > 0 } ? p.Rooms.Count(r => !r.IsDeleted) : 0,
+        Photos = p.Photos?.OrderBy(ph => ph.SortOrder).Select(ph => new PropertyPhotoResponse
+        {
+            Id = ph.Id,
+            Url = ph.Url,
+            Caption = ph.Caption,
+            SortOrder = ph.SortOrder,
+            IsPrimary = ph.IsPrimary
+        }).ToList() ?? new(),
+        Amenities = p.PropertyAmenities?.Where(pa => !pa.Amenity.IsDeleted).Select(pa => new AmenityResponse
+        {
+            Id = pa.Amenity.Id,
+            TenantId = pa.Amenity.TenantId,
+            Name = pa.Amenity.Name,
+            AmenityType = pa.Amenity.AmenityType,
+            Icon = pa.Amenity.Icon,
+            Description = pa.Amenity.Description,
+            IsActive = pa.Amenity.IsActive
+        }).ToList() ?? new()
     };
 }

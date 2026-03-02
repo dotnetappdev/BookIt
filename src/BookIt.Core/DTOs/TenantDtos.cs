@@ -9,6 +9,8 @@ public class TenantResponse
     public string Name { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public BusinessType BusinessType { get; set; }
+    /// <summary>Custom/free-text business type used when BusinessType is Other.</summary>
+    public string? CustomBusinessType { get; set; }
     public string? LogoUrl { get; set; }
     public string? PrimaryColor { get; set; }
     public string? SecondaryColor { get; set; }
@@ -67,6 +69,9 @@ public class UpdateTenantRequest
     public string Name { get; set; } = string.Empty;
 
     public BusinessType BusinessType { get; set; }
+
+    [StringLength(200, ErrorMessage = "Custom business type must not exceed 200 characters.")]
+    public string? CustomBusinessType { get; set; }
 
     [Url(ErrorMessage = "Logo URL must be a valid URL.")]
     [StringLength(2000, ErrorMessage = "Logo URL must not exceed 2000 characters.")]

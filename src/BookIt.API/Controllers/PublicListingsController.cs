@@ -44,6 +44,9 @@ public class PublicListingsController : ControllerBase
         {
             var properties = await _context.LodgingProperties
                 .Where(p => p.TenantId == tenant.Id && !p.IsDeleted && p.IsActive)
+                .Include(p => p.Photos)
+                .Include(p => p.PropertyAmenities)
+                    .ThenInclude(pa => pa.Amenity)
                 .Include(p => p.Rooms.Where(r => !r.IsDeleted && r.IsActive))
                     .ThenInclude(r => r.Photos)
                 .Include(p => p.Rooms.Where(r => !r.IsDeleted && r.IsActive))
@@ -75,13 +78,20 @@ public class PublicListingsController : ControllerBase
                 // Apply wheelchair filter
                 if (wheelchairAccessible == true && !activeRooms.Any(r => r.WheelchairAccessible)) continue;
 
-                // Collect all amenities across rooms
-                var allAmenities = activeRooms
-                    .SelectMany(r => r.RoomAmenities)
-                    .Where(ra => !ra.Amenity.IsDeleted)
-                    .Select(ra => ra.Amenity)
-                    .DistinctBy(a => a.Id)
+                // Use property-level amenities if set; fall back to aggregated room amenities
+                var propertyAmenities = prop.PropertyAmenities
+                    .Where(pa => !pa.Amenity.IsDeleted)
+                    .Select(pa => pa.Amenity)
                     .ToList();
+
+                var allAmenities = propertyAmenities.Any()
+                    ? propertyAmenities
+                    : activeRooms
+                        .SelectMany(r => r.RoomAmenities)
+                        .Where(ra => !ra.Amenity.IsDeleted)
+                        .Select(ra => ra.Amenity)
+                        .DistinctBy(a => a.Id)
+                        .ToList();
 
                 // Apply amenity name filter
                 if (!string.IsNullOrWhiteSpace(amenity) &&
@@ -131,6 +141,14 @@ public class PublicListingsController : ControllerBase
                     MaxRate = maxBaseRate,
                     AmenityNames = allAmenities.Select(a => a.Name).ToList(),
                     AmenityIcons = allAmenities.Where(a => !string.IsNullOrEmpty(a.Icon)).Select(a => a.Icon!).ToList(),
+                    Photos = prop.Photos.OrderBy(ph => ph.SortOrder).Select(ph => new PropertyPhotoResponse
+                    {
+                        Id = ph.Id,
+                        Url = ph.Url,
+                        Caption = ph.Caption,
+                        SortOrder = ph.SortOrder,
+                        IsPrimary = ph.IsPrimary
+                    }).ToList(),
                     Rooms = roomListings
                 });
             }

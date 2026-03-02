@@ -1,0 +1,542 @@
+@using BookIt.Core.DTOs
+@using BookIt.Core.Enums
+@{
+    ViewData["Title"] = "Properties & Rooms";
+    Layout = "_AdminLayout";
+    var tenant = ViewBag.Tenant as TenantResponse;
+    var properties = ViewBag.Properties as List<LodgingPropertyResponse> ?? new();
+    var amenities = ViewBag.Amenities as List<AmenityResponse> ?? new();
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+    var accessToken = ViewBag.AccessToken as string ?? "";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Properties &amp; Rooms</h1>
+        <p class="page-subtitle">Manage your lodging properties, rooms, photos and amenities</p>
+    </div>
+    <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addPropertyModal" aria-haspopup="dialog">
+        <i class="bi bi-building-add me-2"></i>Add Property
+    </button>
+</div>
+
+@if (!properties.Any())
+{
+    <div class="text-center py-5">
+        <i class="bi bi-building fs-1 text-muted d-block mb-3"></i>
+        <h5 class="text-muted">No properties yet</h5>
+        <p class="text-muted small">Add a property (hotel, B&amp;B, spa, gym, etc.) to start managing rooms and photos.</p>
+        <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#addPropertyModal">
+            <i class="bi bi-building-add me-2"></i>Add Property
+        </button>
+    </div>
+}
+else
+{
+    @foreach (var prop in properties)
+    {
+        <div class="card mb-4">
+            <div class="card-header px-4 py-3 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    @if (!string.IsNullOrEmpty(prop.IconUrl))
+                    {
+                        <img src="@prop.IconUrl" alt="@prop.Name" class="rounded" style="width:40px;height:40px;object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <div class="rounded bg-brand text-white d-flex align-items-center justify-content-center fw-bold"
+                             style="width:40px;height:40px;font-size:.875rem;">
+                            @prop.Name[0]
+                        </div>
+                    }
+                    <div>
+                        <div class="fw-semibold">@prop.Name</div>
+                        <div class="small text-muted">@(prop.City)@(!string.IsNullOrEmpty(prop.City) && !string.IsNullOrEmpty(prop.Country) ? ", " : "")@(prop.Country) · @prop.RoomCount room(s)</div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary edit-prop-btn"
+                            data-prop-id="@prop.Id"
+                            data-name="@prop.Name"
+                            data-description="@(prop.Description ?? "")"
+                            data-address="@(prop.Address ?? "")"
+                            data-city="@(prop.City ?? "")"
+                            data-post-code="@(prop.PostCode ?? "")"
+                            data-country="@(prop.Country ?? "")"
+                            data-phone="@(prop.PhoneNumber ?? "")"
+                            data-email="@(prop.Email ?? "")"
+                            data-website="@(prop.Website ?? "")"
+                            data-icon-url="@(prop.IconUrl ?? "")"
+                            data-is-active="@prop.IsActive"
+                            data-sort-order="@prop.SortOrder"
+                            aria-label="Edit @prop.Name">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger delete-prop-btn"
+                            data-prop-id="@prop.Id"
+                            data-name="@prop.Name"
+                            aria-label="Delete @prop.Name">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <!-- Property Amenities -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <h6 class="fw-semibold mb-0"><i class="bi bi-stars me-1 text-brand"></i>Property Amenities</h6>
+                        <button class="btn btn-sm btn-outline-secondary ms-auto"
+                                onclick="openAmenitiesModal('@prop.Id', [@string.Join(",", prop.Amenities.Select(a => $"\"{a.Id}\""))])"
+                                aria-label="Edit amenities for @prop.Name">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </button>
+                    </div>
+                    @if (prop.Amenities.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var a in prop.Amenities)
+                            {
+                                <span class="badge bg-light text-dark border">
+                                    @if (!string.IsNullOrEmpty(a.Icon)) { <i class="bi bi-@a.Icon me-1"></i> }
+                                    @a.Name
+                                </span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-0">No amenities assigned. Click Edit to add.</p>
+                    }
+                </div>
+
+                <!-- Property Photos -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <h6 class="fw-semibold mb-0"><i class="bi bi-images me-1 text-brand"></i>Property Photos</h6>
+                        <button class="btn btn-sm btn-outline-secondary ms-auto"
+                                onclick="openAddPhotoModal('property', '@prop.Id')"
+                                aria-label="Add photo to @prop.Name">
+                            <i class="bi bi-plus-lg me-1"></i>Add Photo
+                        </button>
+                    </div>
+                    @if (prop.Photos.Any())
+                    {
+                        <div class="row g-2">
+                            @foreach (var photo in prop.Photos.OrderBy(p => p.SortOrder))
+                            {
+                                <div class="col-6 col-md-3 col-lg-2 position-relative" id="prop-photo-@photo.Id">
+                                    <div class="photo-thumb position-relative">
+                                        <img src="@photo.Url" alt="@(photo.Caption ?? prop.Name)"
+                                             class="img-fluid rounded w-100" style="height:110px;object-fit:cover;" />
+                                        @if (photo.IsPrimary)
+                                        {
+                                            <span class="position-absolute top-0 start-0 badge bg-brand m-1">Primary</span>
+                                        }
+                                        <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
+                                                style="opacity:.85;"
+                                                onclick="deletePropertyPhoto('@prop.Id', '@photo.Id')"
+                                                aria-label="Delete photo">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(photo.Caption))
+                                    {
+                                        <div class="small text-muted text-truncate mt-1">@photo.Caption</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-0">No photos yet. Click Add Photo to upload.</p>
+                    }
+                </div>
+
+                <!-- Rooms under this property -->
+            </div>
+        </div>
+    }
+}
+
+<!-- Add Property Modal -->
+<div class="modal fade" id="addPropertyModal" tabindex="-1" aria-labelledby="addPropertyModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-brand text-white">
+                <h5 class="modal-title" id="addPropertyModalLabel"><i class="bi bi-building-add me-2"></i>Add Property</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addPropertyForm">
+                <div class="modal-body p-4">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label for="addPropName" class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="addPropName" name="name" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="addPropSortOrder" class="form-label fw-semibold">Sort Order</label>
+                            <input type="number" class="form-control" id="addPropSortOrder" name="sortOrder" value="0" min="0" />
+                        </div>
+                        <div class="col-12">
+                            <label for="addPropDesc" class="form-label fw-semibold">Description</label>
+                            <textarea class="form-control" id="addPropDesc" name="description" rows="2"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label for="addPropAddress" class="form-label fw-semibold">Address</label>
+                            <input type="text" class="form-control" id="addPropAddress" name="address" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="addPropCity" class="form-label fw-semibold">City</label>
+                            <input type="text" class="form-control" id="addPropCity" name="city" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="addPropPostCode" class="form-label fw-semibold">Post Code</label>
+                            <input type="text" class="form-control" id="addPropPostCode" name="postCode" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="addPropCountry" class="form-label fw-semibold">Country</label>
+                            <input type="text" class="form-control" id="addPropCountry" name="country" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="addPropPhone" class="form-label fw-semibold">Phone</label>
+                            <input type="tel" class="form-control" id="addPropPhone" name="phoneNumber" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="addPropEmail" class="form-label fw-semibold">Email</label>
+                            <input type="email" class="form-control" id="addPropEmail" name="email" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="addPropWebsite" class="form-label fw-semibold">Website</label>
+                            <input type="url" class="form-control" id="addPropWebsite" name="website" placeholder="https://..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="addPropIcon" class="form-label fw-semibold">Icon/Logo URL</label>
+                            <input type="url" class="form-control" id="addPropIcon" name="iconUrl" placeholder="https://..." />
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="addPropActive" name="isActive" checked />
+                                <label class="form-check-label fw-semibold" for="addPropActive">Active</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand"><i class="bi bi-check-circle me-2"></i>Save Property</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Property Modal (same fields, populated via JS) -->
+<div class="modal fade" id="editPropertyModal" tabindex="-1" aria-labelledby="editPropertyModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-brand text-white">
+                <h5 class="modal-title" id="editPropertyModalLabel"><i class="bi bi-pencil me-2"></i>Edit Property</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editPropertyForm">
+                <input type="hidden" id="editPropId" />
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label for="editPropName" class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editPropName" name="name" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="editPropSortOrder" class="form-label fw-semibold">Sort Order</label>
+                            <input type="number" class="form-control" id="editPropSortOrder" name="sortOrder" value="0" min="0" />
+                        </div>
+                        <div class="col-12">
+                            <label for="editPropDesc" class="form-label fw-semibold">Description</label>
+                            <textarea class="form-control" id="editPropDesc" name="description" rows="2"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label for="editPropAddress" class="form-label fw-semibold">Address</label>
+                            <input type="text" class="form-control" id="editPropAddress" name="address" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="editPropCity" class="form-label fw-semibold">City</label>
+                            <input type="text" class="form-control" id="editPropCity" name="city" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="editPropPostCode" class="form-label fw-semibold">Post Code</label>
+                            <input type="text" class="form-control" id="editPropPostCode" name="postCode" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="editPropCountry" class="form-label fw-semibold">Country</label>
+                            <input type="text" class="form-control" id="editPropCountry" name="country" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPropPhone" class="form-label fw-semibold">Phone</label>
+                            <input type="tel" class="form-control" id="editPropPhone" name="phoneNumber" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPropEmail" class="form-label fw-semibold">Email</label>
+                            <input type="email" class="form-control" id="editPropEmail" name="email" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPropWebsite" class="form-label fw-semibold">Website</label>
+                            <input type="url" class="form-control" id="editPropWebsite" name="website" placeholder="https://..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPropIcon" class="form-label fw-semibold">Icon/Logo URL</label>
+                            <input type="url" class="form-control" id="editPropIcon" name="iconUrl" placeholder="https://..." />
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editPropActive" name="isActive" />
+                                <label class="form-check-label fw-semibold" for="editPropActive">Active</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand"><i class="bi bi-check-circle me-2"></i>Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Photo Modal -->
+<div class="modal fade" id="addPhotoModal" tabindex="-1" aria-labelledby="addPhotoModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-brand text-white">
+                <h5 class="modal-title" id="addPhotoModalLabel"><i class="bi bi-image me-2"></i>Add Photo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addPhotoForm">
+                <input type="hidden" id="photoTargetType" />
+                <input type="hidden" id="photoTargetId" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="photoUrl" class="form-label fw-semibold">Photo URL <span class="text-danger">*</span></label>
+                        <input type="url" class="form-control" id="photoUrl" name="url" required placeholder="https://..." />
+                    </div>
+                    <div class="mb-3">
+                        <label for="photoCaption" class="form-label fw-semibold">Caption</label>
+                        <input type="text" class="form-control" id="photoCaption" name="caption" maxlength="500" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="photoSortOrder" class="form-label fw-semibold">Sort Order</label>
+                        <input type="number" class="form-control" id="photoSortOrder" name="sortOrder" value="0" min="0" />
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="photoIsPrimary" name="isPrimary" />
+                        <label class="form-check-label fw-semibold" for="photoIsPrimary">Set as Primary Photo</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand"><i class="bi bi-check-circle me-2"></i>Add Photo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Amenities Modal -->
+<div class="modal fade" id="amenitiesModal" tabindex="-1" aria-labelledby="amenitiesModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-brand text-white">
+                <h5 class="modal-title" id="amenitiesModalLabel"><i class="bi bi-stars me-2"></i>Assign Property Amenities</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="amenityPropId" />
+                <div class="row g-2" id="amenityCheckboxes">
+                    @foreach (var amenity in amenities)
+                    {
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input amenity-cb" type="checkbox"
+                                       id="amenity_@amenity.Id" value="@amenity.Id" />
+                                <label class="form-check-label" for="amenity_@amenity.Id">
+                                    @if (!string.IsNullOrEmpty(amenity.Icon)) { <i class="bi bi-@amenity.Icon me-1"></i> }
+                                    @amenity.Name
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+                @if (!amenities.Any())
+                {
+                    <p class="text-muted">No amenities available. Add amenities via the API or database.</p>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-brand" onclick="saveAmenities()"><i class="bi bi-check-circle me-2"></i>Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const token = '@accessToken';
+const tenantSlug = '@tenantSlug';
+const apiBase = `/api/tenants/${tenantSlug}/lodging`;
+
+// ── Property CRUD ──
+
+document.addEventListener('click', function(e) {
+    const editBtn = e.target.closest('.edit-prop-btn');
+    if (editBtn) {
+        const d = editBtn.dataset;
+        openEditPropertyModal(d.propId, d.name, d.description, d.address, d.city, d.postCode, d.country, d.phone, d.email, d.website, d.iconUrl, d.isActive, d.sortOrder);
+    }
+    const delBtn = e.target.closest('.delete-prop-btn');
+    if (delBtn) {
+        deleteProperty(delBtn.dataset.propId, delBtn.dataset.name);
+    }
+});
+
+document.getElementById('addPropertyForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const f = e.target;
+    const data = {
+        name: f.name.value.trim(),
+        description: f.description.value.trim() || null,
+        address: f.address.value.trim() || null,
+        city: f.city.value.trim() || null,
+        postCode: f.postCode.value.trim() || null,
+        country: f.country.value.trim() || null,
+        phoneNumber: f.phoneNumber.value.trim() || null,
+        email: f.email.value.trim() || null,
+        website: f.website.value.trim() || null,
+        iconUrl: f.iconUrl.value.trim() || null,
+        isActive: f.isActive.checked,
+        sortOrder: parseInt(f.sortOrder.value) || 0
+    };
+    const resp = await apiFetch(`${apiBase}/properties`, 'POST', data);
+    if (resp.ok) location.reload();
+    else showError(await resp.text(), 'Failed to add property');
+});
+
+function openEditPropertyModal(id, name, desc, address, city, postCode, country, phone, email, website, iconUrl, isActive, sortOrder) {
+    document.getElementById('editPropId').value = id;
+    document.getElementById('editPropName').value = name;
+    document.getElementById('editPropDesc').value = desc;
+    document.getElementById('editPropAddress').value = address;
+    document.getElementById('editPropCity').value = city;
+    document.getElementById('editPropPostCode').value = postCode;
+    document.getElementById('editPropCountry').value = country;
+    document.getElementById('editPropPhone').value = phone;
+    document.getElementById('editPropEmail').value = email;
+    document.getElementById('editPropWebsite').value = website;
+    document.getElementById('editPropIcon').value = iconUrl;
+    document.getElementById('editPropActive').checked = isActive === 'True';
+    document.getElementById('editPropSortOrder').value = sortOrder;
+    new bootstrap.Modal(document.getElementById('editPropertyModal')).show();
+}
+
+document.getElementById('editPropertyForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const f = e.target;
+    const id = document.getElementById('editPropId').value;
+    const data = {
+        name: f.name.value.trim(),
+        description: f.description.value.trim() || null,
+        address: f.address.value.trim() || null,
+        city: f.city.value.trim() || null,
+        postCode: f.postCode.value.trim() || null,
+        country: f.country.value.trim() || null,
+        phoneNumber: f.phoneNumber.value.trim() || null,
+        email: f.email.value.trim() || null,
+        website: f.website.value.trim() || null,
+        iconUrl: f.iconUrl.value.trim() || null,
+        isActive: f.isActive.checked,
+        sortOrder: parseInt(f.sortOrder.value) || 0
+    };
+    const resp = await apiFetch(`${apiBase}/properties/${id}`, 'PUT', data);
+    if (resp.ok) location.reload();
+    else showError(await resp.text(), 'Failed to update property');
+});
+
+async function deleteProperty(id, name) {
+    if (!confirm(`Delete property "${name}"? This cannot be undone.`)) return;
+    const resp = await apiFetch(`${apiBase}/properties/${id}`, 'DELETE');
+    if (resp.ok) location.reload();
+    else showError(await resp.text(), 'Failed to delete property');
+}
+
+// ── Photo Management ──
+
+function openAddPhotoModal(type, targetId) {
+    document.getElementById('photoTargetType').value = type;
+    document.getElementById('photoTargetId').value = targetId;
+    document.getElementById('photoUrl').value = '';
+    document.getElementById('photoCaption').value = '';
+    document.getElementById('photoSortOrder').value = '0';
+    document.getElementById('photoIsPrimary').checked = false;
+    new bootstrap.Modal(document.getElementById('addPhotoModal')).show();
+}
+
+document.getElementById('addPhotoForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const type = document.getElementById('photoTargetType').value;
+    const targetId = document.getElementById('photoTargetId').value;
+    const data = {
+        url: document.getElementById('photoUrl').value.trim(),
+        caption: document.getElementById('photoCaption').value.trim() || null,
+        sortOrder: parseInt(document.getElementById('photoSortOrder').value) || 0,
+        isPrimary: document.getElementById('photoIsPrimary').checked
+    };
+    const endpoint = type === 'property'
+        ? `${apiBase}/properties/${targetId}/photos`
+        : `${apiBase}/rooms/${targetId}/photos`;
+    const resp = await apiFetch(endpoint, 'POST', data);
+    if (resp.ok) location.reload();
+    else showError(await resp.text(), 'Failed to add photo');
+});
+
+async function deletePropertyPhoto(propertyId, photoId) {
+    if (!confirm('Remove this photo?')) return;
+    const resp = await apiFetch(`${apiBase}/properties/${propertyId}/photos/${photoId}`, 'DELETE');
+    if (resp.ok) document.getElementById(`prop-photo-${photoId}`)?.remove();
+    else showError(await resp.text(), 'Failed to delete photo');
+}
+
+// ── Amenities Management ──
+
+function openAmenitiesModal(propId, currentIds) {
+    document.getElementById('amenityPropId').value = propId;
+    document.querySelectorAll('.amenity-cb').forEach(cb => {
+        cb.checked = currentIds.includes(cb.value);
+    });
+    new bootstrap.Modal(document.getElementById('amenitiesModal')).show();
+}
+
+async function saveAmenities() {
+    const propId = document.getElementById('amenityPropId').value;
+    const selected = [...document.querySelectorAll('.amenity-cb:checked')].map(cb => cb.value);
+    const resp = await apiFetch(`${apiBase}/properties/${propId}/amenities`, 'POST', { amenityIds: selected });
+    if (resp.ok) location.reload();
+    else showError(await resp.text(), 'Failed to save amenities');
+}
+
+// ── Helpers ──
+
+async function apiFetch(url, method, body) {
+    return fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: body ? JSON.stringify(body) : undefined
+    });
+}
+
+function showError(msg, prefix) {
+    alert(`${prefix}${msg ? ': ' + msg : '.'}`);
+}
+</script>
+}

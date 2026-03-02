@@ -13,4 +13,5 @@ public class Amenity : BaseEntity
     public bool IsActive { get; set; } = true;
 
     public ICollection<RoomAmenity> RoomAmenities { get; set; } = new List<RoomAmenity>();
+    public ICollection<PropertyAmenity> PropertyAmenities { get; set; } = new List<PropertyAmenity>();
 }
