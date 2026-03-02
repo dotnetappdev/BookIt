@@ -1,0 +1,434 @@
+@inject ISnackbar Snackbar
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+
+<MudStack>
+    <!-- Header -->
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2" Wrap="Wrap.Wrap">
+        <div>
+            <MudText Typo="Typo.h5" Class="fw-bold">Bookings</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">View and manage all appointments</MudText>
+        </div>
+        <!-- Status filter chips -->
+        <MudStack Row="true" Spacing="1" Wrap="Wrap.Wrap">
+            @foreach (var s in _statusFilters)
+            {
+                var status = s;
+                <MudChip T="string"
+                         Color="@(_activeFilter == status ? StatusColor(status) : Color.Default)"
+                         Variant="@(_activeFilter == status ? Variant.Filled : Variant.Outlined)"
+                         Size="Size.Small"
+                         OnClick="@(() => SetFilter(status))"
+                         Style="cursor:pointer;">
+                    @StatusLabel(status)
+                </MudChip>
+            }
+        </MudStack>
+    </MudStack>
+
+    <!-- Search bar -->
+    <MudStack Row="true" Spacing="2" Class="mb-2">
+        <MudTextField @bind-Value="_search" Placeholder="Search by customer name, email or service…"
+                      Variant="Variant.Outlined" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" Margin="Margin.Dense"
+                      Style="max-width:400px;" Immediate="true" />
+        <MudDatePicker @bind-Date="_fromDate" Label="From" Variant="Variant.Outlined"
+                       Margin="Margin.Dense" Style="max-width:160px;" DateFormat="dd/MM/yyyy" />
+        <MudDatePicker @bind-Date="_toDate" Label="To" Variant="Variant.Outlined"
+                       Margin="Margin.Dense" Style="max-width:160px;" DateFormat="dd/MM/yyyy" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadAsync"
+                   StartIcon="@Icons.Material.Filled.Refresh" Margin="Margin.Dense">
+            Refresh
+        </MudButton>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (!Filtered.Any())
+    {
+        <MudCard Elevation="1">
+            <MudCardContent>
+                <MudStack AlignItems="AlignItems.Center" Class="py-8">
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Large" Color="Color.Default" Style="opacity:.3;" />
+                    <MudText Typo="Typo.body1" Class="fw-medium">No bookings found</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Try adjusting the filters or date range.</MudText>
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+    }
+    else
+    {
+        <MudDataGrid T="AppointmentResponse" Items="Filtered"
+                     SortMode="SortMode.Multiple"
+                     RowsPerPage="20"
+                     Hover="true" Dense="false">
+            <Columns>
+                <!-- Date & Time -->
+                <TemplateColumn Title="Date & Time" Sortable="true" SortBy="@(x => x.StartTime)">
+                    <CellTemplate>
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.body2" Class="fw-medium">@context.Item.StartTime.ToString("dd MMM yyyy")</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @context.Item.StartTime.ToString("HH:mm") – @context.Item.EndTime.ToString("HH:mm")
+                            </MudText>
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+
+                <!-- Customer -->
+                <TemplateColumn Title="Customer" Sortable="true" SortBy="@(x => x.CustomerName)">
+                    <CellTemplate>
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.body2" Class="fw-medium">@context.Item.CustomerName</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Item.CustomerEmail</MudText>
+                            @if (!string.IsNullOrEmpty(context.Item.CustomerPhone))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Tertiary">@context.Item.CustomerPhone</MudText>
+                            }
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+
+                <!-- Services -->
+                <TemplateColumn Title="Service(s)" Sortable="false">
+                    <CellTemplate>
+                        <MudStack Spacing="0">
+                            @foreach (var svc in context.Item.Services)
+                            {
+                                <MudText Typo="Typo.body2">@svc.Name</MudText>
+                            }
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+
+                <!-- Staff -->
+                <TemplateColumn Title="Staff" Sortable="true" SortBy="@(x => x.StaffName ?? "")">
+                    <CellTemplate>
+                        <MudText Typo="Typo.body2">@(context.Item.StaffName ?? "—")</MudText>
+                    </CellTemplate>
+                </TemplateColumn>
+
+                <!-- Amount -->
+                <TemplateColumn Title="Amount" Sortable="true" SortBy="@(x => x.TotalAmount)">
+                    <CellTemplate>
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.body2">£@context.Item.TotalAmount.ToString("0.00")</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Text"
+                                     Color="@PaymentColor(context.Item.PaymentStatus)"
+                                     Label="true" Style="font-size:.65rem;height:18px;padding:0 6px;">
+                                @context.Item.PaymentStatus
+                            </MudChip>
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+
+                <!-- Status -->
+                <TemplateColumn Title="Status" Sortable="true" SortBy="@(x => x.Status)">
+                    <CellTemplate>
+                        <MudChip T="string" Size="Size.Small" Label="true"
+                                 Color="@StatusColor(context.Item.Status)"
+                                 Variant="Variant.Filled">
+                            @StatusLabel(context.Item.Status)
+                        </MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+
+                <!-- Actions -->
+                <TemplateColumn Title="" Sortable="false">
+                    <CellTemplate>
+                        <MudStack Row="true" Spacing="1">
+                            @if (context.Item.Status == AppointmentStatus.Pending)
+                            {
+                                <MudTooltip Text="Approve">
+                                    <MudIconButton Icon="@Icons.Material.Filled.CheckCircle"
+                                                   Color="Color.Success" Size="Size.Small"
+                                                   OnClick="@(() => ApproveAsync(context.Item))" />
+                                </MudTooltip>
+                                <MudTooltip Text="Decline">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                                   Color="Color.Error" Size="Size.Small"
+                                                   OnClick="@(() => OpenDeclineDialog(context.Item))" />
+                                </MudTooltip>
+                            }
+                            else if (context.Item.Status == AppointmentStatus.Confirmed)
+                            {
+                                <MudTooltip Text="Cancel">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                                   Color="Color.Warning" Size="Size.Small"
+                                                   OnClick="@(() => OpenDeclineDialog(context.Item))" />
+                                </MudTooltip>
+                            }
+                            <MudTooltip Text="View details">
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                               Color="Color.Default" Size="Size.Small"
+                                               OnClick="@(() => OpenDetailDialog(context.Item))" />
+                            </MudTooltip>
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="AppointmentResponse" />
+            </PagerContent>
+        </MudDataGrid>
+    }
+</MudStack>
+
+<!-- Decline / Cancel dialog -->
+<MudDialog @bind-Visible="_declineOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @(_declineTarget?.Status == AppointmentStatus.Confirmed ? "Cancel Booking" : "Decline Booking")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="2">
+            @if (_declineTarget != null)
+            {
+                <MudText Typo="Typo.body2">
+                    Booking for <strong>@_declineTarget.CustomerName</strong> on
+                    <strong>@_declineTarget.StartTime.ToString("dd MMM yyyy 'at' HH:mm")</strong>.
+                </MudText>
+            }
+            <MudTextField @bind-Value="_declineReason" Label="Reason (optional)"
+                          Variant="Variant.Outlined" Lines="2" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _declineOpen = false)">Back</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ConfirmDecline">
+            @(_declineTarget?.Status == AppointmentStatus.Confirmed ? "Cancel Booking" : "Decline")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Detail dialog -->
+<MudDialog @bind-Visible="_detailOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent><MudText Typo="Typo.h6">Booking Details</MudText></TitleContent>
+    <DialogContent>
+        @if (_detailItem != null)
+        {
+            <MudSimpleTable Elevation="0" Dense="true" Style="width:100%;">
+                <tbody>
+                    <tr>
+                        <td style="font-weight:600;opacity:.6;width:110px;">Customer</td>
+                        <td>@_detailItem.CustomerName</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:600;opacity:.6;">Email</td>
+                        <td>@_detailItem.CustomerEmail</td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(_detailItem.CustomerPhone))
+                    {
+                        <tr>
+                            <td style="font-weight:600;opacity:.6;">Phone</td>
+                            <td>@_detailItem.CustomerPhone</td>
+                        </tr>
+                    }
+                    <tr>
+                        <td style="font-weight:600;opacity:.6;">Date</td>
+                        <td>@_detailItem.StartTime.ToString("dddd dd MMM yyyy")</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:600;opacity:.6;">Time</td>
+                        <td>@_detailItem.StartTime.ToString("HH:mm") – @_detailItem.EndTime.ToString("HH:mm")</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:600;opacity:.6;">Service(s)</td>
+                        <td>@string.Join(", ", _detailItem.Services.Select(s => s.Name))</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:600;opacity:.6;">Staff</td>
+                        <td>@(_detailItem.StaffName ?? "—")</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:600;opacity:.6;">Amount</td>
+                        <td>£@_detailItem.TotalAmount.ToString("0.00")</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:600;opacity:.6;">Payment</td>
+                        <td>
+                            <MudChip T="string" Size="Size.Small" Label="true"
+                                     Color="@PaymentColor(_detailItem.PaymentStatus)">
+                                @_detailItem.PaymentStatus
+                            </MudChip>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:600;opacity:.6;">Status</td>
+                        <td>
+                            <MudChip T="string" Size="Size.Small" Label="true"
+                                     Color="@StatusColor(_detailItem.Status)">
+                                @StatusLabel(_detailItem.Status)
+                            </MudChip>
+                        </td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(_detailItem.BookingPin))
+                    {
+                        <tr>
+                            <td style="font-weight:600;opacity:.6;">PIN</td>
+                            <td><code>@_detailItem.BookingPin</code></td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        }
+    </DialogContent>
+    <DialogActions>
+        @if (_detailItem != null && _detailItem.Status == AppointmentStatus.Pending)
+        {
+            <MudButton Color="Color.Success" Variant="Variant.Outlined"
+                       OnClick="@(async () => { _detailOpen = false; await ApproveAsync(_detailItem); })">
+                Approve
+            </MudButton>
+            <MudButton Color="Color.Error" Variant="Variant.Outlined"
+                       OnClick="@(() => { _detailOpen = false; OpenDeclineDialog(_detailItem!); })">
+                Decline
+            </MudButton>
+        }
+        <MudButton OnClick="@(() => _detailOpen = false)">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+
+    private List<AppointmentResponse> _appointments = new();
+    private bool _loading = true;
+    private string _search = "";
+    private DateTime? _fromDate = DateTime.Today.AddMonths(-1);
+    private DateTime? _toDate = DateTime.Today.AddMonths(3);
+    private AppointmentStatus? _activeFilter = null;
+
+    // Decline dialog
+    private bool _declineOpen = false;
+    private AppointmentResponse? _declineTarget;
+    private string _declineReason = "";
+
+    // Detail dialog
+    private bool _detailOpen = false;
+    private AppointmentResponse? _detailItem;
+
+    private static readonly AppointmentStatus?[] _statusFilters =
+    {
+        null,
+        AppointmentStatus.Pending,
+        AppointmentStatus.Confirmed,
+        AppointmentStatus.Completed,
+        AppointmentStatus.Cancelled
+    };
+
+    private IEnumerable<AppointmentResponse> Filtered
+    {
+        get
+        {
+            var q = _appointments.AsEnumerable();
+            if (_activeFilter.HasValue)
+                q = q.Where(a => a.Status == _activeFilter.Value);
+            if (!string.IsNullOrWhiteSpace(_search))
+                q = q.Where(a =>
+                    a.CustomerName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                    a.CustomerEmail.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                    a.Services.Any(s => s.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)) ||
+                    (a.StaffName ?? "").Contains(_search, StringComparison.OrdinalIgnoreCase));
+            return q.OrderByDescending(a => a.StartTime);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        Api.SetToken(Auth.AccessToken);
+        _appointments = await Api.GetAppointmentsAsync(TenantSlug, _fromDate, _toDate);
+        _loading = false;
+    }
+
+    private void SetFilter(AppointmentStatus? status)
+    {
+        _activeFilter = status;
+    }
+
+    private async Task ApproveAsync(AppointmentResponse appt)
+    {
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.ApproveAppointmentAsync(TenantSlug, appt.Id);
+        if (ok)
+        {
+            Snackbar.Add("Booking approved.", Severity.Success);
+            await LoadAsync();
+        }
+        else Snackbar.Add("Failed to approve booking.", Severity.Error);
+    }
+
+    private void OpenDeclineDialog(AppointmentResponse appt)
+    {
+        _declineTarget = appt;
+        _declineReason = "";
+        _declineOpen = true;
+    }
+
+    private async Task ConfirmDecline()
+    {
+        if (_declineTarget == null) return;
+        Api.SetToken(Auth.AccessToken);
+
+        bool ok;
+        if (_declineTarget.Status == AppointmentStatus.Confirmed)
+            ok = await Api.CancelAppointmentAsync(TenantSlug, _declineTarget.Id, _declineReason);
+        else
+            ok = await Api.DeclineAppointmentAsync(TenantSlug, _declineTarget.Id, _declineReason);
+
+        if (ok)
+        {
+            Snackbar.Add("Booking updated.", Severity.Success);
+            _declineOpen = false;
+            await LoadAsync();
+        }
+        else Snackbar.Add("Failed to update booking.", Severity.Error);
+    }
+
+    private void OpenDetailDialog(AppointmentResponse appt)
+    {
+        _detailItem = appt;
+        _detailOpen = true;
+    }
+
+    private static string StatusLabel(AppointmentStatus? status) => status switch
+    {
+        null => "All",
+        AppointmentStatus.Pending => "Pending",
+        AppointmentStatus.Confirmed => "Confirmed",
+        AppointmentStatus.Completed => "Completed",
+        AppointmentStatus.Cancelled => "Cancelled",
+        AppointmentStatus.NoShow => "No Show",
+        AppointmentStatus.Rescheduled => "Rescheduled",
+        _ => status.ToString() ?? ""
+    };
+
+    private static Color StatusColor(AppointmentStatus? status) => status switch
+    {
+        AppointmentStatus.Pending => Color.Warning,
+        AppointmentStatus.Confirmed => Color.Success,
+        AppointmentStatus.Completed => Color.Info,
+        AppointmentStatus.Cancelled => Color.Error,
+        AppointmentStatus.NoShow => Color.Default,
+        _ => Color.Default
+    };
+
+    private static Color PaymentColor(PaymentStatus status) => status switch
+    {
+        PaymentStatus.Paid => Color.Success,
+        PaymentStatus.Pending => Color.Warning,
+        PaymentStatus.Unpaid => Color.Default,
+        PaymentStatus.Refunded => Color.Info,
+        PaymentStatus.Failed => Color.Error,
+        _ => Color.Default
+    };
+}

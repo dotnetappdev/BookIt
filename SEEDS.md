@@ -25,6 +25,10 @@ for hotel, B&B and gym tenants.
 | Customer (client contact) | michael@urbanstyle.com | Client123! | demo-barber |
 | Customer | customer@example.com | Customer123! | demo-barber |
 
+> **SuperAdmin note:** The `superadmin@bookit.app` account has platform-wide access and can view  
+> all tenant data. In the admin API, `TenantService.IsValidTenantAccess` grants SuperAdmin bypass  
+> on all tenant-scoped resources. Log in at `/login` and then navigate to `/super-admin`.
+
 ### Seeded demo accounts (created by "Seed Demo Data" button)
 
 | Role | Email | Password | Tenant |

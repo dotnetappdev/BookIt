@@ -12,6 +12,10 @@ public class Room : BaseEntity
     public string? Description { get; set; }
     public RoomType RoomType { get; set; } = RoomType.Double;
     public int Capacity { get; set; } = 2;
+    public int NumberOfBeds { get; set; } = 1;
+    public BedType BedType { get; set; } = BedType.Double;
+    public bool PetFriendly { get; set; } = false;
+    public bool WheelchairAccessible { get; set; } = false;
     public decimal BaseRate { get; set; }
     public bool IsActive { get; set; } = true;
     public int SortOrder { get; set; }

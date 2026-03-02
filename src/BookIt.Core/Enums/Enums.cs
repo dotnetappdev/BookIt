@@ -227,5 +227,24 @@ public enum AmenityType
     Garden = 17,
     Terrace = 18,
     SeaView = 19,
+    TV = 20,
+    MiniBar = 21,
+    Safe = 22,
+    Balcony = 23,
+    WheelchairAccessible = 24,
+    EV_Charging = 25,
+    Other = 99
+}
+
+public enum BedType
+{
+    Single = 1,
+    Double = 2,
+    Queen = 3,
+    King = 4,
+    SuperKing = 5,
+    Twin = 6,
+    BunkBed = 7,
+    SofaBed = 8,
     Other = 99
 }

@@ -109,6 +109,9 @@ public class BookItApiService
     public Task<bool> ApproveAppointmentAsync(string slug, Guid id) =>
         PostBoolAsync($"/api/tenants/{slug}/appointments/{id}/approve", new { });
 
+    public Task<bool> CancelAppointmentAsync(string slug, Guid id, string? reason = null) =>
+        PostBoolAsync($"/api/tenants/{slug}/appointments/{id}/cancel", new { Reason = reason ?? "" });
+
     public Task<bool> DeclineAppointmentAsync(string slug, Guid id, string? reason = null) =>
         PostBoolAsync($"/api/tenants/{slug}/appointments/{id}/decline", new { Reason = reason });
 
@@ -346,6 +349,22 @@ public class BookItApiService
 
     public Task<bool> DeleteRoomRateAsync(string slug, Guid roomId, Guid rateId) =>
         DeleteAsync($"/api/tenants/{slug}/lodging/rooms/{roomId}/rates/{rateId}");
+
+    // ── Public Listings ──
+    public Task<List<PublicPropertyListingResponse>?> GetPublicListingsAsync(
+        string? city = null, decimal? minRate = null, decimal? maxRate = null,
+        string? amenity = null, bool? petFriendly = null, bool? wheelchairAccessible = null, string sortBy = "name")
+    {
+        var qs = new System.Text.StringBuilder("/api/listings?");
+        if (!string.IsNullOrWhiteSpace(city)) qs.Append($"city={Uri.EscapeDataString(city)}&");
+        if (minRate.HasValue) qs.Append($"minRate={minRate}&");
+        if (maxRate.HasValue) qs.Append($"maxRate={maxRate}&");
+        if (!string.IsNullOrWhiteSpace(amenity)) qs.Append($"amenity={Uri.EscapeDataString(amenity)}&");
+        if (petFriendly.HasValue) qs.Append($"petFriendly={petFriendly.Value}&");
+        if (wheelchairAccessible.HasValue) qs.Append($"wheelchairAccessible={wheelchairAccessible.Value}&");
+        qs.Append($"sortBy={sortBy}");
+        return GetAsync<List<PublicPropertyListingResponse>>(qs.ToString());
+    }
 
     private async Task<bool> PostBoolAsync(string url, object body)
     {

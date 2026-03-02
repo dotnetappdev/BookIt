@@ -236,6 +236,10 @@ public class LodgingController : ControllerBase
             Description = request.Description,
             RoomType = request.RoomType,
             Capacity = request.Capacity,
+            NumberOfBeds = request.NumberOfBeds,
+            BedType = request.BedType,
+            PetFriendly = request.PetFriendly,
+            WheelchairAccessible = request.WheelchairAccessible,
             BaseRate = request.BaseRate,
             IsActive = request.IsActive,
             SortOrder = request.SortOrder
@@ -243,6 +247,14 @@ public class LodgingController : ControllerBase
 
         _context.Rooms.Add(room);
         await _context.SaveChangesAsync();
+
+        // Assign amenities
+        if (request.AmenityIds.Any())
+        {
+            foreach (var amenityId in request.AmenityIds.Distinct())
+                _context.RoomAmenities.Add(new RoomAmenity { RoomId = room.Id, AmenityId = amenityId });
+            await _context.SaveChangesAsync();
+        }
 
         return CreatedAtAction(nameof(GetRoom), new { tenantSlug, id = room.Id }, MapRoomResponse(room));
     }
@@ -264,9 +276,19 @@ public class LodgingController : ControllerBase
         room.Description = request.Description;
         room.RoomType = request.RoomType;
         room.Capacity = request.Capacity;
+        room.NumberOfBeds = request.NumberOfBeds;
+        room.BedType = request.BedType;
+        room.PetFriendly = request.PetFriendly;
+        room.WheelchairAccessible = request.WheelchairAccessible;
         room.BaseRate = request.BaseRate;
         room.IsActive = request.IsActive;
         room.SortOrder = request.SortOrder;
+
+        // Update amenity assignments
+        var existingAmenities = await _context.RoomAmenities.Where(ra => ra.RoomId == id).ToListAsync();
+        _context.RoomAmenities.RemoveRange(existingAmenities);
+        foreach (var amenityId in request.AmenityIds.Distinct())
+            _context.RoomAmenities.Add(new RoomAmenity { RoomId = id, AmenityId = amenityId });
 
         await _context.SaveChangesAsync();
         return NoContent();
@@ -570,6 +592,10 @@ public class LodgingController : ControllerBase
         Description = r.Description,
         RoomType = r.RoomType,
         Capacity = r.Capacity,
+        NumberOfBeds = r.NumberOfBeds,
+        BedType = r.BedType,
+        PetFriendly = r.PetFriendly,
+        WheelchairAccessible = r.WheelchairAccessible,
         BaseRate = r.BaseRate,
         IsActive = r.IsActive,
         SortOrder = r.SortOrder,
