@@ -10,6 +10,7 @@
 @code {
     [Inject] private BookItApiService Api { get; set; } = default!;
     [Inject] private BookItAuthState Auth { get; set; } = default!;
+    [Inject] private MauiSyncService Sync { get; set; } = default!;
 
     private List<AppointmentResponse> _appointments = new();
 
@@ -24,5 +25,9 @@
     {
         if (string.IsNullOrEmpty(Auth.TenantSlug)) return;
         _appointments = await Api.GetAppointmentsAsync(Auth.TenantSlug, range.From, range.To);
+
+        // Persist fetched appointments to the local SQLite cache
+        if (_appointments.Count > 0)
+            await Sync.SyncAppointmentsAsync(_appointments);
     }
 }

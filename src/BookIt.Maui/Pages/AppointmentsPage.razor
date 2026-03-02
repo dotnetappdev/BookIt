@@ -83,6 +83,7 @@
 @code {
     [Inject] private BookItApiService Api { get; set; } = default!;
     [Inject] private BookItAuthState Auth { get; set; } = default!;
+    [Inject] private MauiSyncService Sync { get; set; } = default!;
 
     private List<AppointmentResponse> _appointments = new();
     private bool _loading = true;
@@ -98,7 +99,55 @@
         var tenant = await Api.GetTenantAsync(Auth.TenantSlug);
         _tenantName = tenant?.Name ?? "BookIt";
 
-        _appointments = await Api.GetAppointmentsAsync(Auth.TenantSlug, DateTime.Today.AddDays(-30), DateTime.Today.AddDays(90));
+        List<AppointmentResponse>? fromApi = null;
+        try
+        {
+            fromApi = await Api.GetAppointmentsAsync(Auth.TenantSlug, DateTime.Today.AddDays(-30), DateTime.Today.AddDays(90));
+        }
+        catch
+        {
+            // Network unavailable — fall through to SQLite cache
+        }
+
+        if (fromApi is { Count: > 0 })
+        {
+            // Persist the latest data to the local SQLite cache for offline use
+            await Sync.SyncAppointmentsAsync(fromApi);
+            _appointments = fromApi;
+        }
+        else
+        {
+            // Offline fallback: load from local SQLite cache
+            var cached = await Sync.GetCachedAppointmentsAsync();
+            _appointments = cached
+                .Where(c => Guid.TryParse(c.Id, out _))
+                .Select(c =>
+                {
+                    List<ServiceSummary> services;
+                    try
+                    {
+                        services = string.IsNullOrEmpty(c.ServicesJson)
+                            ? new()
+                            : System.Text.Json.JsonSerializer.Deserialize<List<ServiceSummary>>(c.ServicesJson) ?? new();
+                    }
+                    catch
+                    {
+                        services = new();
+                    }
+                    return new AppointmentResponse
+                    {
+                        Id = Guid.Parse(c.Id),
+                        CustomerName = c.CustomerName,
+                        CustomerEmail = c.CustomerEmail,
+                        StartTime = c.StartTime,
+                        EndTime = c.EndTime,
+                        Status = Enum.TryParse<AppointmentStatus>(c.Status, out var s) ? s : AppointmentStatus.Pending,
+                        TotalAmount = c.TotalAmount,
+                        BookingPin = c.BookingPin,
+                        Services = services
+                    };
+                }).ToList();
+        }
         _loading = false;
     }
 
