@@ -84,6 +84,8 @@ public class CandidateInvitationResponse
     public string Token { get; set; } = string.Empty;
     public string CandidateName { get; set; } = string.Empty;
     public string CandidateEmail { get; set; } = string.Empty;
+    public string? CandidatePhone { get; set; }
+    public Guid ServiceId { get; set; }
     public string PositionName { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
     public bool IsUsed { get; set; }

@@ -54,6 +54,12 @@ public class BookItApiService
         return r.IsSuccessStatusCode;
     }
 
+    private async Task<bool> PostAsync(string url, object body)
+    {
+        var r = await _http.PostAsync(url, Json(body));
+        return r.IsSuccessStatusCode;
+    }
+
     private async Task<bool> DeleteAsync(string url)
     {
         var r = await _http.DeleteAsync(url);
@@ -151,6 +157,10 @@ public class BookItApiService
     public Task<List<InterviewSlotResponse>?> GetInterviewSlotsAsync(string slug) =>
         GetAsync<List<InterviewSlotResponse>>($"/api/tenants/{slug}/interviewslots");
 
+    public Task<List<InterviewSlotResponse>?> GetAdminInterviewSlotsAsync(string slug, Guid? serviceId = null) =>
+        GetAsync<List<InterviewSlotResponse>>($"/api/tenants/{slug}/interviewslots/admin-slots" +
+            (serviceId.HasValue ? $"?serviceId={serviceId}" : ""));
+
     public Task<InterviewSlotResponse?> CreateInterviewSlotAsync(string slug, CreateInterviewSlotRequest req) =>
         PostAsync<InterviewSlotResponse>($"/api/tenants/{slug}/interviewslots", req);
 
@@ -159,6 +169,15 @@ public class BookItApiService
 
     public Task<List<CandidateInvitationResponse>?> GetInterviewInvitationsAsync(string slug) =>
         GetAsync<List<CandidateInvitationResponse>>($"/api/tenants/{slug}/interviewslots/invitations");
+
+    public Task<CandidateInvitationResponse?> CreateInvitationAsync(string slug, SendInvitationRequest req) =>
+        PostAsync<CandidateInvitationResponse>($"/api/tenants/{slug}/interviewslots/invitations", req);
+
+    public Task<bool> SendInviteEmailAsync(string slug, Guid invitationId) =>
+        PostAsync($"/api/tenants/{slug}/interviewslots/invitations/{invitationId}/send", new { });
+
+    public Task<bool> DeleteInvitationAsync(string slug, Guid invitationId) =>
+        DeleteAsync($"/api/tenants/{slug}/interviewslots/invitations/{invitationId}");
 
     // ── Customers ──
     public Task<List<CustomerResponse>?> GetCustomersAsync(string slug) =>

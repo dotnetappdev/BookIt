@@ -105,10 +105,29 @@ public class InterviewSlotsController : ControllerBase
         return NoContent();
     }
 
-    // POST send invitation to candidate (admin)
+    // GET all slots for admin (includes booked and past)
+    [HttpGet("admin-slots")]
+    [Authorize(Policy = "TenantAdmin")]
+    public async Task<ActionResult<IEnumerable<InterviewSlotResponse>>> GetAdminSlots(string tenantSlug, [FromQuery] Guid? serviceId)
+    {
+        var tenant = await GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var query = _context.InterviewSlots
+            .Include(s => s.Service)
+            .Where(s => s.TenantId == tenant.Id && !s.IsDeleted);
+
+        if (serviceId.HasValue)
+            query = query.Where(s => s.ServiceId == serviceId.Value);
+
+        var slots = await query.OrderByDescending(s => s.SlotStart).ToListAsync();
+        return Ok(slots.Select(MapSlot));
+    }
+
+    // POST create invitation — does NOT send email; call /send afterwards
     [HttpPost("invitations")]
     [Authorize(Policy = "TenantAdmin")]
-    public async Task<ActionResult<CandidateInvitationResponse>> SendInvitation(string tenantSlug, [FromBody] SendInvitationRequest request)
+    public async Task<ActionResult<CandidateInvitationResponse>> CreateInvitation(string tenantSlug, [FromBody] SendInvitationRequest request)
     {
         var tenant = await GetTenantAsync(tenantSlug);
         if (tenant == null) return NotFound();
@@ -137,14 +156,9 @@ public class InterviewSlotsController : ControllerBase
         _context.CandidateInvitations.Add(invitation);
         await _context.SaveChangesAsync();
 
-        // Build booking URL
         var httpRequest = _httpContextAccessor.HttpContext?.Request;
         var baseUrl = httpRequest != null ? $"{httpRequest.Scheme}://{httpRequest.Host}" : "http://localhost:5040";
         var bookingUrl = $"{baseUrl}/{tenantSlug}/interview/{token}";
-
-        await _emailService.SendInterviewInvitationAsync(
-            request.CandidateEmail, request.CandidateName,
-            tenant.Name, service.Name, bookingUrl, expiresAt);
 
         return Ok(new CandidateInvitationResponse
         {
@@ -152,11 +166,57 @@ public class InterviewSlotsController : ControllerBase
             Token = token,
             CandidateName = request.CandidateName,
             CandidateEmail = request.CandidateEmail,
+            CandidatePhone = request.CandidatePhone,
+            ServiceId = request.ServiceId,
             PositionName = service.Name,
             ExpiresAt = expiresAt,
             IsUsed = false,
             BookingUrl = bookingUrl
         });
+    }
+
+    // POST send (or resend) invite email for an existing invitation
+    [HttpPost("invitations/{invitationId:guid}/send")]
+    [Authorize(Policy = "TenantAdmin")]
+    public async Task<IActionResult> SendInvitationEmail(string tenantSlug, Guid invitationId)
+    {
+        var tenant = await GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var invitation = await _context.CandidateInvitations
+            .Include(i => i.Service)
+            .FirstOrDefaultAsync(i => i.Id == invitationId && i.TenantId == tenant.Id && !i.IsDeleted);
+
+        if (invitation == null) return NotFound(new { message = "Invitation not found" });
+
+        var httpRequest = _httpContextAccessor.HttpContext?.Request;
+        var baseUrl = httpRequest != null ? $"{httpRequest.Scheme}://{httpRequest.Host}" : "http://localhost:5040";
+        var bookingUrl = $"{baseUrl}/{tenantSlug}/interview/{invitation.Token}";
+
+        await _emailService.SendInterviewInvitationAsync(
+            invitation.CandidateEmail, invitation.CandidateName,
+            tenant.Name, invitation.Service?.Name ?? "", bookingUrl, invitation.ExpiresAt);
+
+        return Ok(new { message = "Invitation email sent" });
+    }
+
+    // DELETE invitation (admin)
+    [HttpDelete("invitations/{invitationId:guid}")]
+    [Authorize(Policy = "TenantAdmin")]
+    public async Task<IActionResult> DeleteInvitation(string tenantSlug, Guid invitationId)
+    {
+        var tenant = await GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var invitation = await _context.CandidateInvitations
+            .FirstOrDefaultAsync(i => i.Id == invitationId && i.TenantId == tenant.Id && !i.IsDeleted);
+
+        if (invitation == null) return NotFound();
+
+        invitation.IsDeleted = true;
+        invitation.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return NoContent();
     }
 
     // GET invitation details by token (public — used by candidate form)
@@ -221,6 +281,8 @@ public class InterviewSlotsController : ControllerBase
             Token = i.Token,
             CandidateName = i.CandidateName,
             CandidateEmail = i.CandidateEmail,
+            CandidatePhone = i.CandidatePhone,
+            ServiceId = i.ServiceId,
             PositionName = i.Service?.Name ?? "",
             ExpiresAt = i.ExpiresAt,
             IsUsed = i.IsUsed,
