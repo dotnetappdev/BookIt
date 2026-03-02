@@ -274,4 +274,58 @@ public class AdminController : Controller
         ViewBag.AccessToken = HttpContext.Session.GetString("AccessToken") ?? "";
         return View();
     }
+
+    public async Task<IActionResult> Bookings(string tenantSlug)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var appointments = await _apiClient.GetAppointmentsAsync(tenantSlug,
+            from: DateTime.UtcNow.AddYears(-1),
+            to: DateTime.UtcNow.AddYears(1));
+
+        ViewBag.Tenant = tenant;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.Appointments = appointments;
+        ViewBag.AccessToken = HttpContext.Session.GetString("AccessToken") ?? "";
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CancelBooking(string tenantSlug, Guid id)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        await _apiClient.CancelAppointmentAsync(tenantSlug, id);
+        TempData["Success"] = "Booking cancelled.";
+        return RedirectToAction(nameof(Bookings), new { tenantSlug });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ApproveBooking(string tenantSlug, Guid id)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        await _apiClient.ApproveAppointmentAsync(tenantSlug, id);
+        TempData["Success"] = "Booking approved.";
+        return RedirectToAction(nameof(Bookings), new { tenantSlug });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ConfirmBooking(string tenantSlug, Guid id)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        await _apiClient.ConfirmAppointmentAsync(tenantSlug, id);
+        TempData["Success"] = "Booking marked as completed.";
+        return RedirectToAction(nameof(Bookings), new { tenantSlug });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeclineBooking(string tenantSlug, Guid id)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        await _apiClient.DeclineAppointmentAsync(tenantSlug, id);
+        TempData["Success"] = "Booking declined.";
+        return RedirectToAction(nameof(Bookings), new { tenantSlug });
+    }
 }

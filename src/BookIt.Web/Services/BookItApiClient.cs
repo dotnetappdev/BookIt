@@ -101,6 +101,40 @@ public class BookItApiClient
         return JsonSerializer.Deserialize<List<AppointmentResponse>>(content, _jsonOptions) ?? new();
     }
 
+    public async Task<bool> CancelAppointmentAsync(string tenantSlug, Guid id, string? reason = null)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(reason);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/appointments/{id}/cancel",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> ApproveAppointmentAsync(string tenantSlug, Guid id)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/appointments/{id}/approve",
+            new StringContent("", Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> ConfirmAppointmentAsync(string tenantSlug, Guid id)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/appointments/{id}/confirm",
+            new StringContent("", Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeclineAppointmentAsync(string tenantSlug, Guid id, string? reason = null)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(new { reason });
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/appointments/{id}/decline",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<TenantResponse?> UpdateTenantAsync(string slug, UpdateTenantRequest request)
     {
         SetAuthHeader();
