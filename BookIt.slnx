@@ -4,6 +4,8 @@
     <Project Path="src/BookIt.Blazor/BookIt.Blazor.csproj" />
     <Project Path="src/BookIt.Core/BookIt.Core.csproj" />
     <Project Path="src/BookIt.Infrastructure/BookIt.Infrastructure.csproj" />
+    <Project Path="src/BookIt.Infrastructure.PostgreSql/BookIt.Infrastructure.PostgreSql.csproj" />
+    <Project Path="src/BookIt.Infrastructure.MySql/BookIt.Infrastructure.MySql.csproj" />
     <Project Path="src/BookIt.Maui/BookIt.Maui.csproj" />
     <Project Path="src/BookIt.Notifications.Email/BookIt.Notifications.Email.csproj" />
     <Project Path="src/BookIt.Notifications.Sms/BookIt.Notifications.Sms.csproj" />

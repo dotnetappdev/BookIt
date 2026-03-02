@@ -4,6 +4,8 @@ using BookIt.API.Services;
 using BookIt.Core.Enums;
 using BookIt.Infrastructure;
 using BookIt.Infrastructure.Data;
+using BookIt.Infrastructure.MySql;
+using BookIt.Infrastructure.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -33,8 +35,27 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog();
 
-// Infrastructure (EF Core, services)
-builder.Services.AddInfrastructure(builder.Configuration);
+// Infrastructure (EF Core, services) — provider selected by Database:Provider in appsettings
+var dbProvider = builder.Configuration["Database:Provider"] ?? "SqlServer";
+switch (dbProvider.ToLowerInvariant())
+{
+    case "postgresql":
+    case "postgres":
+        builder.Services.AddInfrastructureWithPostgreSql(builder.Configuration,
+            connectionStringName: builder.Configuration["ConnectionStrings:PostgreSqlConnection"] is not null
+                ? "PostgreSqlConnection"
+                : "DefaultConnection");
+        break;
+    case "mysql":
+        builder.Services.AddInfrastructureWithMySql(builder.Configuration,
+            connectionStringName: builder.Configuration["ConnectionStrings:MySqlConnection"] is not null
+                ? "MySqlConnection"
+                : "DefaultConnection");
+        break;
+    default: // SqlServer or Sqlite — handled inside AddInfrastructure (case-insensitive; "PostgreSql"/"MySql" from config match above)
+        builder.Services.AddInfrastructure(builder.Configuration);
+        break;
+}
 
 // Sentry error monitoring (only active when Dsn is configured)
 var sentryDsn = builder.Configuration["Sentry:Dsn"];

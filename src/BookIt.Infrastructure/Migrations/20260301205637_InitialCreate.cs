@@ -826,7 +826,6 @@ namespace BookIt.Infrastructure.Migrations
                     Success = table.Column<bool>(type: "bit", nullable: false),
                     AttemptCount = table.Column<int>(type: "int", nullable: false),
                     DeliveredAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    WebhookId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -843,11 +842,6 @@ namespace BookIt.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_WebhookDeliveries_Webhooks_WebhookId",
                         column: x => x.WebhookId,
-                        principalTable: "Webhooks",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_WebhookDeliveries_Webhooks_WebhookId1",
-                        column: x => x.WebhookId1,
                         principalTable: "Webhooks",
                         principalColumn: "Id");
                 });
@@ -1221,8 +1215,7 @@ namespace BookIt.Infrastructure.Migrations
                 columns: table => new
                 {
                     StaffId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ServiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ServiceId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    ServiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1230,11 +1223,6 @@ namespace BookIt.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_StaffServices_Services_ServiceId",
                         column: x => x.ServiceId,
-                        principalTable: "Services",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_StaffServices_Services_ServiceId1",
-                        column: x => x.ServiceId1,
                         principalTable: "Services",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -1373,8 +1361,7 @@ namespace BookIt.Infrastructure.Migrations
                         name: "FK_CandidateInvitations_Services_ServiceId",
                         column: x => x.ServiceId,
                         principalTable: "Services",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_CandidateInvitations_Tenants_TenantId",
                         column: x => x.TenantId,
@@ -1432,10 +1419,10 @@ namespace BookIt.Infrastructure.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "CreatedAt", "Email", "EmailConfirmed", "FirstName", "IsDeleted", "LastName", "LockoutEnabled", "LockoutEnd", "MembershipNumber", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "RefreshToken", "RefreshTokenExpiry", "Role", "SecurityStamp", "TenantId", "TwoFactorEnabled", "UpdatedAt", "UserName" },
                 values: new object[,]
                 {
-                    { new Guid("bb000000-0000-0000-0000-000000000001"), 0, "admin-concurrency-stamp-1", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@demo-barber.com", true, "Demo", false, "Admin", false, null, null, "ADMIN@DEMO-BARBER.COM", "ADMIN@DEMO-BARBER.COM", "AQAAAAIAAYagAAAAEMjIDAsWsWpib7UXHbMo4q6GUzJcD/EHCMpN95+JWy9c381xHwhBoXye9U2s/5XOcg==", null, false, null, null, 2, "admin-security-stamp-1", new Guid("11111111-1111-1111-1111-111111111111"), false, null, "admin@demo-barber.com" },
-                    { new Guid("bb000000-0000-0000-0000-000000000002"), 0, "staff-concurrency-stamp-1", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "staff@demo-barber.com", true, "John", false, "Barber", false, null, null, "STAFF@DEMO-BARBER.COM", "STAFF@DEMO-BARBER.COM", "AQAAAAIAAYagAAAAEJ0UTgwMW6oKoR+1bZZZU/mU6hyygIWsyGuCWa6uFqRFNzPVAvSKCO1xpCCLE7FEXw==", null, false, null, null, 4, "staff-security-stamp-1", new Guid("11111111-1111-1111-1111-111111111111"), false, null, "staff@demo-barber.com" },
-                    { new Guid("bb000000-0000-0000-0000-000000000003"), 0, "customer-concurrency-stamp-1", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "customer@example.com", true, "Jane", false, "Customer", false, null, null, "CUSTOMER@EXAMPLE.COM", "CUSTOMER@EXAMPLE.COM", "AQAAAAIAAYagAAAAEIIdYoGOGYub5BTc+zViWy++fgD1lMSLf6S4W/S6cxzL7SCCxyUmEv675xZZWFF8tg==", null, false, null, null, 5, "customer-security-stamp-1", new Guid("11111111-1111-1111-1111-111111111111"), false, null, "customer@example.com" },
-                    { new Guid("bb000000-0000-0000-0000-000000000004"), 0, "manager-concurrency-stamp-1", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "manager@demo-barber.com", true, "Sarah", false, "Manager", false, null, null, "MANAGER@DEMO-BARBER.COM", "MANAGER@DEMO-BARBER.COM", "AQAAAAIAAYagAAAAEAArXAC7NGvJJ89PI+q3vNuIAf293SGZ9LGort4XR8nR6GU3Jp43R+Ad8Iy7P58C9A==", null, false, null, null, 3, "manager-security-stamp-1", new Guid("11111111-1111-1111-1111-111111111111"), false, null, "manager@demo-barber.com" }
+                    { new Guid("bb000000-0000-0000-0000-000000000001"), 0, "admin-concurrency-stamp-1", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@demo-barber.com", true, "Demo", false, "Admin", false, null, null, "ADMIN@DEMO-BARBER.COM", "ADMIN@DEMO-BARBER.COM", "AQAAAAIAAYagAAAAEOrpz+1/S4f/oZ0KZZ/ayfwQbC1IjRmSdbn0bzqiTNuUovThGA1uZARcsVYtntc2qA==", null, false, null, null, 2, "admin-security-stamp-1", new Guid("11111111-1111-1111-1111-111111111111"), false, null, "admin@demo-barber.com" },
+                    { new Guid("bb000000-0000-0000-0000-000000000002"), 0, "staff-concurrency-stamp-1", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "staff@demo-barber.com", true, "John", false, "Barber", false, null, null, "STAFF@DEMO-BARBER.COM", "STAFF@DEMO-BARBER.COM", "AQAAAAIAAYagAAAAEJfa98SNJ5Zr1R0Ebc5RQcH75DgtQhz1Cb7d7xX8yDpujxfaIU4RyCqobHg3B6sYCQ==", null, false, null, null, 4, "staff-security-stamp-1", new Guid("11111111-1111-1111-1111-111111111111"), false, null, "staff@demo-barber.com" },
+                    { new Guid("bb000000-0000-0000-0000-000000000003"), 0, "customer-concurrency-stamp-1", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "customer@example.com", true, "Jane", false, "Customer", false, null, null, "CUSTOMER@EXAMPLE.COM", "CUSTOMER@EXAMPLE.COM", "AQAAAAIAAYagAAAAEFAVL4g5zlB49o0SLuDVn9nSVi6763EMx9QSPpdsYRQ89JKjMcTAJ5BtJ7meEl++Gg==", null, false, null, null, 5, "customer-security-stamp-1", new Guid("11111111-1111-1111-1111-111111111111"), false, null, "customer@example.com" },
+                    { new Guid("bb000000-0000-0000-0000-000000000004"), 0, "manager-concurrency-stamp-1", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "manager@demo-barber.com", true, "Sarah", false, "Manager", false, null, null, "MANAGER@DEMO-BARBER.COM", "MANAGER@DEMO-BARBER.COM", "AQAAAAIAAYagAAAAEPia+Ijls54RNyoc5yEV4ZyqNx5rkXitSUxppn25mPHnPC2CS+enJxWgB/okkW+wtg==", null, false, null, null, 3, "manager-security-stamp-1", new Guid("11111111-1111-1111-1111-111111111111"), false, null, "manager@demo-barber.com" }
                 });
 
             migrationBuilder.InsertData(
@@ -1730,11 +1717,6 @@ namespace BookIt.Infrastructure.Migrations
                 column: "ServiceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StaffServices_ServiceId1",
-                table: "StaffServices",
-                column: "ServiceId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Tenants_Slug",
                 table: "Tenants",
                 column: "Slug",
@@ -1778,11 +1760,6 @@ namespace BookIt.Infrastructure.Migrations
                 name: "IX_WebhookDeliveries_WebhookId",
                 table: "WebhookDeliveries",
                 column: "WebhookId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WebhookDeliveries_WebhookId1",
-                table: "WebhookDeliveries",
-                column: "WebhookId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Webhooks_TenantId",

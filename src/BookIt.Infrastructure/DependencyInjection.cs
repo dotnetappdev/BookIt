@@ -21,16 +21,32 @@ namespace BookIt.Infrastructure;
 
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Registers BookIt infrastructure services using the provider specified by the
+    /// <c>Database:Provider</c> configuration key (defaults to <c>SqlServer</c>).
+    /// <para>Supported values: <c>SqlServer</c>, <c>Sqlite</c>.</para>
+    /// <para>
+    /// For <c>PostgreSql</c> or <c>MySql</c>, reference the provider-specific class libraries
+    /// (<c>BookIt.Infrastructure.PostgreSql</c> / <c>BookIt.Infrastructure.MySql</c>) and call
+    /// <c>AddInfrastructureWithPostgreSql</c> / <c>AddInfrastructureWithMySql</c>, or use the
+    /// automatic dispatch via <c>Program.cs</c>.
+    /// </para>
+    /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment? environment = null)
     {
+        var provider = configuration["Database:Provider"] ?? "SqlServer";
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-        var useSqlite = string.IsNullOrEmpty(connectionString) || connectionString.Contains("localdb", StringComparison.OrdinalIgnoreCase);
+
+        var useSqlite = provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase)
+            || (string.IsNullOrEmpty(provider) && string.IsNullOrEmpty(connectionString));
 
         if (useSqlite)
         {
-            var dbPath = Path.Combine(AppContext.BaseDirectory, "bookit.db");
-            services.AddDbContext<BookItDbContext>(options =>
-                options.UseSqlite($"Data Source={dbPath}"));
+            var sqliteCs = configuration.GetConnectionString("SqliteConnection");
+            var dbPath = string.IsNullOrEmpty(sqliteCs)
+                ? $"Data Source={Path.Combine(AppContext.BaseDirectory, "bookit.db")}"
+                : sqliteCs;
+            services.AddDbContext<BookItDbContext>(options => options.UseSqlite(dbPath));
         }
         else
         {
@@ -38,6 +54,16 @@ public static class DependencyInjection
                 options.UseSqlServer(connectionString));
         }
 
+        return services.AddInfrastructureServices(configuration);
+    }
+
+    /// <summary>
+    /// Registers all BookIt application services (Identity, repositories, payments, etc.)
+    /// without registering any database provider. Call this from provider-specific libraries
+    /// after registering the <see cref="BookItDbContext"/> with the desired EF Core provider.
+    /// </summary>
+    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
+    {
         // ASP.NET Identity
         services.AddIdentityCore<ApplicationUser>(options =>
         {
