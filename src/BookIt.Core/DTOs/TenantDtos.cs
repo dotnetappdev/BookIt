@@ -194,3 +194,8 @@ public class UpdateTenantRequest
 
     public bool SubdomainApproved { get; set; }
 }
+
+public class DemoDataStatusResponse
+{
+    public bool HasDemoData { get; set; }
+}

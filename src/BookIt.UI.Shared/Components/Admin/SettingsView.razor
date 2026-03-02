@@ -408,18 +408,77 @@
 
                 <!-- Sidebar -->
                 <MudItem xs="12" lg="4">
-                    <MudCard Elevation="1">
-                        <MudCardContent>
-                            <MudText Typo="Typo.h6" Class="mb-3">
-                                <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" Class="me-2" Color="Color.Primary" />
-                                Your Booking Page
-                            </MudText>
-                            <MudTextField Value="@BookingUrl" Label="Booking Page URL" ReadOnly="true"
-                                          Variant="Variant.Outlined"
-                                          Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.ContentCopy"
-                                          OnAdornmentClick="CopyUrl" />
-                        </MudCardContent>
-                    </MudCard>
+                    <MudStack Spacing="3">
+                        <MudCard Elevation="1">
+                            <MudCardContent>
+                                <MudText Typo="Typo.h6" Class="mb-3">
+                                    <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" Class="me-2" Color="Color.Primary" />
+                                    Your Booking Page
+                                </MudText>
+                                <MudTextField Value="@BookingUrl" Label="Booking Page URL" ReadOnly="true"
+                                              Variant="Variant.Outlined"
+                                              Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.ContentCopy"
+                                              OnAdornmentClick="CopyUrl" />
+                            </MudCardContent>
+                        </MudCard>
+
+                        <!-- Demo / Test Data -->
+                        <MudCard Elevation="1">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.subtitle1" Class="fw-semibold">
+                                        <MudIcon Icon="@Icons.Material.Filled.Science" Size="Size.Small" Class="me-1" Color="Color.Secondary" />
+                                        Demo Data
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        Populate this account with sample bookings, customers, and calendar events for testing.
+                                    </MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent Class="pt-0">
+                                @if (_demoStatusLoading)
+                                {
+                                    <MudProgressLinear Indeterminate="true" Color="Color.Secondary" />
+                                }
+                                else if (_hasTenantDemoData)
+                                {
+                                    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-2">
+                                        Demo data is present on this account.
+                                    </MudAlert>
+                                    @if (_confirmClearDemoData)
+                                    {
+                                        <MudAlert Severity="Severity.Error" Dense="true" Class="mb-2">
+                                            <strong>Are you sure?</strong> This will remove all demo appointments, customers, and interview slots.
+                                            <MudStack Row="true" Class="mt-2" Spacing="1">
+                                                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
+                                                           OnClick="ConfirmClearTenantDemoData" Disabled="_demoClearing">
+                                                    @(_demoClearing ? "Clearing…" : "Yes, Clear")
+                                                </MudButton>
+                                                <MudButton Variant="Variant.Outlined" Size="Size.Small"
+                                                           OnClick="@(() => _confirmClearDemoData = false)">Cancel</MudButton>
+                                            </MudStack>
+                                        </MudAlert>
+                                    }
+                                    else
+                                    {
+                                        <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small" FullWidth="true"
+                                                   StartIcon="@Icons.Material.Filled.DeleteSweep"
+                                                   OnClick="@(() => _confirmClearDemoData = true)">
+                                            Clear Demo Data
+                                        </MudButton>
+                                    }
+                                }
+                                else
+                                {
+                                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" FullWidth="true"
+                                               StartIcon="@Icons.Material.Filled.CloudUpload"
+                                               OnClick="SeedTenantDemoData" Disabled="_demoSeeding">
+                                        @(_demoSeeding ? "Seeding…" : "Seed Demo Data")
+                                    </MudButton>
+                                }
+                            </MudCardContent>
+                        </MudCard>
+                    </MudStack>
                 </MudItem>
             </MudGrid>
         </MudForm>
@@ -433,6 +492,13 @@
     private TenantResponse? _tenant;
     private MudForm? _form;
     private bool _saving;
+
+    // Demo data state
+    private bool _demoStatusLoading;
+    private bool _hasTenantDemoData;
+    private bool _demoSeeding;
+    private bool _demoClearing;
+    private bool _confirmClearDemoData;
 
     private string _name = "";
     private BusinessType _businessType = BusinessType.Other;
@@ -647,6 +713,46 @@
                     .Where(n => n > 0).ToList();
             }
         }
+
+        // Load demo data status
+        await LoadDemoDataStatus();
+    }
+
+    private async Task LoadDemoDataStatus()
+    {
+        _demoStatusLoading = true;
+        try
+        {
+            var status = await Api.GetTenantDemoStatusAsync(TenantSlug);
+            _hasTenantDemoData = status?.HasDemoData ?? false;
+        }
+        catch (Exception ex)
+        {
+            // Status check is non-critical; log to console and continue
+            Console.WriteLine($"[SettingsView] Could not load demo data status: {ex.Message}");
+        }
+        _demoStatusLoading = false;
+    }
+
+    private async Task SeedTenantDemoData()
+    {
+        _demoSeeding = true;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.SeedTenantDemoDataAsync(TenantSlug);
+        Snackbar.Add(ok ? "Demo data seeded successfully." : "Failed to seed demo data.", ok ? Severity.Success : Severity.Error);
+        _demoSeeding = false;
+        if (ok) await LoadDemoDataStatus();
+    }
+
+    private async Task ConfirmClearTenantDemoData()
+    {
+        _demoClearing = true;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.ClearTenantDemoDataAsync(TenantSlug);
+        Snackbar.Add(ok ? "Demo data cleared." : "Failed to clear demo data.", ok ? Severity.Success : Severity.Error);
+        _confirmClearDemoData = false;
+        _demoClearing = false;
+        if (ok) await LoadDemoDataStatus();
     }
 
     private async Task Save()

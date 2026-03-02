@@ -11,6 +11,9 @@ public interface IDatabaseSeederService
     Task SeedDemoDataAsync();
     Task ClearDemoDataAsync();
     Task<bool> HasDemoDataAsync();
+    Task SeedTenantDemoDataAsync(string tenantSlug);
+    Task ClearTenantDemoDataAsync(string tenantSlug);
+    Task<bool> HasTenantDemoDataAsync(string tenantSlug);
 }
 
 public class DatabaseSeederService : IDatabaseSeederService
@@ -315,6 +318,7 @@ public class DatabaseSeederService : IDatabaseSeederService
         var random = new Random(42);
         var now    = DateTime.UtcNow;
 
+        // 15 past completed appointments
         for (int i = 0; i < 15; i++)
         {
             var customer   = customers[random.Next(customers.Count)];
@@ -338,12 +342,38 @@ public class DatabaseSeederService : IDatabaseSeederService
             });
         }
 
-        for (int i = 0; i < 10; i++)
+        // 5 past cancelled appointments
+        for (int i = 0; i < 5; i++)
+        {
+            var customer    = customers[random.Next(customers.Count)];
+            var service     = services[random.Next(services.Count)];
+            var staffMember = staff[random.Next(staff.Count)];
+            var startTime   = now.AddDays(-random.Next(5, 60)).Date.AddHours(10 + random.Next(0, 6));
+
+            var appt = new Appointment
+            {
+                Id = Guid.NewGuid(), TenantId = tenantId,
+                CustomerId = customer.Id, StaffId = staffMember.Id,
+                CustomerName = customer.FullName, CustomerEmail = customer.Email, CustomerPhone = customer.Phone,
+                StartTime = startTime, EndTime = startTime.AddMinutes(service.DurationMinutes),
+                Status = AppointmentStatus.Cancelled, TotalAmount = service.Price,
+                CancellationReason = "Customer requested cancellation",
+                CustomerNotes = "Cancelled demo appointment", CreatedAt = startTime.AddDays(-3)
+            };
+            _context.Appointments.Add(appt);
+            _context.Set<AppointmentService>().Add(new AppointmentService
+            {
+                AppointmentId = appt.Id, ServiceId = service.Id, PriceAtBooking = service.Price
+            });
+        }
+
+        // 5 upcoming confirmed appointments
+        for (int i = 0; i < 5; i++)
         {
             var customer   = customers[random.Next(customers.Count)];
             var service    = services[random.Next(services.Count)];
             var staffMember = staff[random.Next(staff.Count)];
-            var startTime  = now.AddDays(random.Next(1, 30)).Date.AddHours(9 + random.Next(0, 8));
+            var startTime  = now.AddDays(random.Next(1, 14)).Date.AddHours(9 + random.Next(0, 8));
 
             var appt = new Appointment
             {
@@ -353,6 +383,30 @@ public class DatabaseSeederService : IDatabaseSeederService
                 StartTime = startTime, EndTime = startTime.AddMinutes(service.DurationMinutes),
                 Status = AppointmentStatus.Confirmed, TotalAmount = service.Price,
                 CustomerNotes = "Demo future appointment", CreatedAt = DateTime.UtcNow
+            };
+            _context.Appointments.Add(appt);
+            _context.Set<AppointmentService>().Add(new AppointmentService
+            {
+                AppointmentId = appt.Id, ServiceId = service.Id, PriceAtBooking = service.Price
+            });
+        }
+
+        // 5 upcoming pending appointments
+        for (int i = 0; i < 5; i++)
+        {
+            var customer    = customers[random.Next(customers.Count)];
+            var service     = services[random.Next(services.Count)];
+            var staffMember = staff[random.Next(staff.Count)];
+            var startTime   = now.AddDays(random.Next(3, 30)).Date.AddHours(9 + random.Next(0, 8));
+
+            var appt = new Appointment
+            {
+                Id = Guid.NewGuid(), TenantId = tenantId,
+                CustomerId = customer.Id, StaffId = staffMember.Id,
+                CustomerName = customer.FullName, CustomerEmail = customer.Email, CustomerPhone = customer.Phone,
+                StartTime = startTime, EndTime = startTime.AddMinutes(service.DurationMinutes),
+                Status = AppointmentStatus.Pending, TotalAmount = service.Price,
+                CustomerNotes = "Awaiting confirmation", CreatedAt = DateTime.UtcNow
             };
             _context.Appointments.Add(appt);
             _context.Set<AppointmentService>().Add(new AppointmentService
@@ -464,25 +518,64 @@ public class DatabaseSeederService : IDatabaseSeederService
         }
     }
 
+    private void AddPropertyAmenities(Guid propertyId, Dictionary<AmenityType, Guid> amenityMap, params AmenityType[] types)
+    {
+        foreach (var type in types)
+        {
+            if (amenityMap.TryGetValue(type, out var amenityId))
+            {
+                _context.PropertyAmenities.Add(new PropertyAmenity { LodgingPropertyId = propertyId, AmenityId = amenityId });
+            }
+        }
+    }
+
     private async Task SeedHotelRoomsAsync(Guid tenantId, Guid propertyId, Dictionary<AmenityType, Guid> amenities)
     {
+        // Property-level amenities (all amenities available at the hotel)
+        AddPropertyAmenities(propertyId, amenities,
+            AmenityType.Pool, AmenityType.Spa, AmenityType.Gym, AmenityType.WiFi,
+            AmenityType.Parking, AmenityType.Restaurant, AmenityType.Bar,
+            AmenityType.AirConditioning, AmenityType.HotTub, AmenityType.Garden,
+            AmenityType.RoomService, AmenityType.PetFriendly);
+
+        // Property photos
+        var hotelPhotos = new[]
+        {
+            ("https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200", "Hotel Exterior", 1, true),
+            ("https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200", "Grand Lobby", 2, false),
+            ("https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200", "Indoor Swimming Pool", 3, false),
+            ("https://images.unsplash.com/photo-1560347876-aeef00ee58a1?w=1200", "Fine Dining Restaurant", 4, false),
+            ("https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=1200", "Rooftop Bar & Lounge", 5, false),
+            ("https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1200", "Spa & Wellness Centre", 6, false),
+        };
+        foreach (var (url, caption, sort, isPrimary) in hotelPhotos)
+        {
+            _context.PropertyPhotos.Add(new PropertyPhoto
+            {
+                Id = Guid.NewGuid(), LodgingPropertyId = propertyId,
+                Url = url, Caption = caption, SortOrder = sort, IsPrimary = isPrimary,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
         var rooms = new[]
         {
-            (Name: "Standard Double Room",  Desc: "Comfortable double room with city views",        Type: RoomType.Double,  Cap: 2, Rate: 120m, Sort: 1),
-            (Name: "Superior King Room",    Desc: "Spacious king room with premium amenities",      Type: RoomType.Double,  Cap: 2, Rate: 175m, Sort: 2),
-            (Name: "Executive Suite",       Desc: "Elegant suite with separate lounge and spa bath", Type: RoomType.Suite,  Cap: 2, Rate: 295m, Sort: 3),
-            (Name: "Deluxe Twin Room",      Desc: "Bright twin room ideal for business travellers", Type: RoomType.Twin,    Cap: 2, Rate: 145m, Sort: 4),
-            (Name: "Family Room",           Desc: "Spacious room sleeping up to 4 guests",          Type: RoomType.Family, Cap: 4, Rate: 220m, Sort: 5),
-            (Name: "Penthouse Suite",       Desc: "Our most prestigious suite with panoramic views", Type: RoomType.Suite,  Cap: 3, Rate: 550m, Sort: 6),
+            (Name: "Standard Double Room",  Desc: "Comfortable double room with city views",        Type: RoomType.Double,  Cap: 2, Rate: 120m, Sort: 1, Beds: 1, Bed: BedType.Double,   Pet: false, WC: true),
+            (Name: "Superior King Room",    Desc: "Spacious king room with premium amenities",      Type: RoomType.Double,  Cap: 2, Rate: 175m, Sort: 2, Beds: 1, Bed: BedType.King,     Pet: false, WC: true),
+            (Name: "Executive Suite",       Desc: "Elegant suite with separate lounge and spa bath", Type: RoomType.Suite,  Cap: 2, Rate: 295m, Sort: 3, Beds: 1, Bed: BedType.King,     Pet: false, WC: true),
+            (Name: "Deluxe Twin Room",      Desc: "Bright twin room ideal for business travellers", Type: RoomType.Twin,    Cap: 2, Rate: 145m, Sort: 4, Beds: 2, Bed: BedType.Twin,     Pet: false, WC: true),
+            (Name: "Family Room",           Desc: "Spacious room sleeping up to 4 guests",          Type: RoomType.Family, Cap: 4, Rate: 220m, Sort: 5, Beds: 2, Bed: BedType.Double,   Pet: true,  WC: false),
+            (Name: "Penthouse Suite",       Desc: "Our most prestigious suite with panoramic views", Type: RoomType.Suite,  Cap: 3, Rate: 550m, Sort: 6, Beds: 1, Bed: BedType.SuperKing,Pet: false, WC: true),
         };
 
-        foreach (var (rName, rDesc, rType, rCap, rRate, rSort) in rooms)
+        foreach (var (rName, rDesc, rType, rCap, rRate, rSort, rBeds, rBed, rPet, rWC) in rooms)
         {
             var room = new Room
             {
                 Id = Guid.NewGuid(), TenantId = tenantId, LodgingPropertyId = propertyId,
                 Name = rName, Description = rDesc, RoomType = rType,
                 Capacity = rCap, BaseRate = rRate, IsActive = true, SortOrder = rSort,
+                NumberOfBeds = rBeds, BedType = rBed, PetFriendly = rPet, WheelchairAccessible = rWC,
                 CreatedAt = DateTime.UtcNow
             };
             _context.Rooms.Add(room);
@@ -512,21 +605,45 @@ public class DatabaseSeederService : IDatabaseSeederService
 
     private async Task SeedBnBRoomsAsync(Guid tenantId, Guid propertyId, Dictionary<AmenityType, Guid> amenities)
     {
+        // Property-level amenities
+        AddPropertyAmenities(propertyId, amenities,
+            AmenityType.WiFi, AmenityType.Breakfast, AmenityType.Garden,
+            AmenityType.Parking, AmenityType.PetFriendly, AmenityType.Terrace, AmenityType.Laundry);
+
+        // Property photos
+        var bbPhotos = new[]
+        {
+            ("https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200", "Rose Cottage Exterior", 1, true),
+            ("https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=1200", "Cottage Garden", 2, false),
+            ("https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1200", "Cosy Sitting Room", 3, false),
+            ("https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=1200", "Breakfast Room", 4, false),
+        };
+        foreach (var (url, caption, sort, isPrimary) in bbPhotos)
+        {
+            _context.PropertyPhotos.Add(new PropertyPhoto
+            {
+                Id = Guid.NewGuid(), LodgingPropertyId = propertyId,
+                Url = url, Caption = caption, SortOrder = sort, IsPrimary = isPrimary,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
         var rooms = new[]
         {
-            (Name: "The Garden Room",   Desc: "Charming room overlooking the cottage garden",     Type: RoomType.Double, Cap: 2, Rate: 95m,  Sort: 1),
-            (Name: "The Orchard Room",  Desc: "Cosy room with views of the orchard",              Type: RoomType.Double, Cap: 2, Rate: 85m,  Sort: 2),
-            (Name: "The Village Room",  Desc: "Bright twin room with village views",              Type: RoomType.Twin,   Cap: 2, Rate: 80m,  Sort: 3),
-            (Name: "The Heritage Suite", Desc: "Spacious suite with exposed beams and fireplace", Type: RoomType.Suite,  Cap: 2, Rate: 130m, Sort: 4),
+            (Name: "The Garden Room",    Desc: "Charming room overlooking the cottage garden",     Type: RoomType.Double, Cap: 2, Rate: 95m,  Sort: 1, Beds: 1, Bed: BedType.Double, Pet: true,  WC: false),
+            (Name: "The Orchard Room",   Desc: "Cosy room with views of the orchard",              Type: RoomType.Double, Cap: 2, Rate: 85m,  Sort: 2, Beds: 1, Bed: BedType.Double, Pet: false, WC: false),
+            (Name: "The Village Room",   Desc: "Bright twin room with village views",              Type: RoomType.Twin,   Cap: 2, Rate: 80m,  Sort: 3, Beds: 2, Bed: BedType.Twin,   Pet: false, WC: false),
+            (Name: "The Heritage Suite", Desc: "Spacious suite with exposed beams and fireplace",  Type: RoomType.Suite,  Cap: 2, Rate: 130m, Sort: 4, Beds: 1, Bed: BedType.King,   Pet: false, WC: true),
         };
 
-        foreach (var (rName, rDesc, rType, rCap, rRate, rSort) in rooms)
+        foreach (var (rName, rDesc, rType, rCap, rRate, rSort, rBeds, rBed, rPet, rWC) in rooms)
         {
             var room = new Room
             {
                 Id = Guid.NewGuid(), TenantId = tenantId, LodgingPropertyId = propertyId,
                 Name = rName, Description = rDesc, RoomType = rType,
                 Capacity = rCap, BaseRate = rRate, IsActive = true, SortOrder = rSort,
+                NumberOfBeds = rBeds, BedType = rBed, PetFriendly = rPet, WheelchairAccessible = rWC,
                 CreatedAt = DateTime.UtcNow
             };
             _context.Rooms.Add(room);
@@ -739,6 +856,140 @@ public class DatabaseSeederService : IDatabaseSeederService
         }
     }
 
+    // ── Interview slots helper ─────────────────────────────────────────────────
+
+    private async Task SeedInterviewSlotsAsync(Guid tenantId)
+    {
+        var services = await _context.Services
+            .Where(s => s.TenantId == tenantId && !s.IsDeleted)
+            .Take(2)
+            .ToListAsync();
+        if (!services.Any()) return;
+
+        var now = DateTime.UtcNow;
+        var interviewerNames = new[] { "Alex Morgan", "Jamie Lee", "Sam Patel" };
+        var random = new Random(77);
+
+        foreach (var svc in services)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                var slotStart = now.AddDays(random.Next(3, 20)).Date.AddHours(9 + random.Next(0, 6));
+                _context.InterviewSlots.Add(new InterviewSlot
+                {
+                    Id = Guid.NewGuid(), TenantId = tenantId, ServiceId = svc.Id,
+                    InterviewerName = interviewerNames[i % interviewerNames.Length],
+                    SlotStart = slotStart, SlotEnd = slotStart.AddHours(1),
+                    IsBooked = i == 0,
+                    Location = i % 2 == 0 ? "Meeting Room A" : null,
+                    VideoConferenceProvider = i % 2 == 0 ? VideoConferenceProvider.None : VideoConferenceProvider.Zoom,
+                    MeetingLink = i % 2 == 0 ? null : "https://zoom.us/j/demo",
+                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                });
+            }
+        }
+    }
+
+    // ── Property photos helper ─────────────────────────────────────────────────
+
+    private async Task SeedPropertyPhotosAsync(Guid propertyId, Guid tenantId)
+    {
+        var photoUrls = new[]
+        {
+            ("https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200", "Property Exterior", 1, true),
+            ("https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200", "Lobby", 2, false),
+            ("https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200", "Room", 3, false),
+        };
+        foreach (var (url, caption, sort, isPrimary) in photoUrls)
+        {
+            _context.PropertyPhotos.Add(new PropertyPhoto
+            {
+                Id = Guid.NewGuid(), LodgingPropertyId = propertyId,
+                Url = url, Caption = caption, SortOrder = sort, IsPrimary = isPrimary,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+    }
+
+    // ── Per-tenant demo data ──────────────────────────────────────────────────
+
+    public async Task<bool> HasTenantDemoDataAsync(string tenantSlug)
+    {
+        var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Slug == tenantSlug);
+        if (tenant == null) return false;
+        return await _context.Appointments.AnyAsync(a => a.TenantId == tenant.Id && !a.IsDeleted)
+            || await _context.Customers.AnyAsync(c => c.TenantId == tenant.Id && !c.IsDeleted)
+            || await _context.InterviewSlots.AnyAsync(s => s.TenantId == tenant.Id && !s.IsDeleted);
+    }
+
+    public async Task SeedTenantDemoDataAsync(string tenantSlug)
+    {
+        var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Slug == tenantSlug);
+        if (tenant == null) return;
+
+        // Seed customers if none exist
+        var hasCustomers = await _context.Customers.AnyAsync(c => c.TenantId == tenant.Id && !c.IsDeleted);
+        if (!hasCustomers)
+            await SeedCustomers(tenant.Id, 20);
+
+        // Seed staff if none exist
+        var hasStaff = await _context.Staff.AnyAsync(s => s.TenantId == tenant.Id && !s.IsDeleted);
+        // Staff needs user accounts — skip if already present
+
+        // Seed appointments with varied statuses
+        var hasAppointments = await _context.Appointments.AnyAsync(a => a.TenantId == tenant.Id && !a.IsDeleted);
+        if (!hasAppointments)
+            await SeedAppointments(tenant.Id);
+
+        // Seed interview slots
+        var hasInterviewSlots = await _context.InterviewSlots.AnyAsync(s => s.TenantId == tenant.Id && !s.IsDeleted);
+        if (!hasInterviewSlots)
+            await SeedInterviewSlotsAsync(tenant.Id);
+
+        // Property photos for lodging tenants
+        var property = await _context.LodgingProperties.FirstOrDefaultAsync(p => p.TenantId == tenant.Id);
+        if (property != null)
+        {
+            var hasPhotos = await _context.PropertyPhotos.AnyAsync(p => p.LodgingPropertyId == property.Id);
+            if (!hasPhotos)
+                await SeedPropertyPhotosAsync(property.Id, tenant.Id);
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task ClearTenantDemoDataAsync(string tenantSlug)
+    {
+        var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Slug == tenantSlug);
+        if (tenant == null) return;
+
+        // Remove appointments
+        var appts = await _context.Appointments.Where(a => a.TenantId == tenant.Id).ToListAsync();
+        _context.Appointments.RemoveRange(appts);
+
+        // Remove customers
+        var customers = await _context.Customers.Where(c => c.TenantId == tenant.Id).ToListAsync();
+        _context.Customers.RemoveRange(customers);
+
+        // Remove interview slots and invitations
+        var slots = await _context.InterviewSlots.Where(s => s.TenantId == tenant.Id).ToListAsync();
+        _context.InterviewSlots.RemoveRange(slots);
+        var invitations = await _context.CandidateInvitations.Where(i => i.TenantId == tenant.Id).ToListAsync();
+        _context.CandidateInvitations.RemoveRange(invitations);
+
+        // Remove property photos
+        var propIds = await _context.LodgingProperties
+            .Where(p => p.TenantId == tenant.Id).Select(p => p.Id).ToListAsync();
+        if (propIds.Any())
+        {
+            var photos = await _context.PropertyPhotos
+                .Where(p => propIds.Contains(p.LodgingPropertyId)).ToListAsync();
+            _context.PropertyPhotos.RemoveRange(photos);
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
     // ── Clear demo data ───────────────────────────────────────────────────────
 
     public async Task ClearDemoDataAsync()
@@ -839,6 +1090,20 @@ public class DatabaseSeederService : IDatabaseSeederService
         var rooms = await _context.Rooms
             .Where(r => r.TenantId == tenantId).ToListAsync();
         _context.Rooms.RemoveRange(rooms);
+
+        // Property photos and property amenities
+        var propIds = await _context.LodgingProperties
+            .Where(p => p.TenantId == tenantId).Select(p => p.Id).ToListAsync();
+        if (propIds.Any())
+        {
+            var propPhotos = await _context.PropertyPhotos
+                .Where(p => propIds.Contains(p.LodgingPropertyId)).ToListAsync();
+            _context.PropertyPhotos.RemoveRange(propPhotos);
+
+            var propAmenities = await _context.PropertyAmenities
+                .Where(pa => propIds.Contains(pa.LodgingPropertyId)).ToListAsync();
+            _context.PropertyAmenities.RemoveRange(propAmenities);
+        }
 
         var properties = await _context.LodgingProperties
             .Where(p => p.TenantId == tenantId).ToListAsync();

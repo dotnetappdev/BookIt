@@ -266,6 +266,16 @@ public class BookItApiService
     public Task<bool> ClearDemoDataAsync() =>
         PostBoolAsync("/api/admin/database/clear", new { });
 
+    // ── Tenant Demo Data ──
+    public Task<DemoDataStatusResponse?> GetTenantDemoStatusAsync(string slug) =>
+        GetAsync<DemoDataStatusResponse>($"/api/tenants/{slug}/demo-data/status");
+
+    public Task<bool> SeedTenantDemoDataAsync(string slug) =>
+        PostBoolAsync($"/api/tenants/{slug}/demo-data/seed", new { });
+
+    public Task<bool> ClearTenantDemoDataAsync(string slug) =>
+        PostBoolAsync($"/api/tenants/{slug}/demo-data/clear", new { });
+
     // ── Email Templates ──
     public Task<List<EmailTemplateResponse>?> GetEmailTemplatesAsync(string slug) =>
         GetAsync<List<EmailTemplateResponse>>($"/api/tenants/{slug}/email-templates");
