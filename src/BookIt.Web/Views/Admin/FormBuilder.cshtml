@@ -93,13 +93,69 @@
             <a asp-controller="Admin" asp-action="Forms" asp-route-tenantSlug="@tenantSlug" class="text-muted text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Back to Forms</a>
         </p>
     </div>
-    @if (form?.IsDefault == true)
+    @if (form != null)
     {
-        <span class="badge py-2 px-3" style="background:var(--primary-subtle);color:var(--primary);font-size:.8rem;">
-            <i class="bi bi-star-fill me-1"></i>Default Form
-        </span>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            @{
+                var statusBadge = form.PublishStatus switch
+                {
+                    BookIt.Core.Enums.FormPublishStatus.Live => ("bg-success", "check-circle-fill", "Live"),
+                    BookIt.Core.Enums.FormPublishStatus.Unpublished => ("bg-secondary", "slash-circle", "Unpublished"),
+                    _ => ("bg-warning text-dark", "pencil-square", "Draft")
+                };
+            }
+            <span class="badge @statusBadge.Item1 py-2 px-3" id="statusBadge" style="font-size:.8rem;">
+                <i class="bi bi-@statusBadge.Item2 me-1"></i>@statusBadge.Item3
+            </span>
+            @if (form.IsDefault)
+            {
+                <span class="badge py-2 px-3" style="background:var(--primary-subtle);color:var(--primary);font-size:.8rem;">
+                    <i class="bi bi-star-fill me-1"></i>Default Form
+                </span>
+            }
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="previewBtn"
+                    data-bs-toggle="modal" data-bs-target="#formPreviewModal">
+                <i class="bi bi-eye me-1"></i>Preview
+            </button>
+            <!-- Publish status dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-brand dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-send me-1"></i>Publish
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <form method="post" asp-controller="Admin" asp-action="PublishForm" asp-route-tenantSlug="@tenantSlug" asp-route-formId="@form.Id">
+                        <li>
+                            <button type="submit" name="publishStatus" value="@((int)BookIt.Core.Enums.FormPublishStatus.Draft)"
+                                    class="dropdown-item @(form.PublishStatus == BookIt.Core.Enums.FormPublishStatus.Draft ? "active" : "")">
+                                <i class="bi bi-pencil-square me-2 text-warning"></i>Save as Draft
+                            </button>
+                        </li>
+                        <li>
+                            <button type="submit" name="publishStatus" value="@((int)BookIt.Core.Enums.FormPublishStatus.Live)"
+                                    class="dropdown-item @(form.PublishStatus == BookIt.Core.Enums.FormPublishStatus.Live ? "active" : "")">
+                                <i class="bi bi-check-circle-fill me-2 text-success"></i>Publish Live
+                            </button>
+                        </li>
+                        <li>
+                            <button type="submit" name="publishStatus" value="@((int)BookIt.Core.Enums.FormPublishStatus.Unpublished)"
+                                    class="dropdown-item @(form.PublishStatus == BookIt.Core.Enums.FormPublishStatus.Unpublished ? "active" : "")">
+                                <i class="bi bi-slash-circle me-2 text-secondary"></i>Unpublish
+                            </button>
+                        </li>
+                    </form>
+                </ul>
+            </div>
+        </div>
     }
 </div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 @if (formId == null)
 {
@@ -107,6 +163,41 @@
 }
 else
 {
+    <!-- Full-page Preview Modal -->
+    <div class="modal fade" id="formPreviewModal" tabindex="-1" aria-labelledby="formPreviewModalLabel" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--primary);color:#fff;">
+                    <h5 class="modal-title" id="formPreviewModalLabel">
+                        <i class="bi bi-eye me-2"></i>Form Preview — <em id="previewFormName">@(form?.Name ?? "")</em>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    @if (!string.IsNullOrEmpty(form?.WelcomeMessage))
+                    {
+                        <div class="alert alert-info py-2 mb-4" style="font-size:.9rem;">
+                            <i class="bi bi-info-circle me-2"></i>@form.WelcomeMessage
+                        </div>
+                    }
+                    <div id="previewModalCanvas">
+                        <p class="text-muted small">No fields to preview yet.</p>
+                    </div>
+                    @if (!string.IsNullOrEmpty(form?.ConfirmationMessage))
+                    {
+                        <div class="alert alert-success py-2 mt-4" style="font-size:.9rem;display:none;" id="previewConfirmMsg">
+                            <i class="bi bi-check-circle me-2"></i>@form.ConfirmationMessage
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <span class="text-muted small me-auto"><i class="bi bi-info-circle me-1"></i>This is a read-only preview</span>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="builder-layout">
         <!-- Canvas -->
         <div>
@@ -414,6 +505,24 @@ function showToast(msg, isError) {
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 2500);
 }
+
+function refreshPreviewModal() {
+    const canvas = document.getElementById('previewModalCanvas');
+    if (!canvas) return;
+    if (fields.length === 0) {
+        canvas.innerHTML = '<p class="text-muted small">No fields to preview yet.</p>';
+        return;
+    }
+    canvas.innerHTML = fields.map(f => buildPreviewField(f)).join('');
+}
+
+// Refresh preview canvas whenever the modal is shown
+document.addEventListener('DOMContentLoaded', function() {
+    const modalEl = document.getElementById('formPreviewModal');
+    if (modalEl) {
+        modalEl.addEventListener('show.bs.modal', refreshPreviewModal);
+    }
+});
 
 renderCanvas();
 </script>

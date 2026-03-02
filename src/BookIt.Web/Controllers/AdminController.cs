@@ -1,4 +1,5 @@
 using BookIt.Core.DTOs;
+using BookIt.Core.Enums;
 using BookIt.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -193,6 +194,28 @@ public class AdminController : Controller
         await _apiClient.DeleteFormAsync(tenantSlug, formId);
         TempData["Success"] = "Form deleted.";
         return RedirectToAction("Forms", new { tenantSlug });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> PublishForm(string tenantSlug, Guid formId, FormPublishStatus publishStatus)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        var form = await _apiClient.GetFormAsync(tenantSlug, formId);
+        if (form == null) return NotFound();
+        var request = new UpdateBookingFormRequest
+        {
+            Name = form.Name,
+            Description = form.Description,
+            IsDefault = form.IsDefault,
+            PublishStatus = publishStatus,
+            WelcomeMessage = form.WelcomeMessage,
+            ConfirmationMessage = form.ConfirmationMessage,
+            CollectPhone = form.CollectPhone,
+            CollectNotes = form.CollectNotes
+        };
+        await _apiClient.UpdateFormAsync(tenantSlug, formId, request);
+        TempData["Success"] = $"Form status updated to {publishStatus}.";
+        return RedirectToAction(nameof(FormBuilder), new { tenantSlug, formId });
     }
 
     public async Task<IActionResult> Customers(string tenantSlug)

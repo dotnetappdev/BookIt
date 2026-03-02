@@ -1,4 +1,5 @@
 @using BookIt.Core.DTOs
+@using BookIt.Core.Enums
 @{
     ViewData["Title"] = "Booking Forms";
     Layout = "_AdminLayout";
@@ -39,10 +40,23 @@ else
                     <div class="card-body p-4">
                         <div class="d-flex align-items-start justify-content-between mb-3">
                             <div class="feature-icon" style="margin:0;"><i class="bi bi-ui-checks"></i></div>
-                            @if (form.IsDefault)
-                            {
-                                <span class="badge" style="background:var(--primary-subtle);color:var(--primary);">Default</span>
-                            }
+                            <div class="d-flex gap-1 flex-wrap justify-content-end">
+                                @if (form.IsDefault)
+                                {
+                                    <span class="badge" style="background:var(--primary-subtle);color:var(--primary);">Default</span>
+                                }
+                                @{
+                                    var (sBg, sIcon, sLabel) = form.PublishStatus switch
+                                    {
+                                        BookIt.Core.Enums.FormPublishStatus.Live => ("bg-success", "check-circle-fill", "Live"),
+                                        BookIt.Core.Enums.FormPublishStatus.Unpublished => ("bg-secondary", "slash-circle", "Unpublished"),
+                                        _ => ("bg-warning text-dark", "pencil-square", "Draft")
+                                    };
+                                }
+                                <span class="badge @sBg" style="font-size:.7rem;">
+                                    <i class="bi bi-@sIcon me-1"></i>@sLabel
+                                </span>
+                            </div>
                         </div>
                         <h5 class="fw-semibold mb-1" style="letter-spacing:-.02em;">@form.Name</h5>
                         @if (!string.IsNullOrEmpty(form.Description))

@@ -258,6 +258,17 @@ public class BookItApiClient
         return JsonSerializer.Deserialize<BookingFormResponse>(content, _jsonOptions);
     }
 
+    public async Task<BookingFormResponse?> UpdateFormAsync(string tenantSlug, Guid formId, UpdateBookingFormRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PutAsync($"/api/tenants/{tenantSlug}/booking-forms/{formId}",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<BookingFormResponse>(content, _jsonOptions);
+    }
+
     public async Task<bool> DeleteFormAsync(string tenantSlug, Guid formId)
     {
         SetAuthHeader();
