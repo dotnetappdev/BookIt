@@ -17,7 +17,7 @@
 <MudLayout>
     <!-- ── Top App Bar ── -->
     <MudAppBar Elevation="0" Color="Color.Default" Dense="false"
-               Style="height:60px;backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07);">
+               Style="@AppBarStyle">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start"
                        OnClick="@(() => _drawerOpen = !_drawerOpen)"
                        Style="opacity:.7;" />
@@ -75,7 +75,7 @@
     <!-- ── Sidebar ── -->
     <MudDrawer @bind-Open="_drawerOpen" Elevation="0" Variant="DrawerVariant.Responsive"
                ClipMode="DrawerClipMode.Always"
-               Style="background:#0d1117;border-right:1px solid rgba(255,255,255,.07);">
+               Style="@DrawerStyle">
 
         <!-- Brand -->
         <MudDrawerHeader Style="padding:18px 16px 14px;">
@@ -84,94 +84,94 @@
                     <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Style="color:white;" />
                 </div>
                 <div>
-                    <div style="color:white;font-weight:800;font-size:1rem;letter-spacing:-.03em;line-height:1.1;">BookIt</div>
-                    <div style="color:rgba(255,255,255,.3);font-size:.675rem;text-transform:uppercase;letter-spacing:.07em;">Admin Portal</div>
+                    <div style="@BrandNameStyle">BookIt</div>
+                    <div style="@BrandSubStyle">Admin Portal</div>
                 </div>
             </div>
         </MudDrawerHeader>
 
         <MudNavMenu Style="padding:8px 0;">
             <!-- Main -->
-            <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);padding:16px 20px 4px;">
+            <div style="@SectionLabelStyle">
                 Main Menu
             </div>
             <MudNavLink Href="@($"/{NavTenantSlug}/admin")" Match="NavLinkMatch.All"
                         Icon="@Icons.Material.Filled.GridView"
-                        Style="color:rgba(255,255,255,.65);">Dashboard</MudNavLink>
+                        Style="@NavLinkStyle">Dashboard</MudNavLink>
             <MudNavLink Href="@($"/{NavTenantSlug}/admin/calendar")"
                         Icon="@Icons.Material.Filled.CalendarMonth"
-                        Style="color:rgba(255,255,255,.65);">Calendar</MudNavLink>
+                        Style="@NavLinkStyle">Calendar</MudNavLink>
             <MudNavLink Href="@($"/{NavTenantSlug}/admin/bookings")"
                         Icon="@Icons.Material.Filled.BookOnline"
-                        Style="color:rgba(255,255,255,.65);">Bookings</MudNavLink>
+                        Style="@NavLinkStyle">Bookings</MudNavLink>
 
             <!-- Management -->
-            <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);padding:16px 20px 4px;">
+            <div style="@SectionLabelStyle">
                 Management
             </div>
             @if (!Auth.IsStaffOnly)
             {
                 <MudNavLink Href="@($"/{NavTenantSlug}/admin/services")"
                             Icon="@Icons.Material.Filled.Spa"
-                            Style="color:rgba(255,255,255,.65);">Services</MudNavLink>
+                            Style="@NavLinkStyle">Services</MudNavLink>
                 <MudNavLink Href="@($"/{NavTenantSlug}/admin/rooms")"
                             Icon="@Icons.Material.Filled.Hotel"
-                            Style="color:rgba(255,255,255,.65);">Rooms &amp; Lodging</MudNavLink>
+                            Style="@NavLinkStyle">Rooms &amp; Lodging</MudNavLink>
             }
             <MudNavLink Href="@($"/{NavTenantSlug}/admin/customers")"
                         Icon="@Icons.Material.Filled.People"
-                        Style="color:rgba(255,255,255,.65);">Customers</MudNavLink>
+                        Style="@NavLinkStyle">Customers</MudNavLink>
             @if (!Auth.IsStaffOnly)
             {
                 <MudNavGroup Title="Booking Forms" Icon="@Icons.Material.Filled.Assignment"
-                             Style="color:rgba(255,255,255,.65);">
+                             Style="@NavLinkStyle">
                     <MudNavLink Href="@($"/{NavTenantSlug}/admin/forms")"
                                 Icon="@Icons.Material.Filled.List"
-                                Style="color:rgba(255,255,255,.65);">All Forms</MudNavLink>
+                                Style="@NavLinkStyle">All Forms</MudNavLink>
                     <MudNavLink Href="@($"/{NavTenantSlug}/admin/forms/builder")"
                                 Icon="@Icons.Material.Filled.Build"
-                                Style="color:rgba(255,255,255,.65);">Form Builder</MudNavLink>
+                                Style="@NavLinkStyle">Form Builder</MudNavLink>
                 </MudNavGroup>
             }
             <MudNavLink Href="@($"/{NavTenantSlug}/admin/interviews")"
                         Icon="@Icons.Material.Filled.Groups"
-                        Style="color:rgba(255,255,255,.65);">Interviews</MudNavLink>
+                        Style="@NavLinkStyle">Interviews</MudNavLink>
             <MudNavLink Href="@($"/{NavTenantSlug}/book")" Target="_blank"
                         Icon="@Icons.Material.Filled.OpenInNew"
-                        Style="color:rgba(255,255,255,.65);">Booking Page</MudNavLink>
+                        Style="@NavLinkStyle">Booking Page</MudNavLink>
 
             <!-- Settings -->
             @if (!Auth.IsStaffOnly)
             {
-                <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);padding:16px 20px 4px;">
+                <div style="@SectionLabelStyle">
                     Account
                 </div>
                 <MudNavLink Href="@($"/{NavTenantSlug}/admin/settings")"
                             Icon="@Icons.Material.Filled.Tune"
-                            Style="color:rgba(255,255,255,.65);">Settings</MudNavLink>
+                            Style="@NavLinkStyle">Settings</MudNavLink>
                 <MudNavLink Href="@($"/{NavTenantSlug}/admin/email-templates")"
                             Icon="@Icons.Material.Filled.MarkEmailRead"
-                            Style="color:rgba(255,255,255,.65);">Email Templates</MudNavLink>
+                            Style="@NavLinkStyle">Email Templates</MudNavLink>
                 <MudNavLink Href="@($"/{NavTenantSlug}/admin/subscriptions")"
                             Icon="@Icons.Material.Filled.CreditCard"
-                            Style="color:rgba(255,255,255,.65);">Subscription</MudNavLink>
+                            Style="@NavLinkStyle">Subscription</MudNavLink>
                 <MudNavLink Href="@($"/{NavTenantSlug}/admin/audit-trail")"
                             Icon="@Icons.Material.Filled.ManageSearch"
-                            Style="color:rgba(255,255,255,.65);">Audit Trail</MudNavLink>
+                            Style="@NavLinkStyle">Audit Trail</MudNavLink>
             }
         </MudNavMenu>
 
         <!-- User footer strip -->
         <MudSpacer />
-        <div style="@($"padding:12px 14px;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;")">
+        <div style="@FooterStyle">
             <div style="@($"width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,{_themePrimary},{_themeSecondary});display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:white;flex-shrink:0;")">
                 @Auth.Initials
             </div>
             <div style="flex:1;overflow:hidden;">
-                <div style="color:rgba(255,255,255,.8);font-size:.8125rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                <div style="@FooterNameStyle">
                     @Auth.UserName
                 </div>
-                <div style="color:rgba(255,255,255,.3);font-size:.7rem;">@(Auth.IsStaffOnly ? "Staff" : Auth.IsManagerOrAbove ? "Administrator" : "User")</div>
+                <div style="@FooterRoleStyle">@(Auth.IsStaffOnly ? "Staff" : Auth.IsManagerOrAbove ? "Administrator" : "User")</div>
             </div>
             <MudIconButton Icon="@Icons.Material.Filled.Logout" Size="Size.Small" Color="Color.Default"
                            OnClick="Logout" Style="opacity:.45;" />
@@ -192,6 +192,35 @@
     private MudTheme _theme = BookItTheme.Default;
     private string _themePrimary = BookItTheme.PrimaryOf(TenantTheme.Indigo);
     private string _themeSecondary = BookItTheme.SecondaryOf(TenantTheme.Indigo);
+
+    // ── Computed styles that flip between dark and light mode ──────────────────
+
+    private string AppBarStyle =>
+        $"height:60px;backdrop-filter:blur(14px);border-bottom:1px solid {(_isDark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.09)")};";
+
+    private string DrawerStyle =>
+        $"background:{(_isDark ? "#0d1117" : "var(--mud-palette-surface)")};border-right:1px solid {(_isDark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.09)")};";
+
+    private string BrandNameStyle =>
+        $"color:{(_isDark ? "white" : "var(--mud-palette-text-primary)")};font-weight:800;font-size:1rem;letter-spacing:-.03em;line-height:1.1;";
+
+    private string BrandSubStyle =>
+        $"color:{(_isDark ? "rgba(255,255,255,.3)" : "rgba(0,0,0,.4)")};font-size:.675rem;text-transform:uppercase;letter-spacing:.07em;";
+
+    private string SectionLabelStyle =>
+        $"font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:16px 20px 4px;color:{(_isDark ? "rgba(255,255,255,.25)" : "rgba(0,0,0,.38)")};";
+
+    private string NavLinkStyle =>
+        $"color:{(_isDark ? "rgba(255,255,255,.65)" : "var(--mud-palette-text-primary)")};";
+
+    private string FooterStyle =>
+        $"padding:12px 14px;border-top:1px solid {(_isDark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.09)")};display:flex;align-items:center;gap:10px;";
+
+    private string FooterNameStyle =>
+        $"color:{(_isDark ? "rgba(255,255,255,.8)" : "var(--mud-palette-text-primary)")};font-size:.8125rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+
+    private string FooterRoleStyle =>
+        $"color:{(_isDark ? "rgba(255,255,255,.3)" : "rgba(0,0,0,.45)")};font-size:.7rem;";
 
     /// <summary>
     /// Returns the tenant slug to use for nav links.
