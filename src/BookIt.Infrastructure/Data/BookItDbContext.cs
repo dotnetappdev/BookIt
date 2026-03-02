@@ -58,6 +58,7 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
     public DbSet<RoomRate> RoomRates => Set<RoomRate>();
     public DbSet<ChatSession> ChatSessions => Set<ChatSession>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<Subscription> Subscriptions => Set<Subscription>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

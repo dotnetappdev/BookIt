@@ -12,11 +12,7 @@
 }
 else
 {
-    <BookIt.UI.Shared.Components.Admin.SubscriptionsView
-        TenantSlug="@TenantSlug"
-        CurrentPlan="SubscriptionPlan.Free"
-        CurrentStatus="SubscriptionStatus.Trialing"
-        TrialEndsAt="@DateTime.UtcNow.AddDays(14)" />
+    <BookIt.UI.Shared.Components.Admin.SubscriptionsView TenantSlug="@TenantSlug" />
 }
 
 @code {

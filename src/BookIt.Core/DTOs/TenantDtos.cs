@@ -199,3 +199,27 @@ public class DemoDataStatusResponse
 {
     public bool HasDemoData { get; set; }
 }
+
+public class SubscriptionResponse
+{
+    public Guid Id { get; set; }
+    public SubscriptionPlan Plan { get; set; }
+    public SubscriptionStatus Status { get; set; }
+    public PaymentProvider? PaymentProvider { get; set; }
+    public string? ProviderSubscriptionId { get; set; }
+    public decimal MonthlyPrice { get; set; }
+    public string Currency { get; set; } = "GBP";
+    public DateTime? TrialEndsAt { get; set; }
+    public DateTime? CurrentPeriodStart { get; set; }
+    public DateTime? CurrentPeriodEnd { get; set; }
+    public DateTime? CancelledAt { get; set; }
+    public bool CancelAtPeriodEnd { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class SelectPlanRequest
+{
+    public SubscriptionPlan Plan { get; set; }
+    public PaymentProvider? PaymentProvider { get; set; }
+    public string? Currency { get; set; }
+}

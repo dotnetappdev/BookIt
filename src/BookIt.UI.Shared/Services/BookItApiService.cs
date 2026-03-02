@@ -276,6 +276,16 @@ public class BookItApiService
     public Task<bool> ClearTenantDemoDataAsync(string slug) =>
         PostBoolAsync($"/api/tenants/{slug}/demo-data/clear", new { });
 
+    // ── Subscriptions ──
+    public Task<List<SubscriptionResponse>?> GetSubscriptionsAsync(string slug) =>
+        GetAsync<List<SubscriptionResponse>>($"/api/tenants/{slug}/subscriptions");
+
+    public Task<SubscriptionResponse?> GetCurrentSubscriptionAsync(string slug) =>
+        GetAsync<SubscriptionResponse>($"/api/tenants/{slug}/subscriptions/current");
+
+    public Task<SubscriptionResponse?> SelectPlanAsync(string slug, SelectPlanRequest req) =>
+        PostAsync<SubscriptionResponse>($"/api/tenants/{slug}/subscriptions/select", req);
+
     // ── Email Templates ──
     public Task<List<EmailTemplateResponse>?> GetEmailTemplatesAsync(string slug) =>
         GetAsync<List<EmailTemplateResponse>>($"/api/tenants/{slug}/email-templates");
