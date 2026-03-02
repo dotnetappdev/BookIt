@@ -101,6 +101,40 @@ public class BookItApiClient
         return JsonSerializer.Deserialize<List<AppointmentResponse>>(content, _jsonOptions) ?? new();
     }
 
+    public async Task<bool> CancelAppointmentAsync(string tenantSlug, Guid id, string? reason = null)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(reason);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/appointments/{id}/cancel",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> ApproveAppointmentAsync(string tenantSlug, Guid id)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/appointments/{id}/approve",
+            new StringContent("", Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> ConfirmAppointmentAsync(string tenantSlug, Guid id)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/appointments/{id}/confirm",
+            new StringContent("", Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeclineAppointmentAsync(string tenantSlug, Guid id, string? reason = null)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(new { reason });
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/appointments/{id}/decline",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<TenantResponse?> UpdateTenantAsync(string slug, UpdateTenantRequest request)
     {
         SetAuthHeader();
@@ -218,6 +252,17 @@ public class BookItApiClient
         SetAuthHeader();
         var json = JsonSerializer.Serialize(request);
         var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/booking-forms",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<BookingFormResponse>(content, _jsonOptions);
+    }
+
+    public async Task<BookingFormResponse?> UpdateFormAsync(string tenantSlug, Guid formId, UpdateBookingFormRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PutAsync($"/api/tenants/{tenantSlug}/booking-forms/{formId}",
             new StringContent(json, Encoding.UTF8, "application/json"));
         if (!response.IsSuccessStatusCode) return null;
         var content = await response.Content.ReadAsStringAsync();
@@ -393,6 +438,105 @@ public class BookItApiClient
     {
         SetAuthHeader();
         var response = await _httpClient.DeleteAsync($"/api/tenants/{tenantSlug}/class-sessions/{sessionId}");
+        return response.IsSuccessStatusCode;
+    }
+
+    // ── Lodging Properties ──
+
+    public async Task<List<LodgingPropertyResponse>> GetPropertiesAsync(string tenantSlug)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/lodging/properties");
+        if (!response.IsSuccessStatusCode) return new();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<LodgingPropertyResponse>>(content, _jsonOptions) ?? new();
+    }
+
+    public async Task<LodgingPropertyResponse?> CreatePropertyAsync(string tenantSlug, CreateLodgingPropertyRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/lodging/properties",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode) return null;
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<LodgingPropertyResponse>(content, _jsonOptions);
+    }
+
+    public async Task<bool> UpdatePropertyAsync(string tenantSlug, Guid propertyId, CreateLodgingPropertyRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PutAsync($"/api/tenants/{tenantSlug}/lodging/properties/{propertyId}",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeletePropertyAsync(string tenantSlug, Guid propertyId)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.DeleteAsync($"/api/tenants/{tenantSlug}/lodging/properties/{propertyId}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> AddPropertyPhotoAsync(string tenantSlug, Guid propertyId, AddPropertyPhotoRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/lodging/properties/{propertyId}/photos",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeletePropertyPhotoAsync(string tenantSlug, Guid propertyId, Guid photoId)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.DeleteAsync($"/api/tenants/{tenantSlug}/lodging/properties/{propertyId}/photos/{photoId}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> AssignPropertyAmenitiesAsync(string tenantSlug, Guid propertyId, List<Guid> amenityIds)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(new AssignPropertyAmenitiesRequest { AmenityIds = amenityIds });
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/lodging/properties/{propertyId}/amenities",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<List<AmenityResponse>> GetAmenitiesAsync(string tenantSlug)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.GetAsync($"/api/tenants/{tenantSlug}/lodging/amenities");
+        if (!response.IsSuccessStatusCode) return new();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<AmenityResponse>>(content, _jsonOptions) ?? new();
+    }
+
+    public async Task<List<RoomResponse>> GetRoomsAsync(string tenantSlug, Guid? propertyId = null)
+    {
+        SetAuthHeader();
+        var url = $"/api/tenants/{tenantSlug}/lodging/rooms";
+        if (propertyId.HasValue) url += $"?propertyId={propertyId}";
+        var response = await _httpClient.GetAsync(url);
+        if (!response.IsSuccessStatusCode) return new();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<RoomResponse>>(content, _jsonOptions) ?? new();
+    }
+
+    public async Task<bool> AddRoomPhotoAsync(string tenantSlug, Guid roomId, AddRoomPhotoRequest request)
+    {
+        SetAuthHeader();
+        var json = JsonSerializer.Serialize(request);
+        var response = await _httpClient.PostAsync($"/api/tenants/{tenantSlug}/lodging/rooms/{roomId}/photos",
+            new StringContent(json, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteRoomPhotoAsync(string tenantSlug, Guid roomId, Guid photoId)
+    {
+        SetAuthHeader();
+        var response = await _httpClient.DeleteAsync($"/api/tenants/{tenantSlug}/lodging/rooms/{roomId}/photos/{photoId}");
         return response.IsSuccessStatusCode;
     }
 }

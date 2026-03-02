@@ -19,10 +19,10 @@ else
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
             <div>
                 <MudText Typo="Typo.h5" Class="fw-bold">Interview Scheduling</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary">Manage slots and candidate invitations</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Manage candidate invitations and interview slots</MudText>
             </div>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
-                       OnClick="@(() => _showCreateSlot = true)">Add Slot</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
+                       OnClick="OpenCreateDialog">New Interview</MudButton>
         </MudStack>
 
         @if (_loading)
@@ -31,187 +31,280 @@ else
         }
         else
         {
-            <MudGrid>
-                <MudItem xs="12" lg="6">
-                    <MudCard Elevation="1">
-                        <MudCardHeader>
-                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.Schedule" Color="Color.Primary" /></CardHeaderAvatar>
-                            <CardHeaderContent><MudText Typo="Typo.h6">Interview Slots</MudText></CardHeaderContent>
-                        </MudCardHeader>
-                        <MudCardContent>
-                            @if (!_slots.Any())
+            <MudDataGrid T="CandidateInvitationResponse" Items="@_invitations" Filterable="false"
+                         SortMode="SortMode.Single" QuickFilter="@QuickFilter" Hover="true"
+                         Bordered="true" Dense="true" Elevation="1">
+                <ToolBarContent>
+                    <MudText Typo="Typo.subtitle1" Class="fw-semibold">Candidates</MudText>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="_searchText" Placeholder="Search by name, email or position…"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium" Class="mt-0 me-2" Style="max-width:320px;" Immediate="true" />
+                </ToolBarContent>
+                <Columns>
+                    <TemplateColumn Title="Candidate" Sortable="false">
+                        <CellTemplate>
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.body2" Class="fw-semibold">@context.Item.CandidateName</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Item.CandidateEmail</MudText>
+                                @if (!string.IsNullOrEmpty(context.Item.CandidatePhone))
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Item.CandidatePhone</MudText>
+                                }
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.PositionName" Title="Position" />
+                    <TemplateColumn Title="Status" Sortable="false">
+                        <CellTemplate>
+                            @if (context.Item.IsUsed)
                             {
-                                <MudText Typo="Typo.body2" Color="Color.Secondary">No slots created yet.</MudText>
+                                <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.CheckCircle">Booked</MudChip>
+                            }
+                            else if (context.Item.ExpiresAt < DateTime.UtcNow)
+                            {
+                                <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Cancel">Expired</MudChip>
                             }
                             else
                             {
-                                <MudList T="InterviewSlotResponse" Dense="true">
-                                    @foreach (var slot in _slots)
-                                    {
-                                        <MudListItem T="InterviewSlotResponse" Value="slot">
-                                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                                                <MudStack Spacing="0">
-                                                    <MudText Typo="Typo.body2" Class="fw-semibold">
-                                                        @slot.SlotStart.ToString("ddd d MMM, h:mm tt")
-                                                    </MudText>
-                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                                        @slot.InterviewerName · @(slot.IsBooked ? "Booked" : "Available")
-                                                        @if (slot.VideoConferenceProvider != VideoConferenceProvider.None)
-                                                        {
-                                                            <span> · @VcLabel(slot.VideoConferenceProvider)</span>
-                                                        }
-                                                    </MudText>
-                                                    @if (!string.IsNullOrEmpty(slot.ConferenceMeetingId))
-                                                    {
-                                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                                            Meeting ID: @slot.ConferenceMeetingId
-                                                            @if (!string.IsNullOrEmpty(slot.ConferencePassword)) { <text> · Pass: @slot.ConferencePassword</text> }
-                                                        </MudText>
-                                                    }
-                                                    @if (!string.IsNullOrEmpty(slot.MeetingLink))
-                                                    {
-                                                        <MudText Typo="Typo.caption">
-                                                            <a href="@slot.MeetingLink" target="_blank" style="color:var(--mud-palette-primary);">Join link</a>
-                                                        </MudText>
-                                                    }
-                                                </MudStack>
-                                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
-                                                               Color="Color.Error" OnClick="@(() => DeleteSlot(slot))" />
-                                            </MudStack>
-                                        </MudListItem>
-                                        <MudDivider />
-                                    }
-                                </MudList>
+                                <MudChip T="string" Color="Color.Warning" Size="Size.Small" Icon="@Icons.Material.Filled.HourglassEmpty">Pending</MudChip>
                             }
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="12" lg="6">
-                    <MudCard Elevation="1">
-                        <MudCardHeader>
-                            <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.Email" Color="Color.Primary" /></CardHeaderAvatar>
-                            <CardHeaderContent><MudText Typo="Typo.h6">Candidate Invitations</MudText></CardHeaderContent>
-                        </MudCardHeader>
-                        <MudCardContent>
-                            @if (!_invitations.Any())
-                            {
-                                <MudText Typo="Typo.body2" Color="Color.Secondary">No invitations sent yet.</MudText>
-                            }
-                            else
-                            {
-                                <MudList T="CandidateInvitationResponse" Dense="true">
-                                    @foreach (var inv in _invitations)
-                                    {
-                                        <MudListItem T="CandidateInvitationResponse" Value="inv">
-                                            <MudStack Spacing="0">
-                                                <MudText Typo="Typo.body2" Class="fw-semibold">@inv.CandidateEmail</MudText>
-                                                <MudText Typo="Typo.caption" Color="Color.Secondary">@inv.CandidateName</MudText>
-                                            </MudStack>
-                                        </MudListItem>
-                                        <MudDivider />
-                                    }
-                                </MudList>
-                            }
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-            </MudGrid>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Expires" Sortable="false">
+                        <CellTemplate>
+                            <MudText Typo="Typo.body2">@context.Item.ExpiresAt.ToLocalTime().ToString("d MMM yyyy")</MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Actions" Sortable="false" Filterable="false">
+                        <CellTemplate>
+                            <MudStack Row="true" Spacing="0">
+                                <MudTooltip Text="Edit">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                                   OnClick="@(() => OpenEditDialog(context.Item))" />
+                                </MudTooltip>
+                                <MudTooltip Text="Resend invite email">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Email" Size="Size.Small" Color="Color.Secondary"
+                                                   OnClick="@(() => ResendInvitation(context.Item))" Disabled="_sending" />
+                                </MudTooltip>
+                                <MudTooltip Text="Delete">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                   OnClick="@(() => DeleteInvitation(context.Item))" />
+                                </MudTooltip>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <NoRecordsContent>
+                    <MudStack AlignItems="AlignItems.Center" Class="py-8">
+                        <MudIcon Icon="@Icons.Material.Filled.PeopleAlt" Color="Color.Secondary" Style="font-size:3rem;opacity:.3;" />
+                        <MudText Color="Color.Secondary">No invitations yet. Click "New Interview" to get started.</MudText>
+                    </MudStack>
+                </NoRecordsContent>
+            </MudDataGrid>
         }
     </MudStack>
 }
 
-<!-- Create Slot Dialog -->
-<MudDialog @bind-Visible="_showCreateSlot" Options="_dialogOptions">
+<!-- ─── Create / Edit Dialog ─── -->
+<MudDialog @bind-Visible="_showDialog" Options="_dialogOptions">
     <TitleContent>
-        <MudText Typo="Typo.h6" Style="font-weight:700;">Add Interview Slot</MudText>
+        <MudText Typo="Typo.h6" Style="font-weight:700;">
+            <MudIcon Icon="@(_editingId == null ? Icons.Material.Filled.PersonAdd : Icons.Material.Filled.Edit)" Class="me-2" />
+            @(_editingId == null ? "New Interview" : "Edit Interview")
+        </MudText>
     </TitleContent>
     <DialogContent>
-        <MudForm @ref="_mudForm" @bind-IsValid="_formValid">
-        <MudGrid Spacing="2">
-            <MudItem xs="12" sm="6">
-                <MudDatePicker @bind-Date="_slotDate" Label="Slot Date" Required="true" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudTimePicker @bind-Time="_slotTime" Label="Slot Time" Required="true" AmPm="true" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudNumericField @bind-Value="_durationMinutes" Label="Duration (minutes)" Min="15" Max="480" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_interviewerName" Label="Interviewer Name" Required="true"
-                              RequiredError="Interviewer name is required." MaxLength="200" Immediate="true"
-                              Validation="@((string v) => string.IsNullOrWhiteSpace(v) ? "Interviewer name is required." : null)" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_location" Label="Physical Location (optional)"
-                              MaxLength="500"
-                              HelperText="e.g. Room 3A, Head Office, etc." />
-            </MudItem>
+        <MudTabs Elevation="0" Rounded="true">
 
-            <MudItem xs="12">
-                <MudDivider />
-                <MudText Typo="Typo.subtitle2" Class="mt-3 mb-2" Style="font-weight:700;">
-                    <MudIcon Icon="@Icons.Material.Filled.VideoCall" Size="Size.Small" Style="vertical-align:middle;margin-right:4px;" />
-                    Video Conference
-                </MudText>
-            </MudItem>
+            <!-- TAB 1: Candidate details -->
+            <MudTabPanel Text="Candidate" Icon="@Icons.Material.Filled.Person">
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_candidateName" Label="Candidate Name" Required="true"
+                                      MaxLength="200" Immediate="true"
+                                      Validation="@((string v) => string.IsNullOrWhiteSpace(v) ? "Required" : null)" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_candidateEmail" Label="Email" Required="true"
+                                      InputType="InputType.Email" MaxLength="254" Immediate="true"
+                                      Validation="@((string v) => string.IsNullOrWhiteSpace(v) ? "Required" : null)" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_candidatePhone" Label="Phone (optional)"
+                                      InputType="InputType.Telephone" MaxLength="30" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect @bind-Value="_serviceId" Label="Position" Required="true">
+                            @foreach (var svc in _services)
+                            {
+                                <MudSelectItem Value="svc.Id">@svc.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudTabPanel>
 
-            <MudItem xs="12">
-                <MudSelect @bind-Value="_vcProvider" Label="Video Conference Provider">
-                    @foreach (VideoConferenceProvider p in Enum.GetValues<VideoConferenceProvider>())
+            <!-- TAB 2: Interview Slots -->
+            <MudTabPanel Text="Interview Slots" Icon="@Icons.Material.Filled.Schedule">
+                <MudStack Spacing="2">
+                    @if (!_dialogSlots.Any())
                     {
-                        <MudSelectItem Value="p">@VcLabel(p)</MudSelectItem>
+                        <MudAlert Severity="Severity.Info" Dense="true">
+                            No slots added yet. Add at least one so the candidate can pick a time.
+                        </MudAlert>
                     }
-                </MudSelect>
-            </MudItem>
+                    else
+                    {
+                        @foreach (var slot in _dialogSlots)
+                        {
+                            <MudCard Elevation="0" Outlined="true">
+                                <MudCardContent Class="py-2 px-3">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                        <MudStack Spacing="0">
+                                            <MudText Typo="Typo.body2" Class="fw-semibold">
+                                                @slot.SlotStart.ToString("ddd d MMM, h:mm tt")
+                                            </MudText>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                @slot.InterviewerName · @slot.DurationMinutes min
+                                                @if (!string.IsNullOrEmpty(slot.Location)) { <text> · @slot.Location</text> }
+                                                @if (slot.VcProvider != VideoConferenceProvider.None)
+                                                { <text> · @VcLabel(slot.VcProvider)</text> }
+                                            </MudText>
+                                        </MudStack>
+                                        @if (!slot.IsPersisted)
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                           Color="Color.Error" OnClick="@(() => _dialogSlots.Remove(slot))" />
+                                        }
+                                    </MudStack>
+                                </MudCardContent>
+                            </MudCard>
+                        }
+                    }
 
-            @if (_vcProvider != VideoConferenceProvider.None)
-            {
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_meetingLink" Label="Meeting / Join URL"
-                                  HelperText="The URL candidates will use to join the video call"
-                                  MaxLength="2000"
-                                  Validation="@((string v) => ValidateOptionalUrl(v))"
-                                  InputType="InputType.Url" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_conferenceMeetingId" Label="Meeting ID" MaxLength="200" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_conferencePassword" Label="Meeting Password / PIN" MaxLength="200" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_conferenceHostUrl" Label="Host URL (admin only)"
-                                  MaxLength="2000"
-                                  Validation="@((string v) => ValidateOptionalUrl(v))" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_conferenceDialIn" Label="Dial-In Number (optional)"
-                                  MaxLength="50"
-                                  HelperText="Phone number for candidates who can't join by video" />
-                </MudItem>
-            }
-        </MudGrid>
-        </MudForm>
+                    <MudButton StartIcon="@(_showAddSlotPanel ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.Add)"
+                               Variant="Variant.Outlined" Size="Size.Small"
+                               OnClick="@(() => _showAddSlotPanel = !_showAddSlotPanel)">
+                        @(_showAddSlotPanel ? "Hide" : "Add Slot")
+                    </MudButton>
+
+                    @if (_showAddSlotPanel)
+                    {
+                        <MudCard Elevation="0" Outlined="true" Class="mt-1">
+                            <MudCardContent>
+                                <MudGrid Spacing="2">
+                                    <MudItem xs="12" sm="6">
+                                        <MudDatePicker @bind-Date="_slotDate" Label="Date" Required="true" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudTimePicker @bind-Time="_slotTime" Label="Time" Required="true" AmPm="true" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="4">
+                                        <MudNumericField @bind-Value="_durationMinutes" Label="Duration (min)" Min="15" Max="480" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="8">
+                                        <MudTextField @bind-Value="_interviewerName" Label="Interviewer Name" MaxLength="200" />
+                                    </MudItem>
+                                    <MudItem xs="12">
+                                        <MudTextField @bind-Value="_location" Label="Location (optional)" MaxLength="500"
+                                                      HelperText="e.g. Room 3A, Head Office, etc." />
+                                    </MudItem>
+                                    <MudItem xs="12">
+                                        <MudSelect @bind-Value="_vcProvider" Label="Video Conference">
+                                            @foreach (VideoConferenceProvider p in Enum.GetValues<VideoConferenceProvider>())
+                                            {
+                                                <MudSelectItem Value="p">@VcLabel(p)</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                    @if (_vcProvider != VideoConferenceProvider.None)
+                                    {
+                                        <MudItem xs="12">
+                                            <MudTextField @bind-Value="_meetingLink" Label="Meeting URL"
+                                                          InputType="InputType.Url" MaxLength="2000"
+                                                          Validation="@((string v) => ValidateOptionalUrl(v))" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="6">
+                                            <MudTextField @bind-Value="_conferenceMeetingId" Label="Meeting ID" MaxLength="200" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="6">
+                                            <MudTextField @bind-Value="_conferencePassword" Label="Password / PIN" MaxLength="200" />
+                                        </MudItem>
+                                    }
+                                    <MudItem xs="12">
+                                        <MudStack Row="true" Justify="Justify.FlexEnd">
+                                            <MudButton Size="Size.Small" Variant="Variant.Outlined"
+                                                       OnClick="@(() => _showAddSlotPanel = false)">Cancel</MudButton>
+                                            <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
+                                                       OnClick="AddSlotToDialog">Add Slot</MudButton>
+                                        </MudStack>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudCardContent>
+                        </MudCard>
+                    }
+                </MudStack>
+            </MudTabPanel>
+        </MudTabs>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="@(() => _showCreateSlot = false)">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateSlot" Disabled="_saving">
-            @(_saving ? "Saving…" : "Create Slot")
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveDialog" Disabled="_saving">
+            @(_saving ? "Saving…" : (_editingId == null ? "Create" : "Save"))
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- ─── Send Email Prompt Dialog ─── -->
+<MudDialog @bind-Visible="_showSendEmailPrompt"
+           Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.MarkEmailUnread" Class="me-2" />Send Invite Email?
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>
+            Would you like to send an interview invite email to
+            <strong>@_pendingSendName</strong> at <em>@_pendingSendEmail</em> now?
+        </MudText>
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+            The email includes a personalized link for the candidate to choose a slot.
+        </MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showSendEmailPrompt = false)">Skip for now</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ConfirmSendEmail" Disabled="_sending">
+            <MudIcon Icon="@Icons.Material.Filled.Send" Class="me-1" />
+            @(_sending ? "Sending…" : "Send Email")
         </MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [Parameter] public string TenantSlug { get; set; } = "";
-    private List<InterviewSlotResponse> _slots = new();
-    private List<CandidateInvitationResponse> _invitations = new();
-    private bool _loading = true;
 
-    private bool _showCreateSlot;
+    // ── Data ──
+    private List<CandidateInvitationResponse> _invitations = new();
+    private List<ServiceResponse> _services = new();
+    private bool _loading = true;
+    private string _searchText = "";
+
+    // ── Dialog state ──
+    private bool _showDialog;
     private bool _saving;
-    private bool _formValid;
-    private MudForm? _mudForm;
+    private Guid? _editingId;         // null = create mode
+
+    // Candidate fields
+    private string _candidateName = "";
+    private string _candidateEmail = "";
+    private string? _candidatePhone;
+    private Guid _serviceId;
+
+    // Slot management inside dialog
+    private List<PendingSlot> _dialogSlots = new();
+    private bool _showAddSlotPanel;
     private DateTime? _slotDate = DateTime.Today.AddDays(1);
     private TimeSpan? _slotTime = new TimeSpan(10, 0, 0);
     private int _durationMinutes = 60;
@@ -221,14 +314,13 @@ else
     private VideoConferenceProvider _vcProvider = VideoConferenceProvider.None;
     private string? _conferenceMeetingId;
     private string? _conferencePassword;
-    private string? _conferenceHostUrl;
-    private string? _conferenceDialIn;
 
-    private static string? ValidateOptionalUrl(string? v)
-    {
-        if (string.IsNullOrWhiteSpace(v)) return null;
-        return Uri.TryCreate(v, UriKind.Absolute, out _) ? null : "Must be a valid URL (https://…).";
-    }
+    // ── Send-email prompt ──
+    private bool _showSendEmailPrompt;
+    private bool _sending;
+    private Guid _pendingSendId;
+    private string _pendingSendName = "";
+    private string _pendingSendEmail = "";
 
     private readonly DialogOptions _dialogOptions = new()
     {
@@ -236,6 +328,12 @@ else
         FullWidth = true,
         CloseOnEscapeKey = true
     };
+
+    private Func<CandidateInvitationResponse, bool> QuickFilter => x =>
+        string.IsNullOrWhiteSpace(_searchText) ||
+        x.CandidateName.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+        x.CandidateEmail.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+        x.PositionName.Contains(_searchText, StringComparison.OrdinalIgnoreCase);
 
     protected override void OnInitialized()
     {
@@ -247,55 +345,192 @@ else
     {
         if (!firstRender || !Auth.IsAuthenticated) return;
         Api.SetToken(Auth.AccessToken);
-        _slots = await Api.GetInterviewSlotsAsync(TenantSlug) ?? new();
-        _invitations = await Api.GetInterviewInvitationsAsync(TenantSlug) ?? new();
+        await LoadDataAsync();
         _loading = false;
         StateHasChanged();
     }
 
-    private async Task CreateSlot()
+    private async Task LoadDataAsync()
     {
-        if (_mudForm != null) await _mudForm.Validate();
-        if (!_formValid) return;
-        if (_slotDate == null || _slotTime == null)
+        _invitations = await Api.GetInterviewInvitationsAsync(TenantSlug) ?? new();
+        _services = await Api.GetServicesAsync(TenantSlug) ?? new();
+    }
+
+    // ── Dialog helpers ──
+
+    private void OpenCreateDialog()
+    {
+        if (!_services.Any())
         {
-            Snackbar.Add("Slot date and time are required.", Severity.Warning);
+            Snackbar.Add("No positions found. Please create a service/position first.", Severity.Warning);
             return;
         }
-        // Sanitize
-        _interviewerName = _interviewerName.Trim();
-        _saving = true;
+        _editingId = null;
+        _candidateName = "";
+        _candidateEmail = "";
+        _candidatePhone = null;
+        _serviceId = _services.First().Id;
+        _dialogSlots = new();
+        _showAddSlotPanel = false;
+        ResetSlotFields();
+        _showDialog = true;
+    }
+
+    private async Task OpenEditDialog(CandidateInvitationResponse inv)
+    {
+        _editingId = inv.Id;
+        _candidateName = inv.CandidateName;
+        _candidateEmail = inv.CandidateEmail;
+        _candidatePhone = inv.CandidatePhone;
+        _serviceId = inv.ServiceId;
+        // Load existing slots for this position
         Api.SetToken(Auth.AccessToken);
-        var slotStart = _slotDate.Value.Date + _slotTime.Value;
-        var req = new CreateInterviewSlotRequest
+        var allSlots = await Api.GetAdminInterviewSlotsAsync(TenantSlug, inv.ServiceId) ?? new();
+        _dialogSlots = allSlots.Select(s => new PendingSlot
         {
-            InterviewerName = _interviewerName,
-            SlotStart = slotStart,
+            SlotStart = s.SlotStart,
+            DurationMinutes = (int)Math.Round((s.SlotEnd - s.SlotStart).TotalMinutes),
+            InterviewerName = s.InterviewerName,
+            Location = s.Location,
+            VcProvider = s.VideoConferenceProvider,
+            MeetingLink = s.MeetingLink,
+            IsPersisted = true,
+            PersistedId = s.Id
+        }).ToList();
+        _showAddSlotPanel = false;
+        ResetSlotFields();
+        _showDialog = true;
+    }
+
+    private void CloseDialog() => _showDialog = false;
+
+    private void AddSlotToDialog()
+    {
+        if (_slotDate == null || _slotTime == null)
+        {
+            Snackbar.Add("Please select a date and time for the slot.", Severity.Warning);
+            return;
+        }
+        _dialogSlots.Add(new PendingSlot
+        {
+            SlotStart = _slotDate.Value.Date + _slotTime.Value,
             DurationMinutes = _durationMinutes,
+            InterviewerName = string.IsNullOrWhiteSpace(_interviewerName) ? "(Not Assigned)" : _interviewerName.Trim(),
             Location = _location,
-            MeetingLink = _vcProvider != VideoConferenceProvider.None ? _meetingLink : null,
-            VideoConferenceProvider = _vcProvider,
+            VcProvider = _vcProvider,
+            MeetingLink = _meetingLink,
             ConferenceMeetingId = _conferenceMeetingId,
             ConferencePassword = _conferencePassword,
-            ConferenceHostUrl = _conferenceHostUrl,
-            ConferenceDialIn = _conferenceDialIn
-        };
-        var created = await Api.CreateInterviewSlotAsync(TenantSlug, req);
-        if (created != null)
+            IsPersisted = false
+        });
+        ResetSlotFields();
+        _showAddSlotPanel = false;
+    }
+
+    private async Task SaveDialog()
+    {
+        if (string.IsNullOrWhiteSpace(_candidateName) || string.IsNullOrWhiteSpace(_candidateEmail) || _serviceId == Guid.Empty)
         {
-            _slots.Insert(0, created);
-            _showCreateSlot = false;
-            ResetSlotForm();
-            Snackbar.Add("Slot created.", Severity.Success);
+            Snackbar.Add("Please fill in all required fields.", Severity.Warning);
+            return;
+        }
+        _saving = true;
+        Api.SetToken(Auth.AccessToken);
+
+        // Persist any new slots first
+        foreach (var slot in _dialogSlots.Where(s => !s.IsPersisted))
+        {
+            var req = new CreateInterviewSlotRequest
+            {
+                ServiceId = _serviceId,
+                InterviewerName = slot.InterviewerName,
+                SlotStart = slot.SlotStart,
+                DurationMinutes = slot.DurationMinutes,
+                Location = slot.Location,
+                MeetingLink = slot.VcProvider != VideoConferenceProvider.None ? slot.MeetingLink : null,
+                VideoConferenceProvider = slot.VcProvider,
+                ConferenceMeetingId = slot.ConferenceMeetingId,
+                ConferencePassword = slot.ConferencePassword
+            };
+            var created = await Api.CreateInterviewSlotAsync(TenantSlug, req);
+            if (created != null) slot.IsPersisted = true;
+        }
+
+        if (_editingId == null)
+        {
+            // Create new invitation (no email yet)
+            var invReq = new SendInvitationRequest
+            {
+                ServiceId = _serviceId,
+                CandidateName = _candidateName.Trim(),
+                CandidateEmail = _candidateEmail.Trim(),
+                CandidatePhone = _candidatePhone
+            };
+            var created = await Api.CreateInvitationAsync(TenantSlug, invReq);
+            if (created != null)
+            {
+                _invitations.Insert(0, created);
+                _showDialog = false;
+                _saving = false;
+                // Prompt to send email
+                _pendingSendId = created.Id;
+                _pendingSendName = created.CandidateName;
+                _pendingSendEmail = created.CandidateEmail;
+                _showSendEmailPrompt = true;
+            }
+            else
+            {
+                Snackbar.Add("Failed to create invitation.", Severity.Error);
+                _saving = false;
+            }
         }
         else
         {
-            Snackbar.Add("Failed to create slot.", Severity.Error);
+            // For edit — reload list to reflect any slot changes
+            await LoadDataAsync();
+            _showDialog = false;
+            _saving = false;
+            Snackbar.Add("Interview updated.", Severity.Success);
         }
-        _saving = false;
     }
 
-    private void ResetSlotForm()
+    private async Task ResendInvitation(CandidateInvitationResponse inv)
+    {
+        _sending = true;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.SendInviteEmailAsync(TenantSlug, inv.Id);
+        Snackbar.Add(ok ? $"Invite email resent to {inv.CandidateEmail}." : "Failed to resend email.",
+                     ok ? Severity.Success : Severity.Error);
+        _sending = false;
+    }
+
+    private async Task ConfirmSendEmail()
+    {
+        _sending = true;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.SendInviteEmailAsync(TenantSlug, _pendingSendId);
+        Snackbar.Add(ok ? $"Invite email sent to {_pendingSendEmail}." : "Failed to send email.",
+                     ok ? Severity.Success : Severity.Error);
+        _sending = false;
+        _showSendEmailPrompt = false;
+    }
+
+    private async Task DeleteInvitation(CandidateInvitationResponse inv)
+    {
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteInvitationAsync(TenantSlug, inv.Id);
+        if (ok)
+        {
+            _invitations.Remove(inv);
+            Snackbar.Add("Invitation removed.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Failed to delete invitation.", Severity.Error);
+        }
+    }
+
+    private void ResetSlotFields()
     {
         _slotDate = DateTime.Today.AddDays(1);
         _slotTime = new TimeSpan(10, 0, 0);
@@ -306,16 +541,12 @@ else
         _vcProvider = VideoConferenceProvider.None;
         _conferenceMeetingId = null;
         _conferencePassword = null;
-        _conferenceHostUrl = null;
-        _conferenceDialIn = null;
     }
 
-    private async Task DeleteSlot(InterviewSlotResponse slot)
+    private static string? ValidateOptionalUrl(string? v)
     {
-        Api.SetToken(Auth.AccessToken);
-        await Api.DeleteInterviewSlotAsync(TenantSlug, slot.Id);
-        _slots.Remove(slot);
-        Snackbar.Add("Slot removed.", Severity.Success);
+        if (string.IsNullOrWhiteSpace(v)) return null;
+        return Uri.TryCreate(v, UriKind.Absolute, out _) ? null : "Must be a valid URL (https://…).";
     }
 
     private static string VcLabel(VideoConferenceProvider p) => p switch
@@ -330,5 +561,19 @@ else
         VideoConferenceProvider.Other => "Other",
         _ => "None"
     };
-}
 
+    // Local helper model for pending slots inside dialog
+    private class PendingSlot
+    {
+        public DateTime SlotStart { get; set; }
+        public int DurationMinutes { get; set; } = 60;
+        public string InterviewerName { get; set; } = "";
+        public string? Location { get; set; }
+        public VideoConferenceProvider VcProvider { get; set; } = VideoConferenceProvider.None;
+        public string? MeetingLink { get; set; }
+        public string? ConferenceMeetingId { get; set; }
+        public string? ConferencePassword { get; set; }
+        public bool IsPersisted { get; set; }
+        public Guid? PersistedId { get; set; }
+    }
+}

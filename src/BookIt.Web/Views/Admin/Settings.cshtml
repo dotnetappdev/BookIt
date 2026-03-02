@@ -35,9 +35,14 @@
                                     var btOptions = string.Join("", Enum.GetValues<BusinessType>().Select(t =>
                                         $"<option value=\"{(int)t}\"{(Model.BusinessType == t ? " selected" : "")}>{t}</option>"));
                                 }
-                                <select class="form-select" id="settingsType" name="BusinessType">
+                                <select class="form-select" id="settingsType" name="BusinessType" onchange="toggleCustomBusinessType(this.value)">
                                     @Html.Raw(btOptions)
                                 </select>
+                            </div>
+                            <div class="col-md-4" id="customBusinessTypeRow" style="@(Model.BusinessType == BusinessType.Other ? "" : "display:none;")">
+                                <label for="settingsCustomType" class="form-label fw-semibold">Custom Type Name</label>
+                                <input type="text" class="form-control" id="settingsCustomType" name="CustomBusinessType"
+                                       value="@Model.CustomBusinessType" placeholder="e.g. Yoga Studio, Dog Groomer…" maxlength="200" />
                             </div>
                             <div class="col-md-6">
                                 <label for="settingsEmail" class="form-label fw-semibold">Contact Email</label>
@@ -292,6 +297,8 @@
 
 @section Scripts {
 <script>
+const BUSINESS_TYPE_OTHER = @((int)BusinessType.Other);
+
 function toggleStripe(el) {
     document.getElementById('stripeFields').classList.toggle('d-none', !el.checked);
 }
@@ -301,6 +308,10 @@ function togglePayPal(el) {
 function copyUrl() {
     const url = document.getElementById('bookingUrl').value;
     navigator.clipboard.writeText(url).then(() => alert('URL copied!'));
+}
+function toggleCustomBusinessType(value) {
+    const row = document.getElementById('customBusinessTypeRow');
+    if (row) row.style.display = (parseInt(value) === BUSINESS_TYPE_OTHER) ? '' : 'none';
 }
 
 document.getElementById('primaryColorPicker').addEventListener('input', function() {

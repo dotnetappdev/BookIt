@@ -9,6 +9,7 @@ public class BookingFormResponse
     public string? Description { get; set; }
     public bool IsDefault { get; set; }
     public bool IsActive { get; set; }
+    public FormPublishStatus PublishStatus { get; set; }
     public string? WelcomeMessage { get; set; }
     public string? ConfirmationMessage { get; set; }
     public bool CollectPhone { get; set; }
@@ -37,6 +38,7 @@ public class CreateBookingFormRequest
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsDefault { get; set; }
+    public FormPublishStatus PublishStatus { get; set; } = FormPublishStatus.Draft;
     public string? WelcomeMessage { get; set; }
     public string? ConfirmationMessage { get; set; }
     public bool CollectPhone { get; set; } = true;
@@ -48,6 +50,7 @@ public class UpdateBookingFormRequest
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsDefault { get; set; }
+    public FormPublishStatus PublishStatus { get; set; } = FormPublishStatus.Draft;
     public string? WelcomeMessage { get; set; }
     public string? ConfirmationMessage { get; set; }
     public bool CollectPhone { get; set; }

@@ -18,4 +18,6 @@ public class LodgingProperty : BaseEntity
     public int SortOrder { get; set; }
 
     public ICollection<Room> Rooms { get; set; } = new List<Room>();
+    public ICollection<PropertyPhoto> Photos { get; set; } = new List<PropertyPhoto>();
+    public ICollection<PropertyAmenity> PropertyAmenities { get; set; } = new List<PropertyAmenity>();
 }

@@ -22,6 +22,8 @@ public class LodgingPropertyResponse
     public bool IsActive { get; set; }
     public int SortOrder { get; set; }
     public int RoomCount { get; set; }
+    public List<PropertyPhotoResponse> Photos { get; set; } = new();
+    public List<AmenityResponse> Amenities { get; set; } = new();
 }
 
 public class CreateLodgingPropertyRequest
@@ -123,6 +125,38 @@ public class CreateRoomRequest
     [Range(0, 9999, ErrorMessage = "Sort order must be between 0 and 9999.")]
     public int SortOrder { get; set; }
 
+    public List<Guid> AmenityIds { get; set; } = new();
+}
+
+// ── Property Photos ──
+
+public class PropertyPhotoResponse
+{
+    public Guid Id { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public string? Caption { get; set; }
+    public int SortOrder { get; set; }
+    public bool IsPrimary { get; set; }
+}
+
+public class AddPropertyPhotoRequest
+{
+    [Required(ErrorMessage = "Photo URL is required.")]
+    [Url(ErrorMessage = "Photo URL must be a valid URL.")]
+    [StringLength(2000, ErrorMessage = "Photo URL must not exceed 2000 characters.")]
+    public string Url { get; set; } = string.Empty;
+
+    [StringLength(500, ErrorMessage = "Caption must not exceed 500 characters.")]
+    public string? Caption { get; set; }
+
+    public int SortOrder { get; set; }
+    public bool IsPrimary { get; set; } = false;
+}
+
+// ── Assign amenities to property ──
+
+public class AssignPropertyAmenitiesRequest
+{
     public List<Guid> AmenityIds { get; set; } = new();
 }
 
@@ -235,6 +269,7 @@ public class PublicPropertyListingResponse
     public decimal MaxRate { get; set; }
     public List<string> AmenityNames { get; set; } = new();
     public List<string> AmenityIcons { get; set; } = new();
+    public List<PropertyPhotoResponse> Photos { get; set; } = new();
     public List<RoomListingResponse> Rooms { get; set; } = new();
 }
 

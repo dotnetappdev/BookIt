@@ -1,4 +1,5 @@
 using BookIt.Core.DTOs;
+using BookIt.Core.Enums;
 using BookIt.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -195,6 +196,28 @@ public class AdminController : Controller
         return RedirectToAction("Forms", new { tenantSlug });
     }
 
+    [HttpPost]
+    public async Task<IActionResult> PublishForm(string tenantSlug, Guid formId, FormPublishStatus publishStatus)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        var form = await _apiClient.GetFormAsync(tenantSlug, formId);
+        if (form == null) return NotFound();
+        var request = new UpdateBookingFormRequest
+        {
+            Name = form.Name,
+            Description = form.Description,
+            IsDefault = form.IsDefault,
+            PublishStatus = publishStatus,
+            WelcomeMessage = form.WelcomeMessage,
+            ConfirmationMessage = form.ConfirmationMessage,
+            CollectPhone = form.CollectPhone,
+            CollectNotes = form.CollectNotes
+        };
+        await _apiClient.UpdateFormAsync(tenantSlug, formId, request);
+        TempData["Success"] = $"Form status updated to {publishStatus}.";
+        return RedirectToAction(nameof(FormBuilder), new { tenantSlug, formId });
+    }
+
     public async Task<IActionResult> Customers(string tenantSlug)
     {
         if (!IsAuthenticated()) return RequireAuth(tenantSlug);
@@ -271,6 +294,78 @@ public class AdminController : Controller
 
         ViewBag.Tenant = tenant;
         ViewBag.TenantSlug = tenantSlug;
+        ViewBag.AccessToken = HttpContext.Session.GetString("AccessToken") ?? "";
+        return View();
+    }
+
+    public async Task<IActionResult> Bookings(string tenantSlug)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var appointments = await _apiClient.GetAppointmentsAsync(tenantSlug,
+            from: DateTime.UtcNow.AddYears(-1),
+            to: DateTime.UtcNow.AddYears(1));
+
+        ViewBag.Tenant = tenant;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.Appointments = appointments;
+        ViewBag.AccessToken = HttpContext.Session.GetString("AccessToken") ?? "";
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CancelBooking(string tenantSlug, Guid id)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        await _apiClient.CancelAppointmentAsync(tenantSlug, id);
+        TempData["Success"] = "Booking cancelled.";
+        return RedirectToAction(nameof(Bookings), new { tenantSlug });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ApproveBooking(string tenantSlug, Guid id)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        await _apiClient.ApproveAppointmentAsync(tenantSlug, id);
+        TempData["Success"] = "Booking approved.";
+        return RedirectToAction(nameof(Bookings), new { tenantSlug });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ConfirmBooking(string tenantSlug, Guid id)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        await _apiClient.ConfirmAppointmentAsync(tenantSlug, id);
+        TempData["Success"] = "Booking marked as completed.";
+        return RedirectToAction(nameof(Bookings), new { tenantSlug });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeclineBooking(string tenantSlug, Guid id)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+        await _apiClient.DeclineAppointmentAsync(tenantSlug, id);
+        TempData["Success"] = "Booking declined.";
+        return RedirectToAction(nameof(Bookings), new { tenantSlug });
+    }
+
+    public async Task<IActionResult> Rooms(string tenantSlug)
+    {
+        if (!IsAuthenticated()) return RequireAuth(tenantSlug);
+
+        var tenant = await _apiClient.GetTenantAsync(tenantSlug);
+        if (tenant == null) return NotFound();
+
+        var properties = await _apiClient.GetPropertiesAsync(tenantSlug);
+        var amenities = await _apiClient.GetAmenitiesAsync(tenantSlug);
+
+        ViewBag.Tenant = tenant;
+        ViewBag.TenantSlug = tenantSlug;
+        ViewBag.Properties = properties;
+        ViewBag.Amenities = amenities;
         ViewBag.AccessToken = HttpContext.Session.GetString("AccessToken") ?? "";
         return View();
     }

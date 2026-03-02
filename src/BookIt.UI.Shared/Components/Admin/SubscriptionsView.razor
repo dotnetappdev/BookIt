@@ -1,4 +1,9 @@
 @using BookIt.Core
+@using BookIt.Core.DTOs
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
 
 <MudStack>
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
@@ -8,109 +13,208 @@
         </div>
     </MudStack>
 
-    <!-- Current Plan Banner -->
-    <MudCard Elevation="1" Style="border-left:4px solid var(--mud-palette-primary);" Class="mb-4">
-        <MudCardContent>
-            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="flex-wrap">
-                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
-                    <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Style="border-radius:12px;">
-                        <MudIcon Icon="@Icons.Material.Filled.CreditCard" />
-                    </MudAvatar>
-                    <MudStack Spacing="0">
-                        <MudText Typo="Typo.h6" Class="fw-bold">@CurrentPlan Plan</MudText>
-                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                            @if (CurrentStatus == SubscriptionStatus.Trialing)
-                            {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Label="true">Trial</MudChip>
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    Free trial — expires @(TrialEndsAt?.ToString("d MMM yyyy") ?? "soon")
-                                </MudText>
-                            }
-                            else
-                            {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Label="true">Active</MudChip>
-                            }
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <!-- Current Plan Banner -->
+        <MudCard Elevation="1" Style="border-left:4px solid var(--mud-palette-primary);" Class="mb-4">
+            <MudCardContent>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="flex-wrap gap-3">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                        <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Style="border-radius:12px;">
+                            <MudIcon Icon="@Icons.Material.Filled.CreditCard" />
+                        </MudAvatar>
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.h6" Class="fw-bold">@CurrentPlan Plan</MudText>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                @if (_current?.Status == SubscriptionStatus.Trialing)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning" Label="true">Trial</MudChip>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        Expires @(_current.TrialEndsAt?.ToString("d MMM yyyy") ?? "soon")
+                                    </MudText>
+                                }
+                                else if (_current?.Status == SubscriptionStatus.Active)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Success" Label="true">Active</MudChip>
+                                    @if (_current.CurrentPeriodEnd.HasValue)
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            Renews @_current.CurrentPeriodEnd.Value.ToString("d MMM yyyy")
+                                        </MudText>
+                                    }
+                                }
+                                else if (_current?.Status == SubscriptionStatus.PastDue)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Error" Label="true">Past Due</MudChip>
+                                }
+                            </MudStack>
                         </MudStack>
                     </MudStack>
-                </MudStack>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/pricing"
-                           StartIcon="@Icons.Material.Filled.ArrowUpward">
-                    Upgrade Plan
-                </MudButton>
-            </MudStack>
-        </MudCardContent>
-    </MudCard>
-
-    <!-- Feature Availability -->
-    <MudText Typo="Typo.h6" Class="fw-bold mb-2">Features on your plan</MudText>
-    <MudGrid Class="mb-4">
-        @foreach (var f in _features)
-        {
-            <MudItem xs="12" sm="6" lg="4">
-                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="pa-3 rounded-lg"
-                          Style="background:var(--mud-palette-surface);border:1px solid var(--mud-palette-table-lines);">
-                    <MudAvatar Style="@(f.Available
-                        ? "background:rgba(108,92,231,.1);color:#6c5ce7;border-radius:9px;width:38px;height:38px;"
-                        : "background:var(--mud-palette-action-default-hover);color:var(--mud-palette-action-disabled);border-radius:9px;width:38px;height:38px;")">
-                        <MudIcon Icon="@f.Icon" Size="Size.Small" />
-                    </MudAvatar>
-                    <MudText Typo="Typo.body2" Class="fw-medium flex-grow-1">@f.Label</MudText>
-                    @if (f.Available)
+                    @if (CurrentPlan < SubscriptionPlan.Enterprise)
                     {
-                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text" Label="true">Enabled</MudChip>
-                    }
-                    else
-                    {
-                        <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text" Label="true">Upgrade</MudChip>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   Href="@($"/{TenantSlug}/admin/subscriptions/checkout?plan={(int)(CurrentPlan + 1)}")"
+                                   StartIcon="@Icons.Material.Filled.ArrowUpward">
+                            Upgrade to @(CurrentPlan + 1)
+                        </MudButton>
                     }
                 </MudStack>
-            </MudItem>
-        }
-    </MudGrid>
+            </MudCardContent>
+        </MudCard>
 
-    <!-- Plans -->
-    <MudText Typo="Typo.h6" Class="fw-bold mb-2">Available Plans</MudText>
-    <MudGrid>
-        @foreach (var plan in _plans)
-        {
-            <MudItem xs="12" sm="6" xl="3">
-                <MudCard Elevation="1" Style="@(plan.Plan == CurrentPlan ? "border:2px solid var(--mud-palette-primary);" : "")"
-                         Class="h-100 position-relative">
-                    @if (plan.Plan == CurrentPlan)
-                    {
-                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Label="true"
-                                 Style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);">
-                            Current Plan
-                        </MudChip>
-                    }
-                    <MudCardContent>
-                        <MudStack Spacing="1">
-                            <MudText Typo="Typo.h6" Class="fw-bold">@plan.Name</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">@plan.Desc</MudText>
-                            <MudText Typo="Typo.h4" Class="fw-bold mt-2">
-                                @plan.Price<MudText Typo="Typo.caption" Color="Color.Secondary" HtmlTag="span">/mo</MudText>
-                            </MudText>
-                        </MudStack>
-                    </MudCardContent>
-                    <MudCardActions>
-                        @if (plan.Plan == CurrentPlan)
+        <!-- Feature Availability -->
+        <MudText Typo="Typo.h6" Class="fw-bold mb-2">Features on your plan</MudText>
+        <MudGrid Class="mb-4">
+            @foreach (var f in _features)
+            {
+                <MudItem xs="12" sm="6" lg="4">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="pa-3 rounded-lg"
+                              Style="background:var(--mud-palette-surface);border:1px solid var(--mud-palette-table-lines);">
+                        <MudAvatar Style="@(f.Available
+                            ? "background:rgba(108,92,231,.1);color:#6c5ce7;border-radius:9px;width:38px;height:38px;"
+                            : "background:var(--mud-palette-action-default-hover);color:var(--mud-palette-action-disabled);border-radius:9px;width:38px;height:38px;")">
+                            <MudIcon Icon="@f.Icon" Size="Size.Small" />
+                        </MudAvatar>
+                        <MudText Typo="Typo.body2" Class="fw-medium flex-grow-1">@f.Label</MudText>
+                        @if (f.Available)
                         {
-                            <MudButton Variant="Variant.Outlined" Disabled="true" FullWidth="true">Current Plan</MudButton>
-                        }
-                        else if (plan.Plan > CurrentPlan)
-                        {
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
-                                       Href="/pricing">Upgrade</MudButton>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text" Label="true">Enabled</MudChip>
                         }
                         else
                         {
-                            <MudButton Variant="Variant.Outlined" FullWidth="true" Href="/pricing">Downgrade</MudButton>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text" Label="true">Upgrade</MudChip>
                         }
-                    </MudCardActions>
-                </MudCard>
-            </MudItem>
-        }
-    </MudGrid>
+                    </MudStack>
+                </MudItem>
+            }
+        </MudGrid>
+
+        <!-- Available Plans grid -->
+        <MudText Typo="Typo.h6" Class="fw-bold mb-2">Available Plans</MudText>
+        <MudGrid Class="mb-6">
+            @foreach (var plan in _plans)
+            {
+                <MudItem xs="12" sm="6" xl="3">
+                    <MudCard Elevation="1" Style="@(plan.Plan == CurrentPlan ? "border:2px solid var(--mud-palette-primary);" : "")"
+                             Class="h-100 position-relative">
+                        @if (plan.Plan == CurrentPlan)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Label="true"
+                                     Style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);">
+                                Current Plan
+                            </MudChip>
+                        }
+                        <MudCardContent>
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.h6" Class="fw-bold">@plan.Name</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@plan.Desc</MudText>
+                                <MudText Typo="Typo.h4" Class="fw-bold mt-2">
+                                    @plan.Price<MudText Typo="Typo.caption" Color="Color.Secondary" HtmlTag="span">/mo</MudText>
+                                </MudText>
+                            </MudStack>
+                        </MudCardContent>
+                        <MudCardActions>
+                            @if (plan.Plan == CurrentPlan)
+                            {
+                                <MudButton Variant="Variant.Outlined" Disabled="true" FullWidth="true">Current Plan</MudButton>
+                            }
+                            else if (plan.Plan > CurrentPlan)
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                                           Href="@($"/{TenantSlug}/admin/subscriptions/checkout?plan={(int)plan.Plan}")">
+                                    Upgrade
+                                </MudButton>
+                            }
+                            else
+                            {
+                                <MudButton Variant="Variant.Outlined" FullWidth="true"
+                                           Href="@($"/{TenantSlug}/admin/subscriptions/checkout?plan={(int)plan.Plan}")">
+                                    Downgrade
+                                </MudButton>
+                            }
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+
+        <!-- Subscription History DataGrid -->
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+            <MudText Typo="Typo.h6" Class="fw-bold">Billing History</MudText>
+            <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small"
+                           OnClick="LoadData" Color="Color.Default" Title="Refresh" />
+        </MudStack>
+
+        <MudDataGrid T="SubscriptionResponse" Items="@_subscriptions" Filterable="false"
+                     SortMode="SortMode.Single" Dense="true" Hover="true" Elevation="1"
+                     RowClass="cursor-pointer">
+            <Columns>
+                <PropertyColumn Property="s => s.Plan" Title="Plan">
+                    <CellTemplate>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Filled.CreditCard" Size="Size.Small" Color="Color.Primary" />
+                            <MudText Typo="Typo.body2" Class="fw-semibold">@context.Item.Plan</MudText>
+                        </MudStack>
+                    </CellTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="s => s.Status" Title="Status">
+                    <CellTemplate>
+                        @{
+                            var (color, label) = context.Item.Status switch
+                            {
+                                SubscriptionStatus.Active   => (Color.Success, "Active"),
+                                SubscriptionStatus.Trialing => (Color.Warning, "Trial"),
+                                SubscriptionStatus.PastDue  => (Color.Error,   "Past Due"),
+                                SubscriptionStatus.Cancelled => (Color.Default, "Cancelled"),
+                                SubscriptionStatus.Expired  => (Color.Default, "Expired"),
+                                _                           => (Color.Default, context.Item.Status.ToString()),
+                            };
+                        }
+                        <MudChip T="string" Size="Size.Small" Color="color" Label="true">@label</MudChip>
+                    </CellTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="s => s.PaymentProvider" Title="Provider">
+                    <CellTemplate>
+                        @if (context.Item.PaymentProvider.HasValue)
+                        {
+                            <MudText Typo="Typo.body2">@context.Item.PaymentProvider</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">—</MudText>
+                        }
+                    </CellTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="s => s.MonthlyPrice" Title="Amount">
+                    <CellTemplate>
+                        <MudText Typo="Typo.body2" Class="fw-semibold">
+                            @FormatAmount(context.Item.MonthlyPrice, context.Item.Currency)/mo
+                        </MudText>
+                    </CellTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="s => s.CurrentPeriodStart" Title="Period Start">
+                    <CellTemplate>
+                        <MudText Typo="Typo.body2">@(context.Item.CurrentPeriodStart?.ToString("d MMM yyyy") ?? "—")</MudText>
+                    </CellTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="s => s.CurrentPeriodEnd" Title="Period End">
+                    <CellTemplate>
+                        <MudText Typo="Typo.body2">@(context.Item.CurrentPeriodEnd?.ToString("d MMM yyyy") ?? "—")</MudText>
+                    </CellTemplate>
+                </PropertyColumn>
+            </Columns>
+            <NoRecordsContent>
+                <MudStack AlignItems="AlignItems.Center" Class="pa-6">
+                    <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Size="Size.Large" Color="Color.Default" Style="opacity:.3;" />
+                    <MudText Color="Color.Secondary">No billing history yet. Upgrade to a paid plan to see invoices here.</MudText>
+                </MudStack>
+            </NoRecordsContent>
+        </MudDataGrid>
+    }
 </MudStack>
 
 @code {
@@ -118,6 +222,10 @@
     [Parameter] public SubscriptionPlan CurrentPlan { get; set; } = SubscriptionPlan.Free;
     [Parameter] public SubscriptionStatus CurrentStatus { get; set; } = SubscriptionStatus.Trialing;
     [Parameter] public DateTime? TrialEndsAt { get; set; }
+
+    private bool _loading = true;
+    private SubscriptionResponse? _current;
+    private List<SubscriptionResponse> _subscriptions = new();
 
     private record PlanCard(SubscriptionPlan Plan, string Name, string Price, string Desc);
     private record FeatureItem(string Label, string Icon, bool Available);
@@ -139,4 +247,38 @@
         new FeatureItem("API Access",            Icons.Material.Filled.Code,               FeatureFlags.CanUseApiAccess(CurrentPlan)),
         new FeatureItem("White-label Branding",  Icons.Material.Filled.BrandingWatermark,  FeatureFlags.CanRemoveBranding(CurrentPlan)),
     };
+
+    protected override async Task OnInitializedAsync() => await LoadData();
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        Api.SetToken(Auth.AccessToken);
+        try
+        {
+            _current = await Api.GetCurrentSubscriptionAsync(TenantSlug);
+            if (_current != null)
+            {
+                CurrentPlan = _current.Plan;
+                CurrentStatus = _current.Status;
+                TrialEndsAt = _current.TrialEndsAt;
+            }
+            _subscriptions = await Api.GetSubscriptionsAsync(TenantSlug) ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SubscriptionsView] Failed to load subscription data: {ex.Message}");
+            /* non-critical; use passed parameters as fallback */
+        }
+        _loading = false;
+    }
+
+    private static string FormatAmount(decimal amount, string currency) =>
+        currency.ToUpperInvariant() switch
+        {
+            "USD" => $"${amount:N2}",
+            "EUR" => $"€{amount:N2}",
+            "GBP" => $"£{amount:N2}",
+            _     => $"{currency} {amount:N2}",
+        };
 }

@@ -248,3 +248,10 @@ public enum BedType
     SofaBed = 8,
     Other = 99
 }
+
+public enum FormPublishStatus
+{
+    Draft = 0,
+    Live = 1,
+    Unpublished = 2
+}

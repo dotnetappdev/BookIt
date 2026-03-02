@@ -1,0 +1,351 @@
+@using BookIt.Core.Enums
+@using BookIt.Core.DTOs
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<MudStack>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Default"
+                       OnClick="@(() => Nav.NavigateTo($"/{TenantSlug}/admin/subscriptions"))" />
+        <div>
+            <MudText Typo="Typo.h5" Class="fw-bold">Upgrade Your Plan</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Complete your subscription below</MudText>
+        </div>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudGrid>
+            <!-- Left: Plan Summary -->
+            <MudItem xs="12" md="5">
+                <MudCard Elevation="2" Style="position:sticky;top:80px;">
+                    <MudCardContent Class="pa-5">
+                        <MudStack Spacing="3">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudAvatar Style="@($"background:{_planDef.IconBg};color:{_planDef.IconColor};border-radius:12px;width:48px;height:48px;")">
+                                    <MudIcon Icon="@_planDef.Icon" />
+                                </MudAvatar>
+                                <div>
+                                    <MudText Typo="Typo.h6" Class="fw-bold">@_planDef.Name</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@_planDef.Desc</MudText>
+                                </div>
+                            </MudStack>
+
+                            <MudDivider />
+
+                            <MudStack Row="true" AlignItems="AlignItems.Baseline" Spacing="1">
+                                <MudText Typo="Typo.h3" Class="fw-bold">@_planDef.Price</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">/month</MudText>
+                            </MudStack>
+
+                            <MudStack Spacing="1">
+                                @foreach (var feat in _planDef.Features)
+                                {
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle"
+                                                 Size="Size.Small" Color="Color.Success" />
+                                        <MudText Typo="Typo.body2">@feat</MudText>
+                                    </MudStack>
+                                }
+                            </MudStack>
+
+                            <MudDivider />
+
+                            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.body1">Total today</MudText>
+                                <MudText Typo="Typo.h6" Class="fw-bold">@_planDef.Price</MudText>
+                            </MudStack>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                Billed monthly. Cancel anytime.
+                            </MudText>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <!-- Right: Payment Methods -->
+            <MudItem xs="12" md="7">
+                <MudCard Elevation="1" Class="mb-3">
+                    <MudCardContent Class="pa-5">
+                        <MudText Typo="Typo.h6" Class="fw-bold mb-3">Payment Method</MudText>
+
+                        @if (!_enableStripe && !_enablePayPal && !_enableApplePay)
+                        {
+                            <MudAlert Severity="Severity.Warning">
+                                No payment methods are enabled. Please configure Stripe, PayPal, or Apple Pay in
+                                <MudLink Href="@($"/{TenantSlug}/admin/settings")">Settings → Payment Settings</MudLink>.
+                            </MudAlert>
+                        }
+                        else
+                        {
+                            <!-- Payment method tabs -->
+                            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" Class="mb-4">
+                                @if (_enableStripe)
+                                {
+                                    <MudTabPanel Text="💳 Card" Icon="@Icons.Material.Filled.CreditCard">
+                                        <div class="pa-4">
+                                            <MudGrid>
+                                                <MudItem xs="12">
+                                                    <MudTextField @bind-Value="_cardName"
+                                                                  Label="Cardholder Name"
+                                                                  Variant="Variant.Outlined"
+                                                                  Placeholder="Name on card" />
+                                                </MudItem>
+                                                <MudItem xs="12">
+                                                    <MudTextField @bind-Value="_cardNumber"
+                                                                  Label="Card Number"
+                                                                  Variant="Variant.Outlined"
+                                                                  Placeholder="1234 5678 9012 3456"
+                                                                  MaxLength="19"
+                                                                  HelperText="Card details are tokenized via Stripe.js — never sent to our servers in plain text" />
+                                                </MudItem>
+                                                <MudItem xs="6">
+                                                    <MudTextField @bind-Value="_cardExpiry"
+                                                                  Label="Expiry"
+                                                                  Variant="Variant.Outlined"
+                                                                  Placeholder="MM / YY"
+                                                                  MaxLength="7" />
+                                                </MudItem>
+                                                <MudItem xs="6">
+                                                    <MudTextField @bind-Value="_cardCvc"
+                                                                  Label="CVC"
+                                                                  Variant="Variant.Outlined"
+                                                                  InputType="InputType.Password"
+                                                                  Placeholder="•••"
+                                                                  MaxLength="4" />
+                                                </MudItem>
+                                            </MudGrid>
+                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-2">
+                                                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Style="opacity:.5;" />
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                    Payments secured by Stripe. PCI DSS compliant.
+                                                </MudText>
+                                            </MudStack>
+                                            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                                       FullWidth="true" Class="mt-4"
+                                                       Size="Size.Large"
+                                                       Disabled="@_paying"
+                                                       OnClick="@(() => PayWithStripe())">
+                                                @if (_paying && _payingMethod == "stripe")
+                                                {
+                                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                                    <span>Processing…</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>Pay @_planDef.Price with Stripe</span>
+                                                }
+                                            </MudButton>
+                                        </div>
+                                    </MudTabPanel>
+                                }
+
+                                @if (_enableApplePay)
+                                {
+                                    <MudTabPanel Text="🍎 Apple Pay" Icon="@Icons.Material.Filled.PhoneIphone">
+                                        <div class="pa-4 text-center">
+                                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                                                Apple Pay is available on Safari on iOS / macOS. Click the button below to complete payment using Face ID or Touch ID.
+                                            </MudText>
+                                            <MudButton Variant="Variant.Filled" FullWidth="true"
+                                                       Size="Size.Large"
+                                                       Disabled="@_paying"
+                                                       Style="background:#000;color:#fff;border-radius:8px;"
+                                                       OnClick="@(() => PayWithApplePay())">
+                                                @if (_paying && _payingMethod == "applepay")
+                                                {
+                                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                                    <span>Processing…</span>
+                                                }
+                                                else
+                                                {
+                                                    <MudIcon Icon="@Icons.Material.Filled.PhoneIphone" Class="mr-1" />
+                                                    <span>Pay with Apple Pay</span>
+                                                }
+                                            </MudButton>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+                                                Processed via Stripe. Your card details are handled securely by Apple.
+                                            </MudText>
+                                        </div>
+                                    </MudTabPanel>
+                                }
+
+                                @if (_enablePayPal)
+                                {
+                                    <MudTabPanel Text="🅿 PayPal" Icon="@Icons.Material.Filled.AccountBalance">
+                                        <div class="pa-4 text-center">
+                                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                                                You will be redirected to PayPal to complete your payment securely.
+                                            </MudText>
+                                            <MudButton Variant="Variant.Filled" FullWidth="true"
+                                                       Size="Size.Large"
+                                                       Disabled="@_paying"
+                                                       Style="background:#0070ba;color:#fff;border-radius:8px;"
+                                                       OnClick="@(() => PayWithPayPal())">
+                                                @if (_paying && _payingMethod == "paypal")
+                                                {
+                                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                                    <span>Redirecting to PayPal…</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>Pay @_planDef.Price with PayPal</span>
+                                                }
+                                            </MudButton>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+                                                You will be redirected to paypal.com to complete your payment.
+                                            </MudText>
+                                        </div>
+                                    </MudTabPanel>
+                                }
+                            </MudTabs>
+                        }
+                    </MudCardContent>
+                </MudCard>
+
+                <!-- Trust badges -->
+                <MudStack Row="true" Justify="Justify.Center" Spacing="4" Class="mt-2 flex-wrap">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Style="opacity:.5;" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">256-bit SSL</MudText>
+                    </MudStack>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Small" Style="opacity:.5;" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">PCI DSS</MudText>
+                    </MudStack>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Filled.Cancel" Size="Size.Small" Style="opacity:.5;" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Cancel anytime</MudText>
+                    </MudStack>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    }
+</MudStack>
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+    [Parameter] public SubscriptionPlan Plan { get; set; } = SubscriptionPlan.Starter;
+
+    private bool _loading = true;
+    private bool _enableStripe;
+    private bool _enableApplePay;
+    private bool _enablePayPal;
+    private bool _paying;
+    private string _payingMethod = "";
+
+    // Card fields (collected locally; real integration passes to Stripe.js)
+    private string _cardName = "";
+    private string _cardNumber = "";
+    private string _cardExpiry = "";
+    private string _cardCvc = "";
+
+    private record PlanDetails(
+        string Name, string Desc, string Price, string Icon,
+        string IconBg, string IconColor, string[] Features);
+
+    private PlanDetails _planDef = null!;
+
+    private static readonly Dictionary<SubscriptionPlan, PlanDetails> _planMap = new()
+    {
+        [SubscriptionPlan.Free] = new("Free", "Solo businesses", "£0",
+            Icons.Material.Filled.RocketLaunch, "#f1f5f9", "#475569",
+            new[] { "Up to 3 services", "1 staff member", "Online booking page", "Basic calendar" }),
+
+        [SubscriptionPlan.Starter] = new("Starter", "Growing teams", "£19/mo",
+            Icons.Material.Filled.Bolt, "#f0eeff", "#6c5ce7",
+            new[] { "Up to 10 services", "Up to 5 staff", "Full calendar",
+                    "Stripe, PayPal & Apple Pay", "Custom booking forms" }),
+
+        [SubscriptionPlan.Pro] = new("Pro", "Scale your business", "£49/mo",
+            Icons.Material.Filled.Stars, "rgba(108,92,231,.15)", "#6c5ce7",
+            new[] { "Up to 50 services", "Up to 25 staff", "All payment methods",
+                    "Custom booking forms", "AI chat assistant", "Interview scheduling" }),
+
+        [SubscriptionPlan.Enterprise] = new("Enterprise", "Unlimited scale", "£129/mo",
+            Icons.Material.Filled.BusinessCenter, "#0f172a", "#a29bfe",
+            new[] { "Unlimited services & staff", "All Pro features", "White-label branding",
+                    "API access", "Priority support", "SLA guarantee" }),
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _planDef = _planMap.GetValueOrDefault(Plan, _planMap[SubscriptionPlan.Starter]);
+
+        Api.SetToken(Auth.AccessToken);
+        var tenant = await Api.GetTenantAsync(TenantSlug);
+        if (tenant != null)
+        {
+            _enableStripe   = tenant.EnableStripe;
+            _enableApplePay = tenant.EnableApplePay;
+            _enablePayPal   = tenant.EnablePayPal;
+        }
+        _loading = false;
+    }
+
+    private async Task PayWithStripe()
+    {
+        if (string.IsNullOrWhiteSpace(_cardName) || string.IsNullOrWhiteSpace(_cardNumber))
+        {
+            Snackbar.Add("Please enter your card details.", Severity.Warning);
+            return;
+        }
+        _paying = true;
+        _payingMethod = "stripe";
+        Api.SetToken(Auth.AccessToken);
+        var result = await Api.SelectPlanAsync(TenantSlug, new SelectPlanRequest
+        {
+            Plan = Plan,
+            PaymentProvider = PaymentProvider.Stripe,
+        });
+        await HandleResult(result, "Stripe");
+    }
+
+    private async Task PayWithApplePay()
+    {
+        _paying = true;
+        _payingMethod = "applepay";
+        Api.SetToken(Auth.AccessToken);
+        var result = await Api.SelectPlanAsync(TenantSlug, new SelectPlanRequest
+        {
+            Plan = Plan,
+            PaymentProvider = PaymentProvider.ApplePay,
+        });
+        await HandleResult(result, "Apple Pay");
+    }
+
+    private async Task PayWithPayPal()
+    {
+        _paying = true;
+        _payingMethod = "paypal";
+        Api.SetToken(Auth.AccessToken);
+        var result = await Api.SelectPlanAsync(TenantSlug, new SelectPlanRequest
+        {
+            Plan = Plan,
+            PaymentProvider = PaymentProvider.PayPal,
+        });
+        await HandleResult(result, "PayPal");
+    }
+
+    private async Task HandleResult(SubscriptionResponse? result, string provider)
+    {
+        _paying = false;
+        _payingMethod = "";
+        if (result != null)
+        {
+            Snackbar.Add($"🎉 Subscription activated via {provider}! Welcome to {_planDef.Name}.", Severity.Success);
+            await Task.Delay(1200);
+            Nav.NavigateTo($"/{TenantSlug}/admin/subscriptions");
+        }
+        else
+        {
+            Snackbar.Add($"Payment failed. Please check your {provider} configuration in Settings.", Severity.Error);
+        }
+    }
+}

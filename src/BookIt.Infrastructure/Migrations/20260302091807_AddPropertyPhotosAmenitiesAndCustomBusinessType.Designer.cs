@@ -4,6 +4,7 @@ using BookIt.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookIt.Infrastructure.Migrations
 {
     [DbContext(typeof(BookItDbContext))]
-    partial class BookItDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260302091807_AddPropertyPhotosAmenitiesAndCustomBusinessType")]
+    partial class AddPropertyPhotosAmenitiesAndCustomBusinessType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -259,7 +262,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "SUPERADMIN@BOOKIT.APP",
                             NormalizedUserName = "SUPERADMIN@BOOKIT.APP",
-                            PasswordHash = "AQAAAAIAAYagAAAAEAhDm+XyLOjK241OCvLORMJ3Vq9RwIHRRevtZSp422oSq8nOccGZAskM5m0yV1q/eg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKqN8rKO5uivQLFYEI4cReOFDjZlQ9U8yOPxrjJQdDfmC37TJjBfCp068Ono62b9ig==",
                             PhoneNumberConfirmed = false,
                             Role = 1,
                             SecurityStamp = "superadmin-security-stamp-1",
@@ -281,7 +284,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@DEMO-BARBER.COM",
                             NormalizedUserName = "ADMIN@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGYLuvBZNq0GbfiW3JPzJEcalKMw7nU3GLmjseLjFDBVjO9voLAvF/TzMEWxxEdxog==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBNesJ7En7Jeuq7zeSW1irNbLDtxYbP2h3lPTpRJj5Ih1hvKEQakJUlvza8Y100Beg==",
                             PhoneNumberConfirmed = false,
                             Role = 2,
                             SecurityStamp = "admin-security-stamp-1",
@@ -303,7 +306,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER@DEMO-BARBER.COM",
                             NormalizedUserName = "MANAGER@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAELF+E0R8lFfoz/6xzaxM8IK7eoADUCrtsUn3CGbaqJJx0ECLn13XCway/3mGqv7q1w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKpGTmxvIcQ5ypTmz0FBMfJBY/PJRAbDVHIM8zjheUh4IS7Ar2tz8uQ+15WA1Xxc3w==",
                             PhoneNumberConfirmed = false,
                             Role = 3,
                             SecurityStamp = "manager-security-stamp-1",
@@ -325,7 +328,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "STAFF@DEMO-BARBER.COM",
                             NormalizedUserName = "STAFF@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFC1vGVdYE7jHezDVTA8Xzz2NK9r5v6lDV6dQQjkOYV47GZ0xRBtYAoE+dxf4hSJnw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFbkLrdRldzghC2FF1QvOKJLOVyIR2GCzdGb8yms19q+BDKtEP4m9XVGMVQcL/Qjog==",
                             PhoneNumberConfirmed = false,
                             Role = 4,
                             SecurityStamp = "staff-security-stamp-1",
@@ -347,7 +350,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CUSTOMER@EXAMPLE.COM",
                             NormalizedUserName = "CUSTOMER@EXAMPLE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHAbiNZJHc4Wo1KEmY6Cwe2uG53967ZKwJoX6SV5GOCaOsL2X06xAjZvwjg1gs1aoA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDg0J8VOZ9JJ74SUYRn3Uwd88+HAouHzyyXT92c1m2mRgbu4Dzbpr8qDq4jdQoi1og==",
                             PhoneNumberConfirmed = false,
                             Role = 5,
                             SecurityStamp = "customer-security-stamp-1",
@@ -598,9 +601,6 @@ namespace BookIt.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PublishStatus")
-                        .HasColumnType("int");
-
                     b.Property<bool>("RequirePhoneVerification")
                         .HasColumnType("bit");
 
@@ -634,7 +634,6 @@ namespace BookIt.Infrastructure.Migrations
                             IsDefault = true,
                             IsDeleted = false,
                             Name = "Standard Booking Form",
-                            PublishStatus = 0,
                             RequirePhoneVerification = false,
                             TenantId = new Guid("11111111-1111-1111-1111-111111111111"),
                             WelcomeMessage = "Book your appointment online"

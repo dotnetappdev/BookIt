@@ -9,6 +9,8 @@ public class TenantResponse
     public string Name { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public BusinessType BusinessType { get; set; }
+    /// <summary>Custom/free-text business type used when BusinessType is Other.</summary>
+    public string? CustomBusinessType { get; set; }
     public string? LogoUrl { get; set; }
     public string? PrimaryColor { get; set; }
     public string? SecondaryColor { get; set; }
@@ -67,6 +69,9 @@ public class UpdateTenantRequest
     public string Name { get; set; } = string.Empty;
 
     public BusinessType BusinessType { get; set; }
+
+    [StringLength(200, ErrorMessage = "Custom business type must not exceed 200 characters.")]
+    public string? CustomBusinessType { get; set; }
 
     [Url(ErrorMessage = "Logo URL must be a valid URL.")]
     [StringLength(2000, ErrorMessage = "Logo URL must not exceed 2000 characters.")]
@@ -188,4 +193,33 @@ public class UpdateTenantRequest
     public string? Subdomain { get; set; }
 
     public bool SubdomainApproved { get; set; }
+}
+
+public class DemoDataStatusResponse
+{
+    public bool HasDemoData { get; set; }
+}
+
+public class SubscriptionResponse
+{
+    public Guid Id { get; set; }
+    public SubscriptionPlan Plan { get; set; }
+    public SubscriptionStatus Status { get; set; }
+    public PaymentProvider? PaymentProvider { get; set; }
+    public string? ProviderSubscriptionId { get; set; }
+    public decimal MonthlyPrice { get; set; }
+    public string Currency { get; set; } = "GBP";
+    public DateTime? TrialEndsAt { get; set; }
+    public DateTime? CurrentPeriodStart { get; set; }
+    public DateTime? CurrentPeriodEnd { get; set; }
+    public DateTime? CancelledAt { get; set; }
+    public bool CancelAtPeriodEnd { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class SelectPlanRequest
+{
+    public SubscriptionPlan Plan { get; set; }
+    public PaymentProvider? PaymentProvider { get; set; }
+    public string? Currency { get; set; }
 }

@@ -32,6 +32,7 @@ public class BookingFormsController : ControllerBase
         Description = f.Description,
         IsDefault = f.IsDefault,
         IsActive = f.IsActive,
+        PublishStatus = f.PublishStatus,
         WelcomeMessage = f.WelcomeMessage,
         ConfirmationMessage = f.ConfirmationMessage,
         CollectPhone = f.CollectPhone,
@@ -73,7 +74,9 @@ public class BookingFormsController : ControllerBase
         if (tenant == null) return NotFound();
         var form = await _context.BookingForms
             .Include(f => f.Fields)
-            .FirstOrDefaultAsync(f => f.TenantId == tenant.Id && f.IsDefault && f.IsActive && !f.IsDeleted);
+            .FirstOrDefaultAsync(f => f.TenantId == tenant.Id && f.IsDefault
+                                   && f.PublishStatus == BookIt.Core.Enums.FormPublishStatus.Live
+                                   && f.IsActive && !f.IsDeleted);
         if (form == null) return NotFound();
         return Ok(MapForm(form));
     }
@@ -111,7 +114,8 @@ public class BookingFormsController : ControllerBase
             Name = request.Name,
             Description = request.Description,
             IsDefault = request.IsDefault,
-            IsActive = true,
+            IsActive = request.PublishStatus == BookIt.Core.Enums.FormPublishStatus.Live,
+            PublishStatus = request.PublishStatus,
             WelcomeMessage = request.WelcomeMessage,
             ConfirmationMessage = request.ConfirmationMessage,
             CollectPhone = request.CollectPhone,
@@ -145,6 +149,8 @@ public class BookingFormsController : ControllerBase
         form.Name = request.Name;
         form.Description = request.Description;
         form.IsDefault = request.IsDefault;
+        form.PublishStatus = request.PublishStatus;
+        form.IsActive = request.PublishStatus == BookIt.Core.Enums.FormPublishStatus.Live;
         form.WelcomeMessage = request.WelcomeMessage;
         form.ConfirmationMessage = request.ConfirmationMessage;
         form.CollectPhone = request.CollectPhone;

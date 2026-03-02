@@ -1,0 +1,37 @@
+@page "/{tenantSlug}/admin/subscriptions/checkout"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@layout BookIt.UI.Shared.Components.Admin.AdminLayout
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+@using BookIt.Core.Enums
+
+<PageTitle>Upgrade Plan — BookIt Admin</PageTitle>
+
+@if (!Auth.IsAuthenticated)
+{
+    <MudText>Redirecting…</MudText>
+}
+else
+{
+    <BookIt.UI.Shared.Components.Admin.SubscriptionCheckoutView
+        TenantSlug="@TenantSlug"
+        Plan="@SelectedPlan" />
+}
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+
+    [SupplyParameterFromQuery(Name = "plan")]
+    public int PlanValue { get; set; } = (int)SubscriptionPlan.Starter;
+
+    private SubscriptionPlan SelectedPlan =>
+        Enum.IsDefined(typeof(SubscriptionPlan), PlanValue)
+            ? (SubscriptionPlan)PlanValue
+            : SubscriptionPlan.Starter;
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAuthenticated)
+            Nav.NavigateTo($"/login?returnUrl=/{TenantSlug}/admin/subscriptions/checkout");
+    }
+}

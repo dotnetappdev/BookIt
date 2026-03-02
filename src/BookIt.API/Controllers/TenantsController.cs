@@ -64,6 +64,7 @@ public class TenantsController : ControllerBase
 
         tenant.Name = request.Name;
         tenant.BusinessType = request.BusinessType;
+        tenant.CustomBusinessType = request.CustomBusinessType;
         tenant.LogoUrl = request.LogoUrl;
         tenant.PrimaryColor = request.PrimaryColor;
         tenant.SecondaryColor = request.SecondaryColor;
@@ -199,6 +200,7 @@ public class TenantsController : ControllerBase
         Name = t.Name,
         Slug = t.Slug,
         BusinessType = t.BusinessType,
+        CustomBusinessType = t.CustomBusinessType,
         LogoUrl = t.LogoUrl,
         PrimaryColor = t.PrimaryColor,
         SecondaryColor = t.SecondaryColor,

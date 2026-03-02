@@ -1,0 +1,165 @@
+@using BookIt.Core.DTOs
+@using BookIt.Core.Enums
+@{
+    ViewData["Title"] = "Bookings";
+    Layout = "_AdminLayout";
+    var tenant = ViewBag.Tenant as TenantResponse;
+    var appointments = ViewBag.Appointments as List<AppointmentResponse> ?? new();
+    var tenantSlug = ViewBag.TenantSlug as string ?? "";
+    var accessToken = ViewBag.AccessToken as string ?? "";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Bookings</h1>
+        <p class="page-subtitle">View and manage all bookings</p>
+    </div>
+</div>
+
+@if (!appointments.Any())
+{
+    <div class="text-center py-5">
+        <i class="bi bi-calendar2-x fs-1 text-muted d-block mb-3"></i>
+        <h5 class="text-muted">No bookings yet</h5>
+        <p class="text-muted small">Bookings will appear here once customers start making appointments.</p>
+        <a href="/@tenantSlug/book" target="_blank" class="btn btn-brand">
+            <i class="bi bi-box-arrow-up-right me-2"></i>View Booking Page
+        </a>
+    </div>
+}
+else
+{
+    <!-- Filter bar -->
+    <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+        <input type="text" class="form-control" id="bookingSearch" placeholder="Search by name, email or service…" style="max-width:320px;" aria-label="Search bookings" />
+        <select class="form-select" id="statusFilter" style="max-width:180px;" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Cancelled">Cancelled</option>
+            <option value="Completed">Completed</option>
+            <option value="NoShow">No Show</option>
+            <option value="Rescheduled">Rescheduled</option>
+        </select>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="bookingsTable">
+            <thead class="table-light">
+                <tr>
+                    <th>Date &amp; Time</th>
+                    <th>Customer</th>
+                    <th>Services</th>
+                    <th>Staff</th>
+                    <th class="text-end">Amount</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>PIN</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in appointments.OrderByDescending(x => x.StartTime))
+                {
+                    var statusClass = a.Status switch {
+                        AppointmentStatus.Confirmed => "bg-success",
+                        AppointmentStatus.Cancelled => "bg-danger",
+                        AppointmentStatus.Completed => "bg-info",
+                        AppointmentStatus.NoShow => "bg-secondary",
+                        _ => "bg-warning text-dark"
+                    };
+                    var payClass = a.PaymentStatus == PaymentStatus.Paid ? "bg-success" : "bg-warning text-dark";
+                    <tr data-status="@a.Status" data-search="@(a.CustomerName + " " + a.CustomerEmail + " " + string.Join(" ", a.Services.Select(s => s.Name)))">
+                        <td>
+                            <div class="fw-semibold">@a.StartTime.ToString("d MMM yyyy")</div>
+                            <div class="small text-muted">@a.StartTime.ToString("h:mm tt") – @a.EndTime.ToString("h:mm tt")</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">@a.CustomerName</div>
+                            @if (!string.IsNullOrEmpty(a.CustomerEmail))
+                            {
+                                <div class="small text-muted"><a href="mailto:@a.CustomerEmail" class="text-decoration-none">@a.CustomerEmail</a></div>
+                            }
+                            @if (!string.IsNullOrEmpty(a.CustomerPhone))
+                            {
+                                <div class="small text-muted">@a.CustomerPhone</div>
+                            }
+                        </td>
+                        <td>
+                            @if (a.Services.Any())
+                            {
+                                <span>@string.Join(", ", a.Services.Select(s => s.Name))</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td>@(a.StaffName ?? "—")</td>
+                        <td class="text-end fw-semibold">£@a.TotalAmount.ToString("0.00")</td>
+                        <td><span class="badge @statusClass">@a.Status</span></td>
+                        <td><span class="badge @payClass">@a.PaymentStatus</span></td>
+                        <td><code class="small">@(a.BookingPin ?? "—")</code></td>
+                        <td>
+                            <div class="d-flex gap-1 justify-content-end">
+                                @if (a.Status == AppointmentStatus.Pending)
+                                {
+                                    <form method="post" asp-action="ApproveBooking" asp-route-tenantSlug="@tenantSlug" asp-route-id="@a.Id" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Approve" aria-label="Approve booking for @a.CustomerName">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" asp-action="DeclineBooking" asp-route-tenantSlug="@tenantSlug" asp-route-id="@a.Id" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="Decline" aria-label="Decline booking for @a.CustomerName">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </form>
+                                }
+                                @if (a.Status == AppointmentStatus.Confirmed)
+                                {
+                                    <form method="post" asp-action="ConfirmBooking" asp-route-tenantSlug="@tenantSlug" asp-route-id="@a.Id" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-info" title="Mark Completed" aria-label="Mark completed for @a.CustomerName">
+                                            <i class="bi bi-check2-all"></i>
+                                        </button>
+                                    </form>
+                                }
+                                @if (a.Status != AppointmentStatus.Cancelled && a.Status != AppointmentStatus.Completed)
+                                {
+                                    <form method="post" asp-action="CancelBooking" asp-route-tenantSlug="@tenantSlug" asp-route-id="@a.Id" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel"
+                                                aria-label="Cancel booking for @a.CustomerName"
+                                                data-customer-name="@a.CustomerName"
+                                                onclick="return confirm('Cancel this booking for ' + this.dataset.customerName + '?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+<script>
+// Live search + status filter
+function applyFilters() {
+    const q = document.getElementById('bookingSearch').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value.toLowerCase();
+    document.querySelectorAll('#bookingsTable tbody tr').forEach(row => {
+        const matchSearch = !q || row.dataset.search.toLowerCase().includes(q);
+        const matchStatus = !status || row.dataset.status.toLowerCase() === status;
+        row.style.display = (matchSearch && matchStatus) ? '' : 'none';
+    });
+}
+document.getElementById('bookingSearch')?.addEventListener('input', applyFilters);
+document.getElementById('statusFilter')?.addEventListener('change', applyFilters);
+</script>
+}
