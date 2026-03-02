@@ -109,6 +109,9 @@ public class BookItApiService
     public Task<bool> ApproveAppointmentAsync(string slug, Guid id) =>
         PostBoolAsync($"/api/tenants/{slug}/appointments/{id}/approve", new { });
 
+    public Task<bool> CancelAppointmentAsync(string slug, Guid id, string? reason = null) =>
+        PostBoolAsync($"/api/tenants/{slug}/appointments/{id}/cancel", new { Reason = reason ?? "" });
+
     public Task<bool> DeclineAppointmentAsync(string slug, Guid id, string? reason = null) =>
         PostBoolAsync($"/api/tenants/{slug}/appointments/{id}/decline", new { Reason = reason });
 

@@ -1,0 +1,26 @@
+@page "/{tenantSlug}/admin/bookings"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@layout BookIt.UI.Shared.Components.Admin.AdminLayout
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+
+<PageTitle>Bookings — BookIt Admin</PageTitle>
+
+@if (!Auth.IsAuthenticated)
+{
+    <MudText>Redirecting…</MudText>
+}
+else
+{
+    <BookIt.UI.Shared.Components.Admin.BookingsView TenantSlug="@TenantSlug" />
+}
+
+@code {
+    [Parameter] public string TenantSlug { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAuthenticated)
+            Nav.NavigateTo($"/login?returnUrl=/{TenantSlug}/admin/bookings");
+    }
+}
