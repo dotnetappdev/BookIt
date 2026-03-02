@@ -2,6 +2,8 @@
 @inject ISnackbar Snackbar
 @inject BookItApiService Api
 @inject BookItAuthState Auth
+@inject NavigationManager Nav
+@inject IJSRuntime Js
 
 <MudStack>
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
@@ -484,12 +486,83 @@
                                 }
                             </MudCardContent>
                         </MudCard>
+
+                        <!-- Account Management -->
+                        <MudCard Elevation="1" Style="border:1.5px solid var(--mud-palette-error);">
+                            <MudCardHeader>
+                                <CardHeaderAvatar><MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Error" /></CardHeaderAvatar>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.subtitle1" Class="fw-semibold" Color="Color.Error">Danger Zone</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Irreversible account actions</MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent Class="pt-0">
+                                <MudStack Spacing="2">
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Warning" FullWidth="true"
+                                               StartIcon="@Icons.Material.Filled.PauseCircle"
+                                               OnClick="@(() => _deactivateOpen = true)">
+                                        Deactivate Account
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Error" FullWidth="true"
+                                               StartIcon="@Icons.Material.Filled.DeleteForever"
+                                               OnClick="@(() => _deleteOpen = true)">
+                                        Delete Account
+                                    </MudButton>
+                                    <MudDivider />
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Default" FullWidth="true"
+                                               StartIcon="@Icons.Material.Filled.Download"
+                                               OnClick="DownloadData" Disabled="_downloading">
+                                        @(_downloading ? "Preparing…" : "Download My Data")
+                                    </MudButton>
+                                </MudStack>
+                            </MudCardContent>
+                        </MudCard>
                     </MudStack>
                 </MudItem>
             </MudGrid>
         </MudForm>
     }
 </MudStack>
+
+<!-- Deactivate account dialog -->
+<MudDialog @bind-Visible="_deactivateOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true })">
+    <TitleContent><MudText Typo="Typo.h6">Deactivate Account</MudText></TitleContent>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudText Typo="Typo.body2">
+                Deactivating your account will mark it as <strong>inactive</strong>. Your data is preserved and no further charges will be made. You can reactivate by contacting support.
+            </MudText>
+            <MudAlert Severity="Severity.Warning" Dense="true">Your booking page will go offline and customers will be unable to make new bookings.</MudAlert>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _deactivateOpen = false)">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="DeactivateAccount" Disabled="_deactivating">
+            @(_deactivating ? "Deactivating…" : "Deactivate")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Delete account dialog -->
+<MudDialog @bind-Visible="_deleteOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent><MudText Typo="Typo.h6" Color="Color.Error">Delete Account Permanently</MudText></TitleContent>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudAlert Severity="Severity.Error" Dense="true">This action is <strong>irreversible</strong>. All your data including bookings, customers, and settings will be permanently deleted.</MudAlert>
+            <MudText Typo="Typo.body2">To confirm, type <strong>@DeleteConfirmPhrase</strong> below:</MudText>
+            <MudTextField @bind-Value="_deleteConfirmText" Variant="Variant.Outlined" Margin="Margin.Dense"
+                          Placeholder="@DeleteConfirmPhrase" Immediate="true" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => { _deleteOpen = false; _deleteConfirmText = ""; })">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error"
+                   Disabled="@(_deleteConfirmText != DeleteConfirmPhrase || _deleting)"
+                   OnClick="DeleteAccount">
+            @(_deleting ? "Deleting…" : "Delete Permanently")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
     [Parameter] public string TenantSlug { get; set; } = "";
@@ -505,6 +578,16 @@
     private bool _demoSeeding;
     private bool _demoClearing;
     private bool _confirmClearDemoData;
+
+    // Account management state
+    private bool _deactivateOpen;
+    private bool _deactivating;
+    private bool _deleteOpen;
+    private bool _deleting;
+    private string _deleteConfirmText = "";
+    private bool _downloading;
+
+    private const string DeleteConfirmPhrase = "I want to delete";
 
     private string _name = "";
     private BusinessType _businessType = BusinessType.Other;
@@ -829,5 +912,60 @@
     {
         // JS interop for clipboard is handled at host level
         Snackbar.Add("URL copied!", Severity.Info);
+    }
+
+    private async Task DeactivateAccount()
+    {
+        _deactivating = true;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeactivateAccountAsync(TenantSlug);
+        _deactivating = false;
+        _deactivateOpen = false;
+        if (ok)
+        {
+            Snackbar.Add("Account deactivated. No further charges will be made.", Severity.Success);
+            Auth.Clear();
+            Nav.NavigateTo("/login");
+        }
+        else
+        {
+            Snackbar.Add("Failed to deactivate account.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteAccount()
+    {
+        _deleting = true;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteAccountAsync(TenantSlug);
+        _deleting = false;
+        _deleteOpen = false;
+        _deleteConfirmText = "";
+        if (ok)
+        {
+            Snackbar.Add("Account deleted permanently.", Severity.Success);
+            Auth.Clear();
+            Nav.NavigateTo("/login");
+        }
+        else
+        {
+            Snackbar.Add("Failed to delete account.", Severity.Error);
+        }
+    }
+
+    private async Task DownloadData()
+    {
+        _downloading = true;
+        Api.SetToken(Auth.AccessToken);
+        var bytes = await Api.DownloadDataAsync(TenantSlug);
+        _downloading = false;
+        if (bytes == null || bytes.Length == 0)
+        {
+            Snackbar.Add("Failed to export data.", Severity.Error);
+            return;
+        }
+        var base64 = Convert.ToBase64String(bytes);
+        var fileName = $"bookit-export-{TenantSlug}-{DateTime.UtcNow:yyyyMMdd}.zip";
+        await Js.InvokeVoidAsync("downloadFileFromBase64", base64, fileName, "application/zip");
     }
 }

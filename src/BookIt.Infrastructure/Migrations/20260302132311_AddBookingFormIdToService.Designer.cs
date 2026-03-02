@@ -4,6 +4,7 @@ using BookIt.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookIt.Infrastructure.Migrations
 {
     [DbContext(typeof(BookItDbContext))]
-    partial class BookItDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260302132311_AddBookingFormIdToService")]
+    partial class AddBookingFormIdToService
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -259,7 +262,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "SUPERADMIN@BOOKIT.APP",
                             NormalizedUserName = "SUPERADMIN@BOOKIT.APP",
-                            PasswordHash = "AQAAAAIAAYagAAAAEKFGCwhkyPdjNT+NSiHTSi8O+I7YScWGpsmMTx5psTWrNb6HLmGJRObd2ChLqwHKaw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEMMXO688ctMxXeD9R6sWE7G8da28KpPTupUdFxUJz4894fmXIyrv2oshXiEYwWe+ow==",
                             PhoneNumberConfirmed = false,
                             Role = 1,
                             SecurityStamp = "superadmin-security-stamp-1",
@@ -281,7 +284,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@DEMO-BARBER.COM",
                             NormalizedUserName = "ADMIN@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEEJ2oAdjPX+zZRi+CjVauHoiREhQuMdLJy/8l495XAFzvTNOQxhqtGJo6apaCWf4cg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOA2/ixSEI9PozeUDfSlLFxKeuknrOz8jhbjhUA2Xpyo+2ukxSl8Smxd4LeBgroP+w==",
                             PhoneNumberConfirmed = false,
                             Role = 2,
                             SecurityStamp = "admin-security-stamp-1",
@@ -303,7 +306,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER@DEMO-BARBER.COM",
                             NormalizedUserName = "MANAGER@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEKkVKg+yxT5y7xWBptPjPsJ5wW3XjI5BNNqo7rE44F6lyTcBncj2A7dL5V/ki3Hgiw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEO19sZ8Cg+QQDg07tr+81vY+H3vWbjJz3woTLWb8KCfTr3NflaFhC/jgwPVVuvWWXQ==",
                             PhoneNumberConfirmed = false,
                             Role = 3,
                             SecurityStamp = "manager-security-stamp-1",
@@ -325,7 +328,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "STAFF@DEMO-BARBER.COM",
                             NormalizedUserName = "STAFF@DEMO-BARBER.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEF0k+hHiD85nRYYSzKvetxBClH3EwuFILG7s03JWrtCsqrI6ybsD51bBFGRu9ibvKg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEECgFrfZHEO2FRdhrK+PI1s3d0ArW9Tuo5jOzjHioXxUJ4NzFjwlbljqSeSEENRqVw==",
                             PhoneNumberConfirmed = false,
                             Role = 4,
                             SecurityStamp = "staff-security-stamp-1",
@@ -347,7 +350,7 @@ namespace BookIt.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CUSTOMER@EXAMPLE.COM",
                             NormalizedUserName = "CUSTOMER@EXAMPLE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFotFNOLoG92yXi/CjWEkw5GlPMIKrn6Pvl9T07Q4Am3ZlYaIMQYLLHMyqEQO+4RxQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAENtlviJ7trLUWeJE8KXtI4YpuKNzzKrmG8cG4nGUlmOhPVtGaKr/PoSqn3fH2jpQaA==",
                             PhoneNumberConfirmed = false,
                             Role = 5,
                             SecurityStamp = "customer-security-stamp-1",
@@ -2522,209 +2525,6 @@ namespace BookIt.Infrastructure.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("Subscriptions");
-                });
-
-            modelBuilder.Entity("BookIt.Core.Entities.SubscriptionTier", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("CanRemoveBranding")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CanUseAiAssistant")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CanUseApiAccess")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CanUseCustomForms")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CanUseInterviews")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CanUseMultipleStaff")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CanUseOnlinePayments")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("EditedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("EditedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("MaxBookingsPerMonth")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaxLocations")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaxServices")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaxStaff")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("MonthlyPriceEur")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("MonthlyPriceGbp")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("MonthlyPriceUsd")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("Plan")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Plan")
-                        .IsUnique();
-
-                    b.ToTable("SubscriptionTiers");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("aa000000-0000-0000-0000-000000000001"),
-                            CanRemoveBranding = false,
-                            CanUseAiAssistant = false,
-                            CanUseApiAccess = false,
-                            CanUseCustomForms = false,
-                            CanUseInterviews = false,
-                            CanUseMultipleStaff = false,
-                            CanUseOnlinePayments = false,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Perfect for solo businesses just getting started",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MaxBookingsPerMonth = -1,
-                            MaxLocations = 1,
-                            MaxServices = 3,
-                            MaxStaff = 1,
-                            MonthlyPriceEur = 0m,
-                            MonthlyPriceGbp = 0m,
-                            MonthlyPriceUsd = 0m,
-                            Name = "Free",
-                            Plan = 0,
-                            SortOrder = 0
-                        },
-                        new
-                        {
-                            Id = new Guid("aa000000-0000-0000-0000-000000000002"),
-                            CanRemoveBranding = false,
-                            CanUseAiAssistant = false,
-                            CanUseApiAccess = false,
-                            CanUseCustomForms = true,
-                            CanUseInterviews = false,
-                            CanUseMultipleStaff = true,
-                            CanUseOnlinePayments = true,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "For growing teams and small businesses",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MaxBookingsPerMonth = -1,
-                            MaxLocations = 1,
-                            MaxServices = 10,
-                            MaxStaff = 5,
-                            MonthlyPriceEur = 22.42m,
-                            MonthlyPriceGbp = 19m,
-                            MonthlyPriceUsd = 24.13m,
-                            Name = "Starter",
-                            Plan = 1,
-                            SortOrder = 1
-                        },
-                        new
-                        {
-                            Id = new Guid("aa000000-0000-0000-0000-000000000003"),
-                            CanRemoveBranding = false,
-                            CanUseAiAssistant = true,
-                            CanUseApiAccess = true,
-                            CanUseCustomForms = true,
-                            CanUseInterviews = true,
-                            CanUseMultipleStaff = true,
-                            CanUseOnlinePayments = true,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Scale your business with advanced features",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MaxBookingsPerMonth = -1,
-                            MaxLocations = 3,
-                            MaxServices = 50,
-                            MaxStaff = 25,
-                            MonthlyPriceEur = 57.82m,
-                            MonthlyPriceGbp = 49m,
-                            MonthlyPriceUsd = 62.23m,
-                            Name = "Pro",
-                            Plan = 2,
-                            SortOrder = 2
-                        },
-                        new
-                        {
-                            Id = new Guid("aa000000-0000-0000-0000-000000000004"),
-                            CanRemoveBranding = true,
-                            CanUseAiAssistant = true,
-                            CanUseApiAccess = true,
-                            CanUseCustomForms = true,
-                            CanUseInterviews = true,
-                            CanUseMultipleStaff = true,
-                            CanUseOnlinePayments = true,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Unlimited scale for large organisations",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MaxBookingsPerMonth = -1,
-                            MaxLocations = -1,
-                            MaxServices = -1,
-                            MaxStaff = -1,
-                            MonthlyPriceEur = 152.22m,
-                            MonthlyPriceGbp = 129m,
-                            MonthlyPriceUsd = 163.83m,
-                            Name = "Enterprise",
-                            Plan = 3,
-                            SortOrder = 3
-                        });
                 });
 
             modelBuilder.Entity("BookIt.Core.Entities.Tenant", b =>

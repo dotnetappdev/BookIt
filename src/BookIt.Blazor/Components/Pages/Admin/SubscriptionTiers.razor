@@ -1,0 +1,381 @@
+@page "/superadmin/subscription-tiers"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@layout BookIt.UI.Shared.Components.Admin.AdminLayout
+@using BookIt.Core.DTOs
+@using BookIt.Core.Enums
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<PageTitle>Subscription Tiers — BookIt Admin</PageTitle>
+
+@if (!Auth.IsAuthenticated || !Auth.IsManagerOrAbove)
+{
+    <MudText>Unauthorized access</MudText>
+}
+else
+{
+    <MudStack>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+            <div>
+                <MudText Typo="Typo.h5" Class="fw-bold">Subscription Tiers</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">View plan names, pricing, and feature limits</MudText>
+            </div>
+            @if (Auth.IsSuperAdmin)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="OpenAddDialog">Add Tier</MudButton>
+            }
+        </MudStack>
+
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        }
+        else if (!_tiers.Any())
+        {
+            <MudCard Elevation="1">
+                <MudCardContent>
+                    <MudStack AlignItems="AlignItems.Center" Class="py-8">
+                        <MudIcon Icon="@Icons.Material.Filled.Layers" Size="Size.Large" Style="opacity:.3;" />
+                        <MudText Typo="Typo.body1" Class="fw-medium">No subscription tiers configured</MudText>
+                        @if (Auth.IsSuperAdmin)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddDialog">Add First Tier</MudButton>
+                        }
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        }
+        else
+        {
+            <MudDataGrid T="SubscriptionTierResponse" Items="_tiers"
+                         SortMode="SortMode.Single" Filterable="false"
+                         Dense="false" Hover="true" Elevation="1">
+                <Columns>
+                    <PropertyColumn Property="t => t.SortOrder" Title="#" Sortable="true" />
+                    <TemplateColumn Title="Plan" Sortable="false">
+                        <CellTemplate>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Filled.Layers" Size="Size.Small" Color="Color.Primary" />
+                                <MudText Typo="Typo.body2" Class="fw-semibold">@context.Item.Name</MudText>
+                                <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text" Label="true">
+                                    @context.Item.Plan
+                                </MudChip>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Price (GBP/USD/EUR)" Sortable="false">
+                        <CellTemplate>
+                            <MudText Typo="Typo.body2">
+                                £@context.Item.MonthlyPriceGbp.ToString("0.##") /
+                                $@context.Item.MonthlyPriceUsd.ToString("0.##") /
+                                €@context.Item.MonthlyPriceEur.ToString("0.##")
+                            </MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Limits" Sortable="false">
+                        <CellTemplate>
+                            <MudText Typo="Typo.caption">
+                                Services: @LimitLabel(context.Item.MaxServices) &bull;
+                                Staff: @LimitLabel(context.Item.MaxStaff) &bull;
+                                Locations: @LimitLabel(context.Item.MaxLocations)
+                            </MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Features" Sortable="false">
+                        <CellTemplate>
+                            <div style="display:flex;flex-wrap:wrap;gap:3px;">
+                                @FeatureChip("Payments", context.Item.CanUseOnlinePayments)
+                                @FeatureChip("Forms", context.Item.CanUseCustomForms)
+                                @FeatureChip("AI", context.Item.CanUseAiAssistant)
+                                @FeatureChip("API", context.Item.CanUseApiAccess)
+                                @FeatureChip("Branding", context.Item.CanRemoveBranding)
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Status" Sortable="false">
+                        <CellTemplate>
+                            <MudChip T="string" Size="Size.Small"
+                                     Color="@(context.Item.IsActive ? Color.Success : Color.Default)"
+                                     Variant="Variant.Outlined">
+                                @(context.Item.IsActive ? "Active" : "Inactive")
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="" Sortable="false">
+                        <CellTemplate>
+                            @if (Auth.IsSuperAdmin)
+                            {
+                                <MudStack Row="true" Spacing="0">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                                   OnClick="@(() => OpenEditDialog(context.Item))" />
+                                    @if (_pendingDeleteId == context.Item.Id)
+                                    {
+                                        <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled"
+                                                   OnClick="@(() => ConfirmDelete(context.Item))">Delete?</MudButton>
+                                        <MudButton Size="Size.Small" OnClick="@(() => _pendingDeleteId = null)">Cancel</MudButton>
+                                    }
+                                    else
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                       OnClick="@(() => _pendingDeleteId = context.Item.Id)" />
+                                    }
+                                </MudStack>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="SubscriptionTierResponse" />
+                </PagerContent>
+            </MudDataGrid>
+        }
+    </MudStack>
+}
+
+<!-- Add / Edit Dialog -->
+<MudDialog @bind-Visible="_dialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editTier == null ? "Add Subscription Tier" : "Edit Subscription Tier")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_mudForm" @bind-IsValid="_formValid">
+        <MudGrid Spacing="2">
+            <!-- Plan & Meta -->
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="_form.Plan" Label="Plan" Variant="Variant.Outlined" Required="true">
+                    @foreach (SubscriptionPlan p in Enum.GetValues<SubscriptionPlan>())
+                    {
+                        <MudSelectItem Value="@p">@p</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.Name" Label="Display Name" Required="true"
+                              RequiredError="Name is required." MaxLength="100" Immediate="true"
+                              Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Description" Label="Description" Lines="2"
+                              MaxLength="500" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudNumericField @bind-Value="_form.SortOrder" Label="Sort Order" Variant="Variant.Outlined" Min="0" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudSwitch @bind-Value="_form.IsActive" Color="Color.Primary" Label="Active" />
+            </MudItem>
+
+            <!-- Pricing -->
+            <MudItem xs="12">
+                <MudDivider Class="my-1" />
+                <MudText Typo="Typo.subtitle2" Class="fw-semibold mt-2 mb-1">Monthly Pricing</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField T="decimal" @bind-Value="_form.MonthlyPriceGbp" Label="GBP (£)"
+                                 Variant="Variant.Outlined" Min="0" Format="0.##" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField T="decimal" @bind-Value="_form.MonthlyPriceUsd" Label="USD ($)"
+                                 Variant="Variant.Outlined" Min="0" Format="0.##" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField T="decimal" @bind-Value="_form.MonthlyPriceEur" Label="EUR (€)"
+                                 Variant="Variant.Outlined" Min="0" Format="0.##" />
+            </MudItem>
+
+            <!-- Limits -->
+            <MudItem xs="12">
+                <MudDivider Class="my-1" />
+                <MudText Typo="Typo.subtitle2" Class="fw-semibold mt-2 mb-1">Usage Limits (-1 = unlimited)</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudNumericField T="int" @bind-Value="_form.MaxServices" Label="Max Services"
+                                 Variant="Variant.Outlined" Min="-1" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudNumericField T="int" @bind-Value="_form.MaxStaff" Label="Max Staff"
+                                 Variant="Variant.Outlined" Min="-1" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudNumericField T="int" @bind-Value="_form.MaxLocations" Label="Max Locations"
+                                 Variant="Variant.Outlined" Min="-1" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudNumericField T="int" @bind-Value="_form.MaxBookingsPerMonth" Label="Max Bookings/Month"
+                                 Variant="Variant.Outlined" Min="-1" />
+            </MudItem>
+
+            <!-- Feature flags -->
+            <MudItem xs="12">
+                <MudDivider Class="my-1" />
+                <MudText Typo="Typo.subtitle2" Class="fw-semibold mt-2 mb-1">Features</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSwitch @bind-Value="_form.CanUseOnlinePayments" Color="Color.Primary" Label="Online Payments" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSwitch @bind-Value="_form.CanUseCustomForms" Color="Color.Primary" Label="Custom Booking Forms" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSwitch @bind-Value="_form.CanUseMultipleStaff" Color="Color.Primary" Label="Multiple Staff" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSwitch @bind-Value="_form.CanUseAiAssistant" Color="Color.Primary" Label="AI Assistant" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSwitch @bind-Value="_form.CanUseInterviews" Color="Color.Primary" Label="Interview Scheduling" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSwitch @bind-Value="_form.CanUseApiAccess" Color="Color.Primary" Label="API Access" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSwitch @bind-Value="_form.CanRemoveBranding" Color="Color.Primary" Label="Remove Branding" />
+            </MudItem>
+        </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveTier" Disabled="_saving">
+            @(_saving ? "Saving…" : "Save")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<SubscriptionTierResponse> _tiers = new();
+    private bool _loading = true;
+    private Guid? _pendingDeleteId;
+
+    private bool _dialogOpen;
+    private bool _saving;
+    private bool _formValid;
+    private MudForm? _mudForm;
+    private SubscriptionTierResponse? _editTier;
+    private UpsertSubscriptionTierRequest _form = new();
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAuthenticated || !Auth.IsManagerOrAbove)
+            Nav.NavigateTo("/");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !Auth.IsAuthenticated) return;
+        await LoadAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        Api.SetToken(Auth.AccessToken);
+        _tiers = await Api.GetSubscriptionTiersAsync() ?? new();
+        _loading = false;
+    }
+
+    private void OpenAddDialog()
+    {
+        _editTier = null;
+        _form = new UpsertSubscriptionTierRequest { IsActive = true, MaxServices = 3, MaxStaff = 1, MaxLocations = 1, MaxBookingsPerMonth = -1 };
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(SubscriptionTierResponse t)
+    {
+        _editTier = t;
+        _form = new UpsertSubscriptionTierRequest
+        {
+            Plan = t.Plan,
+            Name = t.Name,
+            Description = t.Description,
+            SortOrder = t.SortOrder,
+            IsActive = t.IsActive,
+            MonthlyPriceGbp = t.MonthlyPriceGbp,
+            MonthlyPriceUsd = t.MonthlyPriceUsd,
+            MonthlyPriceEur = t.MonthlyPriceEur,
+            MaxServices = t.MaxServices,
+            MaxStaff = t.MaxStaff,
+            MaxLocations = t.MaxLocations,
+            MaxBookingsPerMonth = t.MaxBookingsPerMonth,
+            CanUseOnlinePayments = t.CanUseOnlinePayments,
+            CanUseCustomForms = t.CanUseCustomForms,
+            CanUseAiAssistant = t.CanUseAiAssistant,
+            CanUseInterviews = t.CanUseInterviews,
+            CanUseApiAccess = t.CanUseApiAccess,
+            CanRemoveBranding = t.CanRemoveBranding,
+            CanUseMultipleStaff = t.CanUseMultipleStaff
+        };
+        _dialogOpen = true;
+    }
+
+    private void CloseDialog()
+    {
+        _dialogOpen = false;
+        _editTier = null;
+    }
+
+    private async Task SaveTier()
+    {
+        if (_mudForm != null) await _mudForm.Validate();
+        if (!_formValid) return;
+
+        _saving = true;
+        Api.SetToken(Auth.AccessToken);
+
+        if (_editTier == null)
+        {
+            var created = await Api.CreateSubscriptionTierAsync(_form);
+            if (created != null)
+            {
+                Snackbar.Add("Subscription tier created.", Severity.Success);
+                await LoadAsync();
+            }
+            else Snackbar.Add("Failed to create tier.", Severity.Error);
+        }
+        else
+        {
+            var updated = await Api.UpdateSubscriptionTierAsync(_editTier.Id, _form);
+            if (updated != null)
+            {
+                Snackbar.Add("Subscription tier updated.", Severity.Success);
+                await LoadAsync();
+            }
+            else Snackbar.Add("Failed to update tier.", Severity.Error);
+        }
+
+        _saving = false;
+        CloseDialog();
+        StateHasChanged();
+    }
+
+    private async Task ConfirmDelete(SubscriptionTierResponse t)
+    {
+        _pendingDeleteId = null;
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteSubscriptionTierAsync(t.Id);
+        if (ok)
+        {
+            Snackbar.Add($"'{t.Name}' tier deleted.", Severity.Success);
+            await LoadAsync();
+        }
+        else Snackbar.Add("Failed to delete tier.", Severity.Error);
+        StateHasChanged();
+    }
+
+    private static string LimitLabel(int v) => v == -1 ? "∞" : v.ToString();
+
+    private static RenderFragment FeatureChip(string label, bool enabled) => __builder =>
+    {
+        <MudChip T="string" Size="Size.Small" Label="true"
+                 Color="@(enabled ? Color.Success : Color.Default)"
+                 Variant="@(enabled ? Variant.Text : Variant.Text)"
+                 Style="@(enabled ? "" : "opacity:.4;")">
+            @label
+        </MudChip>;
+    };
+}
