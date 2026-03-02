@@ -22,37 +22,22 @@ namespace BookIt.Infrastructure;
 public static class DependencyInjection
 {
     /// <summary>
-    /// Registers BookIt infrastructure services using the provider specified by the
-    /// <c>Database:Provider</c> configuration key (defaults to <c>SqlServer</c>).
-    /// <para>Supported values: <c>SqlServer</c>, <c>Sqlite</c>.</para>
+    /// Registers BookIt infrastructure services using SQL Server as the database provider.
+    /// The connection string is read from <c>ConnectionStrings:DefaultConnection</c>.
     /// <para>
     /// For <c>PostgreSql</c> or <c>MySql</c>, reference the provider-specific class libraries
     /// (<c>BookIt.Infrastructure.PostgreSql</c> / <c>BookIt.Infrastructure.MySql</c>) and call
     /// <c>AddInfrastructureWithPostgreSql</c> / <c>AddInfrastructureWithMySql</c>, or use the
     /// automatic dispatch via <c>Program.cs</c>.
     /// </para>
+    /// <para>SQLite is intended for MAUI mobile/desktop apps only and is not supported here.</para>
     /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment? environment = null)
     {
-        var provider = configuration["Database:Provider"] ?? "SqlServer";
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        var useSqlite = provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase)
-            || (string.IsNullOrEmpty(provider) && string.IsNullOrEmpty(connectionString));
-
-        if (useSqlite)
-        {
-            var sqliteCs = configuration.GetConnectionString("SqliteConnection");
-            var dbPath = string.IsNullOrEmpty(sqliteCs)
-                ? $"Data Source={Path.Combine(AppContext.BaseDirectory, "bookit.db")}"
-                : sqliteCs;
-            services.AddDbContext<BookItDbContext>(options => options.UseSqlite(dbPath));
-        }
-        else
-        {
-            services.AddDbContext<BookItDbContext>(options =>
-                options.UseSqlServer(connectionString));
-        }
+        services.AddDbContext<BookItDbContext>(options =>
+            options.UseSqlServer(connectionString));
 
         return services.AddInfrastructureServices(configuration);
     }

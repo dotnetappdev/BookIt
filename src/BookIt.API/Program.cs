@@ -52,7 +52,7 @@ switch (dbProvider.ToLowerInvariant())
                 ? "MySqlConnection"
                 : "DefaultConnection");
         break;
-    default: // SqlServer or Sqlite — handled inside AddInfrastructure (case-insensitive; "PostgreSql"/"MySql" from config match above)
+    default: // SqlServer — handled inside AddInfrastructure (SQLite is not supported in the API; use SqlServer, PostgreSql, or MySql)
         builder.Services.AddInfrastructure(builder.Configuration);
         break;
 }
