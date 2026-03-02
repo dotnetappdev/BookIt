@@ -49,7 +49,7 @@
 </MudStack>
 
 <!-- Add/Edit Room Dialog -->
-<MudDialog @bind-Visible="_roomDialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
+<MudDialog @bind-Visible="_roomDialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true })">
     <TitleContent><MudText Typo="Typo.h6">@(_editingRoom == null ? "Add Room" : "Edit Room")</MudText></TitleContent>
     <DialogContent>
         <MudStack Spacing="3">
@@ -74,7 +74,51 @@
                     <MudNumericField T="int" @bind-Value="_roomForm.Capacity" Label="Max Guests" Min="1" Variant="Variant.Outlined" />
                 </MudItem>
             </MudGrid>
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudSelect T="BedType" @bind-Value="_roomForm.BedType" Label="Bed Type" Variant="Variant.Outlined">
+                        @foreach (BedType bt in Enum.GetValues(typeof(BedType)))
+                        {
+                            <MudSelectItem Value="@bt">@bt</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField T="int" @bind-Value="_roomForm.NumberOfBeds" Label="Number of Beds" Min="0" Max="100" Variant="Variant.Outlined" />
+                </MudItem>
+            </MudGrid>
             <MudNumericField T="decimal" @bind-Value="_roomForm.BaseRate" Label="Base Rate (per night)" Min="0" Variant="Variant.Outlined" Format="0.00" />
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudSwitch @bind-Value="_roomForm.PetFriendly" Label="Pet Friendly" Color="Color.Success" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSwitch @bind-Value="_roomForm.WheelchairAccessible" Label="Wheelchair Accessible" Color="Color.Info" />
+                </MudItem>
+            </MudGrid>
+            @if (_amenities.Any())
+            {
+                <div>
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">Amenities</MudText>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                        @foreach (var amenity in _amenities.Where(a => a.IsActive))
+                        {
+                            var isSelected = _roomForm.AmenityIds.Contains(amenity.Id);
+                            <MudChip T="string"
+                                     Color="@(isSelected ? Color.Primary : Color.Default)"
+                                     Variant="@(isSelected ? Variant.Filled : Variant.Outlined)"
+                                     OnClick="@(() => ToggleAmenity(amenity.Id))"
+                                     Style="cursor:pointer;">
+                                @if (!string.IsNullOrEmpty(amenity.Icon))
+                                {
+                                    <MudIcon Icon="@amenity.Icon" Size="Size.Small" Class="mr-1" />
+                                }
+                                @amenity.Name
+                            </MudChip>
+                        }
+                    </div>
+                </div>
+            }
             <MudSwitch @bind-Value="_roomForm.IsActive" Label="Active" Color="Color.Primary" />
         </MudStack>
     </DialogContent>
@@ -334,7 +378,7 @@
     private void OpenRoomDialog()
     {
         _editingRoom = null;
-        _roomForm = new CreateRoomRequest { IsActive = true, Capacity = 2, RoomType = RoomType.Double };
+        _roomForm = new CreateRoomRequest { IsActive = true, Capacity = 2, RoomType = RoomType.Double, NumberOfBeds = 1, BedType = BedType.Double };
         _roomDialogOpen = true;
     }
 
@@ -348,9 +392,14 @@
             Description = room.Description,
             RoomType = room.RoomType,
             Capacity = room.Capacity,
+            NumberOfBeds = room.NumberOfBeds,
+            BedType = room.BedType,
+            PetFriendly = room.PetFriendly,
+            WheelchairAccessible = room.WheelchairAccessible,
             BaseRate = room.BaseRate,
             IsActive = room.IsActive,
-            SortOrder = room.SortOrder
+            SortOrder = room.SortOrder,
+            AmenityIds = room.Amenities.Select(a => a.Id).ToList()
         };
         _roomDialogOpen = true;
     }
@@ -531,6 +580,14 @@
             _selectedRoom = _rooms.FirstOrDefault(r => r.Id == _selectedRoom.Id);
         }
         else Snackbar.Add("Failed to delete photo.", Severity.Error);
+    }
+
+    private void ToggleAmenity(Guid amenityId)
+    {
+        if (_roomForm.AmenityIds.Contains(amenityId))
+            _roomForm.AmenityIds.Remove(amenityId);
+        else
+            _roomForm.AmenityIds.Add(amenityId);
     }
 
     private RenderFragment RenderRoomGrid(List<RoomResponse> rooms) => __builder =>

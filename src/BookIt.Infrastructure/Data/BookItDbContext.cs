@@ -430,12 +430,32 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         );
 
         // Seed admin user for demo tenant (password: Admin123!)
+        var superAdminUserId = new Guid("bb000000-0000-0000-0000-000000000000");
         var adminUserId = new Guid("bb000000-0000-0000-0000-000000000001");
         var managerUserId = new Guid("bb000000-0000-0000-0000-000000000004");
         var staffUserId = new Guid("bb000000-0000-0000-0000-000000000002");
         var customerUserId = new Guid("bb000000-0000-0000-0000-000000000003");
 
         var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<ApplicationUser>();
+
+        var superAdminUser = new ApplicationUser
+        {
+            Id = superAdminUserId,
+            TenantId = demoTenantId,
+            Email = "superadmin@bookit.app",
+            NormalizedEmail = "SUPERADMIN@BOOKIT.APP",
+            UserName = "superadmin@bookit.app",
+            NormalizedUserName = "SUPERADMIN@BOOKIT.APP",
+            FirstName = "Super",
+            LastName = "Admin",
+            Role = Core.Enums.UserRole.SuperAdmin,
+            IsDeleted = false,
+            EmailConfirmed = true,
+            SecurityStamp = "superadmin-security-stamp-1",
+            ConcurrencyStamp = "superadmin-concurrency-stamp-1",
+            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
+        superAdminUser.PasswordHash = hasher.HashPassword(superAdminUser, "SuperAdmin123!");
 
         var adminUser = new ApplicationUser
         {
@@ -513,10 +533,11 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
         };
         customerUser.PasswordHash = hasher.HashPassword(customerUser, "Customer123!");
 
-        modelBuilder.Entity<ApplicationUser>().HasData(adminUser, managerUser, staffUser, customerUser);
+        modelBuilder.Entity<ApplicationUser>().HasData(superAdminUser, adminUser, managerUser, staffUser, customerUser);
 
         // Seed UserRoles
         modelBuilder.Entity<IdentityUserRole<Guid>>().HasData(
+            new IdentityUserRole<Guid> { UserId = superAdminUserId, RoleId = superAdminRoleId },
             new IdentityUserRole<Guid> { UserId = adminUserId, RoleId = tenantAdminRoleId },
             new IdentityUserRole<Guid> { UserId = managerUserId, RoleId = managerRoleId },
             new IdentityUserRole<Guid> { UserId = staffUserId, RoleId = staffRoleId },

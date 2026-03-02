@@ -79,6 +79,10 @@ public class RoomResponse
     public string? Description { get; set; }
     public RoomType RoomType { get; set; }
     public int Capacity { get; set; }
+    public int NumberOfBeds { get; set; }
+    public BedType BedType { get; set; }
+    public bool PetFriendly { get; set; }
+    public bool WheelchairAccessible { get; set; }
     public decimal BaseRate { get; set; }
     public bool IsActive { get; set; }
     public int SortOrder { get; set; }
@@ -102,6 +106,15 @@ public class CreateRoomRequest
     [Range(1, 1000, ErrorMessage = "Capacity must be between 1 and 1000.")]
     public int Capacity { get; set; } = 2;
 
+    [Range(0, 100, ErrorMessage = "Number of beds must be between 0 and 100.")]
+    public int NumberOfBeds { get; set; } = 1;
+
+    public BedType BedType { get; set; } = BedType.Double;
+
+    public bool PetFriendly { get; set; } = false;
+
+    public bool WheelchairAccessible { get; set; } = false;
+
     [Range(0, 1000000, ErrorMessage = "Base rate must be between 0 and 1,000,000.")]
     public decimal BaseRate { get; set; }
 
@@ -109,6 +122,8 @@ public class CreateRoomRequest
 
     [Range(0, 9999, ErrorMessage = "Sort order must be between 0 and 9999.")]
     public int SortOrder { get; set; }
+
+    public List<Guid> AmenityIds { get; set; } = new();
 }
 
 // ── Room Photos ──
@@ -198,4 +213,43 @@ public class CreateRoomRateRequest
 public class AssignRoomAmenitiesRequest
 {
     public List<Guid> AmenityIds { get; set; } = new();
+}
+
+// ── Public Listings ──
+
+public class PublicPropertyListingResponse
+{
+    public Guid TenantId { get; set; }
+    public string TenantSlug { get; set; } = string.Empty;
+    public string TenantName { get; set; } = string.Empty;
+    public string? City { get; set; }
+    public string? Country { get; set; }
+    public string? IconUrl { get; set; }
+    public string? Description { get; set; }
+    public string? Address { get; set; }
+    public string? PhoneNumber { get; set; }
+    public string? Email { get; set; }
+    public string? Website { get; set; }
+    public int RoomCount { get; set; }
+    public decimal MinRate { get; set; }
+    public decimal MaxRate { get; set; }
+    public List<string> AmenityNames { get; set; } = new();
+    public List<string> AmenityIcons { get; set; } = new();
+    public List<RoomListingResponse> Rooms { get; set; } = new();
+}
+
+public class RoomListingResponse
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public RoomType RoomType { get; set; }
+    public int Capacity { get; set; }
+    public int NumberOfBeds { get; set; }
+    public BedType BedType { get; set; }
+    public bool PetFriendly { get; set; }
+    public bool WheelchairAccessible { get; set; }
+    public decimal BaseRate { get; set; }
+    public string? PrimaryPhotoUrl { get; set; }
+    public List<AmenityResponse> Amenities { get; set; } = new();
 }
