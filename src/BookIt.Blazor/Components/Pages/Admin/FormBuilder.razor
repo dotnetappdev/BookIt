@@ -110,15 +110,35 @@ else
                                     }
                                     else if (field.FieldType == BookingFormFieldType.ServicesList)
                                     {
-                                        <MudTextField @bind-Value="field.Label" Variant="Variant.Outlined" Margin="Margin.Dense" Label="Section heading" />
-                                        <MudPaper Outlined="true" Class="pa-2 mt-2" Style="border-radius:8px;opacity:.7;">
-                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                                                <MudIcon Icon="@Icons.Material.Filled.Storefront" Size="Size.Small" Color="Color.Primary" />
-                                                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                                    Services &amp; prices will be loaded live from your Services list and displayed to customers here.
-                                                </MudText>
-                                            </MudStack>
-                                        </MudPaper>
+                                        <MudTextField @bind-Value="field.Label" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                      Label="@(field.ServiceId.HasValue ? "Service label" : "Section heading")" />
+                                        @if (field.ServiceId.HasValue)
+                                        {
+                                            var linkedSvc = _availableServices.FirstOrDefault(s => s.Id == field.ServiceId.Value);
+                                            <MudPaper Outlined="true" Class="pa-2 mt-2" Style="border-radius:8px;">
+                                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircleOutline" Size="Size.Small" Color="Color.Primary" />
+                                                    <div>
+                                                        <MudText Typo="Typo.body2" Class="fw-medium">@(linkedSvc?.Name ?? "Service")</MudText>
+                                                        @if (linkedSvc != null)
+                                                        {
+                                                            <MudText Typo="Typo.caption" Color="Color.Secondary">£@linkedSvc.Price.ToString("0.00") · @linkedSvc.DurationMinutes min</MudText>
+                                                        }
+                                                    </div>
+                                                </MudStack>
+                                            </MudPaper>
+                                        }
+                                        else
+                                        {
+                                            <MudPaper Outlined="true" Class="pa-2 mt-2" Style="border-radius:8px;opacity:.7;">
+                                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Storefront" Size="Size.Small" Color="Color.Primary" />
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                        Services &amp; prices will be loaded live from your Services list and displayed to customers here.
+                                                    </MudText>
+                                                </MudStack>
+                                            </MudPaper>
+                                        }
                                     }
                                     else
                                     {
@@ -224,6 +244,19 @@ else
                                 @tool.Label
                             </button>
                         }
+                        @if (_availableServices.Any())
+                        {
+                            <MudDivider Class="my-1" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1" Style="display:block;opacity:.7;">Individual Services</MudText>
+                            @foreach (var svc in _availableServices)
+                            {
+                                var s = svc;
+                                <button class="toolbox-item" @onclick="@(() => AddServiceField(s))">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircleOutline" Size="Size.Small" />
+                                    <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;" title="@s.Name">@s.Name</span>
+                                </button>
+                            }
+                        }
                     </MudCardContent>
                 </MudCard>
 
@@ -267,6 +300,9 @@ else
     private string _welcomeMsg = "";
     private string _confirmMsg = "";
 
+    // Available services from the tenant (for toolbox)
+    private List<ServiceResponse> _availableServices = new();
+
     // Local editable field model
     private class FieldDraft
     {
@@ -278,6 +314,8 @@ else
         public string OptionsRaw { get; set; } = "";
         public int SortOrder { get; set; }
         public bool IsNew { get; set; } = true;
+        // For service items — stores the service ID this field represents
+        public Guid? ServiceId { get; set; }
     }
 
     private List<FieldDraft> _fields = new();
@@ -326,6 +364,10 @@ else
     {
         if (!firstRender || !Auth.IsAuthenticated) return;
         Api.SetToken(Auth.AccessToken);
+
+        // Load available services for the toolbox
+        _availableServices = await Api.GetServicesAsync(TenantSlug) ?? new();
+
         if (FormId.HasValue)
         {
             _form = await Api.GetFormAsync(TenantSlug, FormId.Value);
@@ -334,16 +376,26 @@ else
                 _formName = _form.Name;
                 _welcomeMsg = _form.WelcomeMessage ?? "";
                 _confirmMsg = _form.ConfirmationMessage ?? "";
-                _fields = _form.Fields.OrderBy(f => f.SortOrder).Select(f => new FieldDraft
+                _fields = _form.Fields.OrderBy(f => f.SortOrder).Select(f =>
                 {
-                    Id = f.Id,
-                    FieldType = f.FieldType,
-                    Label = f.Label,
-                    Placeholder = f.Placeholder ?? "",
-                    IsRequired = f.IsRequired,
-                    OptionsRaw = string.Join(", ", f.Options),
-                    SortOrder = f.SortOrder,
-                    IsNew = false
+                    // For ServicesList fields, try to recover the ServiceId from OptionsJson
+                    Guid? svcId = null;
+                    if (f.FieldType == BookingFormFieldType.ServicesList && f.Options.Count == 1
+                        && Guid.TryParse(f.Options[0], out var parsed))
+                        svcId = parsed;
+
+                    return new FieldDraft
+                    {
+                        Id = f.Id,
+                        FieldType = f.FieldType,
+                        Label = f.Label,
+                        Placeholder = f.Placeholder ?? "",
+                        IsRequired = f.IsRequired,
+                        OptionsRaw = string.Join(", ", f.Options),
+                        SortOrder = f.SortOrder,
+                        IsNew = false,
+                        ServiceId = svcId
+                    };
                 }).ToList();
             }
         }
@@ -357,6 +409,19 @@ else
         {
             FieldType = type,
             Label = DefaultLabel(type),
+            SortOrder = _fields.Count,
+            IsNew = true
+        });
+    }
+
+    private void AddServiceField(ServiceResponse svc)
+    {
+        _fields.Add(new FieldDraft
+        {
+            FieldType = BookingFormFieldType.ServicesList,
+            Label = $"{svc.Name} — £{svc.Price:0.00} · {svc.DurationMinutes} min",
+            OptionsRaw = svc.Id.ToString(),
+            ServiceId = svc.Id,
             SortOrder = _fields.Count,
             IsNew = true
         });

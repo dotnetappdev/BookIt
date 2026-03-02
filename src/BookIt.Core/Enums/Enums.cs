@@ -227,5 +227,9 @@ public enum AmenityType
     Garden = 17,
     Terrace = 18,
     SeaView = 19,
+    Shower = 20,
+    Bath = 21,
+    Bed = 22,
+    TransportLinks = 23,
     Other = 99
 }

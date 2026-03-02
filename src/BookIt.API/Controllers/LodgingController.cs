@@ -51,6 +51,7 @@ public class LodgingController : ControllerBase
                 IconUrl = p.IconUrl,
                 IsActive = p.IsActive,
                 SortOrder = p.SortOrder,
+                MaxOccupancy = p.MaxOccupancy,
                 RoomCount = p.Rooms.Count(r => !r.IsDeleted)
             })
             .ToListAsync();
@@ -85,6 +86,7 @@ public class LodgingController : ControllerBase
             IconUrl = p.IconUrl,
             IsActive = p.IsActive,
             SortOrder = p.SortOrder,
+            MaxOccupancy = p.MaxOccupancy,
             RoomCount = p.Rooms.Count(r => !r.IsDeleted)
         });
     }
@@ -111,7 +113,8 @@ public class LodgingController : ControllerBase
             Website = request.Website,
             IconUrl = request.IconUrl,
             IsActive = request.IsActive,
-            SortOrder = request.SortOrder
+            SortOrder = request.SortOrder,
+            MaxOccupancy = request.MaxOccupancy
         };
 
         _context.LodgingProperties.Add(prop);
@@ -132,7 +135,8 @@ public class LodgingController : ControllerBase
             Website = prop.Website,
             IconUrl = prop.IconUrl,
             IsActive = prop.IsActive,
-            SortOrder = prop.SortOrder
+            SortOrder = prop.SortOrder,
+            MaxOccupancy = prop.MaxOccupancy
         });
     }
 
@@ -160,6 +164,7 @@ public class LodgingController : ControllerBase
         prop.IconUrl = request.IconUrl;
         prop.IsActive = request.IsActive;
         prop.SortOrder = request.SortOrder;
+        prop.MaxOccupancy = request.MaxOccupancy;
 
         await _context.SaveChangesAsync();
         return NoContent();

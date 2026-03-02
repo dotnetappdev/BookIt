@@ -21,6 +21,7 @@ public class LodgingPropertyResponse
     public string? IconUrl { get; set; }
     public bool IsActive { get; set; }
     public int SortOrder { get; set; }
+    public int? MaxOccupancy { get; set; }
     public int RoomCount { get; set; }
 }
 
@@ -65,6 +66,9 @@ public class CreateLodgingPropertyRequest
 
     [Range(0, 9999, ErrorMessage = "Sort order must be between 0 and 9999.")]
     public int SortOrder { get; set; }
+
+    [Range(1, 10000, ErrorMessage = "Max occupancy must be between 1 and 10,000.")]
+    public int? MaxOccupancy { get; set; }
 }
 
 // ── Rooms ──

@@ -16,6 +16,7 @@ public class LodgingProperty : BaseEntity
     public string? IconUrl { get; set; }
     public bool IsActive { get; set; } = true;
     public int SortOrder { get; set; }
+    public int? MaxOccupancy { get; set; }
 
     public ICollection<Room> Rooms { get; set; } = new List<Room>();
 }

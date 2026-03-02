@@ -1,0 +1,156 @@
+@page "/rooms"
+@inject BookItApiService Api
+@inject BookItAuthState Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<div style="min-height:100vh;background:#1a1a1a;">
+    <MudContainer MaxWidth="MaxWidth.Large" Style="padding:24px;">
+        @if (!Auth.IsAuthenticated)
+        {
+            <MudText Style="color:#e8e8e8;">Please log in to view rooms.</MudText>
+        }
+        else
+        {
+            <MudStack>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+                    <div>
+                        <MudText Typo="Typo.h5" Class="fw-bold" Style="color:#fff;">Rooms &amp; Lodging</MudText>
+                        <MudText Typo="Typo.body2" Style="color:#9e9e9e;">Properties and room overview</MudText>
+                    </div>
+                </MudStack>
+
+                @if (_loading)
+                {
+                    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+                }
+                else
+                {
+                    <!-- Properties -->
+                    @if (_properties.Any())
+                    {
+                        <MudText Typo="Typo.subtitle1" Class="fw-bold mb-2" Style="color:#ccc;">Properties</MudText>
+                        <MudStack Spacing="2" Class="mb-4">
+                            @foreach (var prop in _properties)
+                            {
+                                <MudPaper Elevation="4" Style="background:#2a2a2a;border-radius:12px;">
+                                    <MudCardContent>
+                                        <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
+                                            <MudStack Spacing="1">
+                                                <MudText Typo="Typo.subtitle1" Class="fw-bold" Style="color:#fff;">@prop.Name</MudText>
+                                                @if (!string.IsNullOrEmpty(prop.City) || !string.IsNullOrEmpty(prop.Address))
+                                                {
+                                                    <MudText Typo="Typo.caption" Style="color:#9e9e9e;">
+                                                        @(string.Join(", ", new[] { prop.Address, prop.City, prop.PostCode }.Where(s => !string.IsNullOrEmpty(s))))
+                                                    </MudText>
+                                                }
+                                                <MudStack Row="true" Spacing="1" Class="mt-1">
+                                                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text" Label="true">
+                                                        @prop.RoomCount rooms
+                                                    </MudChip>
+                                                    @if (prop.MaxOccupancy.HasValue)
+                                                    {
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text" Label="true">
+                                                            Max @prop.MaxOccupancy guests
+                                                        </MudChip>
+                                                    }
+                                                </MudStack>
+                                            </MudStack>
+                                            <MudChip T="string" Size="Size.Small" Color="@(prop.IsActive ? Color.Success : Color.Default)"
+                                                     Variant="Variant.Text" Label="true">@(prop.IsActive ? "Active" : "Inactive")</MudChip>
+                                        </MudStack>
+                                    </MudCardContent>
+                                </MudPaper>
+                            }
+                        </MudStack>
+                    }
+
+                    <!-- Rooms -->
+                    @if (!_rooms.Any())
+                    {
+                        <MudPaper Elevation="4" Style="background:#2a2a2a;border-radius:16px;">
+                            <MudCardContent>
+                                <MudStack AlignItems="AlignItems.Center" Class="py-8">
+                                    <MudIcon Icon="@Icons.Material.Filled.Hotel" Size="Size.Large" Style="opacity:.3;color:#9e9e9e;" />
+                                    <MudText Style="color:#e8e8e8;">No rooms configured yet</MudText>
+                                </MudStack>
+                            </MudCardContent>
+                        </MudPaper>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.subtitle1" Class="fw-bold mb-2" Style="color:#ccc;">Rooms</MudText>
+                        <MudStack Spacing="2">
+                            @foreach (var room in _rooms)
+                            {
+                                <MudPaper Elevation="4" Style="background:#2a2a2a;border-radius:12px;">
+                                    <MudCardContent>
+                                        <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
+                                            <MudStack Spacing="1">
+                                                <MudText Typo="Typo.subtitle1" Class="fw-bold" Style="color:#fff;">@room.Name</MudText>
+                                                @if (!string.IsNullOrEmpty(room.LodgingPropertyName))
+                                                {
+                                                    <MudText Typo="Typo.caption" Style="color:#9e9e9e;">@room.LodgingPropertyName</MudText>
+                                                }
+                                                <MudStack Row="true" Spacing="1">
+                                                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text" Label="true">
+                                                        @room.RoomType
+                                                    </MudChip>
+                                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" Label="true">
+                                                        @room.Capacity guests
+                                                    </MudChip>
+                                                    <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text" Label="true">
+                                                        £@room.BaseRate.ToString("0.00")/night
+                                                    </MudChip>
+                                                </MudStack>
+                                                @if (room.Amenities.Any())
+                                                {
+                                                    <MudStack Row="true" Spacing="0" Wrap="Wrap.Wrap">
+                                                        @foreach (var amenity in room.Amenities.Take(5))
+                                                        {
+                                                            <MudTooltip Text="@amenity.Name">
+                                                                <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Label="true"
+                                                                         Style="color:#9e9e9e;">
+                                                                    @if (!string.IsNullOrEmpty(amenity.Icon))
+                                                                    {
+                                                                        <MudIcon Icon="@amenity.Icon" Size="Size.Small" />
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        @amenity.Name
+                                                                    }
+                                                                </MudChip>
+                                                            </MudTooltip>
+                                                        }
+                                                    </MudStack>
+                                                }
+                                            </MudStack>
+                                            <MudChip T="string" Size="Size.Small" Color="@(room.IsActive ? Color.Success : Color.Default)"
+                                                     Variant="Variant.Text" Label="true">@(room.IsActive ? "Active" : "Inactive")</MudChip>
+                                        </MudStack>
+                                    </MudCardContent>
+                                </MudPaper>
+                            }
+                        </MudStack>
+                    }
+                }
+            </MudStack>
+        }
+    </MudContainer>
+</div>
+
+@code {
+    private List<LodgingPropertyResponse> _properties = new();
+    private List<RoomResponse> _rooms = new();
+    private bool _loading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !Auth.IsAuthenticated) return;
+        Api.SetToken(Auth.AccessToken);
+        _properties = await Api.GetLodgingPropertiesAsync(Auth.TenantSlug) ?? new();
+        _rooms = await Api.GetRoomsAsync(Auth.TenantSlug) ?? new();
+        _loading = false;
+        StateHasChanged();
+    }
+}

@@ -25,6 +25,51 @@
     }
     else
     {
+        <!-- Properties summary cards -->
+        @if (_properties.Any())
+        {
+            <MudGrid Class="mb-3">
+                @foreach (var prop in _properties)
+                {
+                    <MudItem xs="12" sm="6" lg="4">
+                        <MudCard Elevation="1" Style="height:100%;">
+                            <MudCardContent Style="padding-bottom:4px;">
+                                <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.subtitle1" Class="fw-semibold">@prop.Name</MudText>
+                                        @if (!string.IsNullOrEmpty(prop.City) || !string.IsNullOrEmpty(prop.Address))
+                                        {
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                @(string.Join(", ", new[] { prop.Address, prop.City, prop.PostCode }.Where(s => !string.IsNullOrEmpty(s))))
+                                            </MudText>
+                                        }
+                                        <MudStack Row="true" Spacing="1" Class="mt-1">
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text" Label="true">
+                                                <MudIcon Icon="@Icons.Material.Filled.MeetingRoom" Size="Size.Small" /> @prop.RoomCount rooms
+                                            </MudChip>
+                                            @if (prop.MaxOccupancy.HasValue)
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text" Label="true">
+                                                    <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" /> Max @prop.MaxOccupancy guests
+                                                </MudChip>
+                                            }
+                                        </MudStack>
+                                    </MudStack>
+                                    <MudStack Row="true" Spacing="0">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                       Color="Color.Primary" OnClick="@(() => OpenEditPropertyDialog(prop))" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                       Color="Color.Error" OnClick="@(() => DeleteProperty(prop))" />
+                                    </MudStack>
+                                </MudStack>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+            <MudDivider Class="mb-3" />
+        }
+
         <!-- Property tabs -->
         @if (_properties.Any())
         {
@@ -84,9 +129,9 @@
     </DialogActions>
 </MudDialog>
 
-<!-- Add Property Dialog -->
+<!-- Add/Edit Property Dialog -->
 <MudDialog @bind-Visible="_propertyDialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
-    <TitleContent><MudText Typo="Typo.h6">Add Property</MudText></TitleContent>
+    <TitleContent><MudText Typo="Typo.h6">@(_editingProperty == null ? "Add Property" : "Edit Property")</MudText></TitleContent>
     <DialogContent>
         <MudStack Spacing="3">
             <MudTextField @bind-Value="_propertyForm.Name" Label="Property Name" Required="true" Variant="Variant.Outlined" />
@@ -104,6 +149,9 @@
             <MudTextField @bind-Value="_propertyForm.PhoneNumber" Label="Phone Number" Variant="Variant.Outlined" />
             <MudTextField @bind-Value="_propertyForm.Email" Label="Email" Variant="Variant.Outlined" />
             <MudTextField @bind-Value="_propertyForm.Website" Label="Website" Variant="Variant.Outlined" />
+            <MudNumericField T="int?" @bind-Value="_propertyForm.MaxOccupancy" Label="Max Total Occupancy" Variant="Variant.Outlined"
+                             Placeholder="e.g. 20" HelperText="Maximum number of guests that can stay at this property" />
+            <MudSwitch @bind-Value="_propertyForm.IsActive" Label="Active" Color="Color.Primary" />
         </MudStack>
     </DialogContent>
     <DialogActions>
@@ -291,6 +339,7 @@
 
     // Property dialog
     private bool _propertyDialogOpen = false;
+    private LodgingPropertyResponse? _editingProperty = null;
     private CreateLodgingPropertyRequest _propertyForm = new();
 
     // Amenity dialog
@@ -395,7 +444,30 @@
     // Property CRUD
     private void OpenPropertyDialog()
     {
+        _editingProperty = null;
         _propertyForm = new CreateLodgingPropertyRequest { IsActive = true };
+        _propertyDialogOpen = true;
+    }
+
+    private void OpenEditPropertyDialog(LodgingPropertyResponse prop)
+    {
+        _editingProperty = prop;
+        _propertyForm = new CreateLodgingPropertyRequest
+        {
+            Name = prop.Name,
+            Description = prop.Description,
+            Address = prop.Address,
+            City = prop.City,
+            PostCode = prop.PostCode,
+            Country = prop.Country,
+            PhoneNumber = prop.PhoneNumber,
+            Email = prop.Email,
+            Website = prop.Website,
+            IconUrl = prop.IconUrl,
+            IsActive = prop.IsActive,
+            SortOrder = prop.SortOrder,
+            MaxOccupancy = prop.MaxOccupancy
+        };
         _propertyDialogOpen = true;
     }
 
@@ -403,14 +475,37 @@
     {
         if (string.IsNullOrWhiteSpace(_propertyForm.Name)) return;
         Api.SetToken(Auth.AccessToken);
-        var result = await Api.CreateLodgingPropertyAsync(TenantSlug, _propertyForm);
-        if (result != null)
+
+        if (_editingProperty == null)
         {
-            Snackbar.Add("Property added!", Severity.Success);
-            _propertyDialogOpen = false;
-            await LoadAsync();
+            var result = await Api.CreateLodgingPropertyAsync(TenantSlug, _propertyForm);
+            if (result != null)
+            {
+                Snackbar.Add("Property added!", Severity.Success);
+                _propertyDialogOpen = false;
+                await LoadAsync();
+            }
+            else Snackbar.Add("Failed to add property.", Severity.Error);
         }
-        else Snackbar.Add("Failed to add property.", Severity.Error);
+        else
+        {
+            var ok = await Api.UpdateLodgingPropertyAsync(TenantSlug, _editingProperty.Id, _propertyForm);
+            if (ok)
+            {
+                Snackbar.Add("Property updated!", Severity.Success);
+                _propertyDialogOpen = false;
+                await LoadAsync();
+            }
+            else Snackbar.Add("Failed to update property.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteProperty(LodgingPropertyResponse prop)
+    {
+        Api.SetToken(Auth.AccessToken);
+        var ok = await Api.DeleteLodgingPropertyAsync(TenantSlug, prop.Id);
+        if (ok) { Snackbar.Add($"'{prop.Name}' deleted.", Severity.Success); await LoadAsync(); }
+        else Snackbar.Add("Failed to delete property.", Severity.Error);
     }
 
     // Amenities
