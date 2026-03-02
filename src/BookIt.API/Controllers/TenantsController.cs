@@ -1,3 +1,5 @@
+using System.IO.Compression;
+using System.Text;
 using BookIt.Core.DTOs;
 using BookIt.Core.Entities;
 using BookIt.Core.Interfaces;
@@ -192,6 +194,107 @@ public class TenantsController : ControllerBase
             elevenLabsVoiceId = tenant.ElevenLabsVoiceId,
             enableAiChat = tenant.EnableAiChat
         });
+    }
+
+    /// <summary>Deactivate the tenant account (marks IsActive = false; does not delete data).</summary>
+    [Authorize]
+    [HttpPost("{slug}/deactivate")]
+    public async Task<IActionResult> DeactivateAccount(string slug)
+    {
+        var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Slug == slug && !t.IsDeleted);
+        if (tenant == null) return NotFound();
+
+        if (!_tenantService.IsValidTenantAccess(tenant.Id))
+            return Forbid();
+
+        tenant.IsActive = false;
+        tenant.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    /// <summary>Permanently delete the tenant account and all associated data.</summary>
+    [Authorize]
+    [HttpDelete("{slug}")]
+    public async Task<IActionResult> DeleteAccount(string slug)
+    {
+        var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Slug == slug && !t.IsDeleted);
+        if (tenant == null) return NotFound();
+
+        if (!_tenantService.IsValidTenantAccess(tenant.Id))
+            return Forbid();
+
+        tenant.IsDeleted = true;
+        tenant.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    /// <summary>Export all tenant data as a zip file containing CSV files.</summary>
+    [Authorize]
+    [HttpGet("{slug}/export-data")]
+    public async Task<IActionResult> ExportData(string slug)
+    {
+        var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Slug == slug && !t.IsDeleted);
+        if (tenant == null) return NotFound();
+
+        if (!_tenantService.IsValidTenantAccess(tenant.Id))
+            return Forbid();
+
+        using var ms = new MemoryStream();
+        using (var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            // Appointments CSV
+            var appointments = await _context.Appointments
+                .Where(a => a.TenantId == tenant.Id && !a.IsDeleted)
+                .OrderBy(a => a.StartTime)
+                .ToListAsync();
+
+            var apptCsv = new StringBuilder();
+            apptCsv.AppendLine("Id,CustomerName,CustomerEmail,CustomerPhone,StartTime,EndTime,Status,TotalAmount,Notes");
+            foreach (var a in appointments)
+                apptCsv.AppendLine($"{a.Id},{CsvEscape(a.CustomerName)},{CsvEscape(a.CustomerEmail)},{CsvEscape(a.CustomerPhone ?? "")},{a.StartTime:yyyy-MM-dd HH:mm},{a.EndTime:yyyy-MM-dd HH:mm},{a.Status},{a.TotalAmount},{CsvEscape(a.CustomerNotes ?? "")}");
+            AddZipEntry(zip, "appointments.csv", apptCsv.ToString());
+
+            // Customers CSV
+            var customers = await _context.Customers
+                .Where(c => c.TenantId == tenant.Id && !c.IsDeleted)
+                .ToListAsync();
+
+            var custCsv = new StringBuilder();
+            custCsv.AppendLine("Id,FirstName,LastName,Email,Phone,Notes,CreatedAt");
+            foreach (var c in customers)
+                custCsv.AppendLine($"{c.Id},{CsvEscape(c.FirstName)},{CsvEscape(c.LastName)},{CsvEscape(c.Email)},{CsvEscape(c.Phone ?? "")},{CsvEscape(c.Notes ?? "")},{c.CreatedAt:yyyy-MM-dd}");
+            AddZipEntry(zip, "customers.csv", custCsv.ToString());
+
+            // Services CSV
+            var services = await _context.Services
+                .Where(s => s.TenantId == tenant.Id && !s.IsDeleted)
+                .ToListAsync();
+
+            var svcCsv = new StringBuilder();
+            svcCsv.AppendLine("Id,Name,Description,Price,DurationMinutes,AllowOnlineBooking");
+            foreach (var s in services)
+                svcCsv.AppendLine($"{s.Id},{CsvEscape(s.Name)},{CsvEscape(s.Description ?? "")},{s.Price},{s.DurationMinutes},{s.AllowOnlineBooking}");
+            AddZipEntry(zip, "services.csv", svcCsv.ToString());
+        }
+
+        ms.Seek(0, SeekOrigin.Begin);
+        return File(ms.ToArray(), "application/zip", $"bookit-export-{slug}-{DateTime.UtcNow:yyyyMMdd}.zip");
+    }
+
+    private static void AddZipEntry(ZipArchive zip, string name, string content)
+    {
+        var entry = zip.CreateEntry(name);
+        using var writer = new StreamWriter(entry.Open(), Encoding.UTF8);
+        writer.Write(content);
+    }
+
+    private static string CsvEscape(string value)
+    {
+        if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
+            return $"\"{value.Replace("\"", "\"\"")}\"";
+        return value;
     }
 
     private static TenantResponse MapToResponse(Tenant t) => new()

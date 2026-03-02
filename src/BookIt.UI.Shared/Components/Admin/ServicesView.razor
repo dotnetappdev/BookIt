@@ -60,10 +60,23 @@
                                                 Online
                                             </MudChip>
                                         }
+                                        @if (!string.IsNullOrEmpty(svc.BookingFormName))
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text" Label="true"
+                                                     Icon="@Icons.Material.Filled.Assignment">
+                                                @svc.BookingFormName
+                                            </MudChip>
+                                        }
                                     </MudStack>
                                 </MudStack>
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
-                                               Color="Color.Error" OnClick="@(() => DeleteService(svc))" />
+                                <MudStack Row="true" Spacing="0">
+                                    <MudTooltip Text="Edit service">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                       Color="Color.Default" OnClick="@(() => OpenEditDialog(svc))" />
+                                    </MudTooltip>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                   Color="Color.Error" OnClick="@(() => DeleteService(svc))" />
+                                </MudStack>
                             </MudStack>
                         </MudCardContent>
                     </MudCard>
@@ -73,9 +86,9 @@
     }
 </MudStack>
 
-<!-- Add Service Dialog -->
+<!-- Add / Edit Service Dialog -->
 <MudDialog @bind-Visible="_addOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
-    <TitleContent><MudText Typo="Typo.h6">Add Service</MudText></TitleContent>
+    <TitleContent><MudText Typo="Typo.h6">@(_editService == null ? "Add Service" : "Edit Service")</MudText></TitleContent>
     <DialogContent>
         <MudForm @ref="_mudForm" @bind-IsValid="_formValid">
         <MudStack Spacing="3">
@@ -97,12 +110,23 @@
                 </MudItem>
             </MudGrid>
             <MudSwitch @bind-Value="_newOnline" Label="Allow Online Booking" Color="Color.Primary" />
+            <MudSelect T="Guid?" @bind-Value="_newBookingFormId" Label="Booking Form (optional)"
+                       Variant="Variant.Outlined" Clearable="true"
+                       HelperText="Select a custom form to display when customers book this service">
+                <MudSelectItem T="Guid?" Value="@((Guid?)null)">— None (use default) —</MudSelectItem>
+                @foreach (var form in _forms)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)form.Id)">@form.Name</MudSelectItem>
+                }
+            </MudSelect>
         </MudStack>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="@(() => _addOpen = false)">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveService">Save</MudButton>
+        <MudButton OnClick="@(() => { _addOpen = false; _editService = null; })">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveService">
+            @(_editService == null ? "Save" : "Update")
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -110,16 +134,19 @@
     [Parameter] public string TenantSlug { get; set; } = "";
 
     private List<ServiceResponse> _services = new();
+    private List<BookingFormResponse> _forms = new();
     private bool _loading = true;
     private bool _addOpen = false;
     private bool _formValid;
     private MudForm? _mudForm;
+    private ServiceResponse? _editService;
 
     private string _newName = "";
     private string _newDesc = "";
     private decimal _newPrice = 0;
     private int _newDuration = 60;
     private bool _newOnline = true;
+    private Guid? _newBookingFormId = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -131,12 +158,26 @@
         _loading = true;
         Api.SetToken(Auth.AccessToken);
         _services = await Api.GetServicesAsync(TenantSlug) ?? new();
+        _forms = await Api.GetFormsAsync(TenantSlug) ?? new();
         _loading = false;
     }
 
     private void OpenAddDialog()
     {
-        _newName = ""; _newDesc = ""; _newPrice = 0; _newDuration = 60; _newOnline = true;
+        _editService = null;
+        _newName = ""; _newDesc = ""; _newPrice = 0; _newDuration = 60; _newOnline = true; _newBookingFormId = null;
+        _addOpen = true;
+    }
+
+    private void OpenEditDialog(ServiceResponse svc)
+    {
+        _editService = svc;
+        _newName = svc.Name;
+        _newDesc = svc.Description ?? "";
+        _newPrice = svc.Price;
+        _newDuration = svc.DurationMinutes;
+        _newOnline = svc.AllowOnlineBooking;
+        _newBookingFormId = svc.BookingFormId;
         _addOpen = true;
     }
 
@@ -149,23 +190,45 @@
         _newName = _newName.Trim();
 
         Api.SetToken(Auth.AccessToken);
-        var result = await Api.CreateServiceAsync(TenantSlug, new CreateServiceRequest
+
+        var request = new CreateServiceRequest
         {
             Name = _newName,
             Description = _newDesc,
             Price = _newPrice,
             DurationMinutes = _newDuration,
-            AllowOnlineBooking = _newOnline
-        });
-        if (result != null)
+            AllowOnlineBooking = _newOnline,
+            BookingFormId = _newBookingFormId
+        };
+
+        if (_editService == null)
         {
-            Snackbar.Add("Service added!", Severity.Success);
-            _addOpen = false;
-            await LoadAsync();
+            var result = await Api.CreateServiceAsync(TenantSlug, request);
+            if (result != null)
+            {
+                Snackbar.Add("Service added!", Severity.Success);
+                _addOpen = false;
+                await LoadAsync();
+            }
+            else
+            {
+                Snackbar.Add("Failed to add service.", Severity.Error);
+            }
         }
         else
         {
-            Snackbar.Add("Failed to add service.", Severity.Error);
+            var ok = await Api.UpdateServiceAsync(TenantSlug, _editService.Id, request);
+            if (ok)
+            {
+                Snackbar.Add("Service updated!", Severity.Success);
+                _addOpen = false;
+                _editService = null;
+                await LoadAsync();
+            }
+            else
+            {
+                Snackbar.Add("Failed to update service.", Severity.Error);
+            }
         }
     }
 
@@ -184,3 +247,4 @@
         }
     }
 }
+

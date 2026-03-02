@@ -65,6 +65,8 @@
                     <MudMenuItem Icon="@Icons.Material.Filled.CreditCard"
                                  Href="@($"/{NavTenantSlug}/admin/subscriptions")">Subscription</MudMenuItem>
                     <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.Info" OnClick="@(() => _aboutOpen = true)"
+                                 IconColor="Color.Default">About</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="Logout"
                                  IconColor="Color.Error">Sign Out</MudMenuItem>
                 </ChildContent>
@@ -186,9 +188,54 @@
     </MudMainContent>
 </MudLayout>
 
+<!-- About dialog -->
+<MudDialog @bind-Visible="_aboutOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true })">
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Primary" />
+            <MudText Typo="Typo.h6" Class="fw-bold">About BookIt</MudText>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        <MudSimpleTable Elevation="0" Dense="true" Style="width:100%;">
+            <tbody>
+                <tr>
+                    <td style="font-weight:600;opacity:.6;width:130px;">Application</td>
+                    <td>BookIt Admin Portal</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;opacity:.6;">Version</td>
+                    <td>@_appVersion</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;opacity:.6;">API Version</td>
+                    <td>@_apiVersion</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;opacity:.6;">Licence</td>
+                    <td>@(Auth.TenantSlug ?? "—")</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;opacity:.6;">Environment</td>
+                    <td>Production</td>
+                </tr>
+            </tbody>
+        </MudSimpleTable>
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-3" Style="display:block;text-align:center;">
+            © @DateTime.UtcNow.Year BookIt. All rights reserved.
+        </MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _aboutOpen = false)">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
 @code {
     private bool _drawerOpen = true;
     private bool _isDark = true;
+    private bool _aboutOpen = false;
+    private string _appVersion = "1.0.0";
+    private string _apiVersion = "1.0.0";
     private MudTheme _theme = BookItTheme.Default;
     private string _themePrimary = BookItTheme.PrimaryOf(TenantTheme.Indigo);
     private string _themeSecondary = BookItTheme.SecondaryOf(TenantTheme.Indigo);
@@ -282,7 +329,12 @@
         var preferDark = stored != "light";
         if (preferDark != _isDark) { _isDark = preferDark; StateHasChanged(); }
 
-        // Load tenant theme
+        // Set app version from assembly
+        var asm = System.Reflection.Assembly.GetExecutingAssembly();
+        var ver = asm.GetName().Version;
+        _appVersion = ver != null ? $"{ver.Major}.{ver.Minor}.{ver.Build}" : "1.0.0";
+
+        // Load tenant theme and API version
         if (Auth.IsAuthenticated && !string.IsNullOrEmpty(Auth.TenantSlug))
         {
             Api.SetToken(Auth.AccessToken);
@@ -292,8 +344,11 @@
                 _theme = BookItTheme.FromTenantTheme(tenant.Theme);
                 _themePrimary = BookItTheme.PrimaryOf(tenant.Theme);
                 _themeSecondary = BookItTheme.SecondaryOf(tenant.Theme);
-                StateHasChanged();
             }
+            var apiVersion = await Api.GetApiVersionAsync();
+            if (!string.IsNullOrEmpty(apiVersion))
+                _apiVersion = apiVersion;
+            StateHasChanged();
         }
     }
 

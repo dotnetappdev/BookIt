@@ -33,6 +33,7 @@ public class ServicesController : ControllerBase
 
         var services = await _context.Services
             .Include(s => s.Category)
+            .Include(s => s.BookingForm)
             .Where(s => s.TenantId == tenant.Id && s.IsActive && !s.IsDeleted)
             .OrderBy(s => s.Category!.SortOrder).ThenBy(s => s.SortOrder)
             .Select(s => new ServiceResponse
@@ -48,7 +49,9 @@ public class ServicesController : ControllerBase
                 BufferMinutes = s.BufferMinutes,
                 CategoryName = s.Category != null ? s.Category.Name : null,
                 AllowOnlineBooking = s.AllowOnlineBooking,
-                DefaultMeetingType = s.DefaultMeetingType
+                DefaultMeetingType = s.DefaultMeetingType,
+                BookingFormId = s.BookingFormId,
+                BookingFormName = s.BookingForm != null ? s.BookingForm.Name : null
             })
             .ToListAsync();
 
@@ -62,6 +65,7 @@ public class ServicesController : ControllerBase
         if (tenant == null) return NotFound();
 
         var s = await _context.Services.Include(s => s.Category)
+            .Include(s => s.BookingForm)
             .FirstOrDefaultAsync(s => s.TenantId == tenant.Id && s.Id == id && !s.IsDeleted);
 
         if (s == null) return NotFound();
@@ -79,7 +83,9 @@ public class ServicesController : ControllerBase
             BufferMinutes = s.BufferMinutes,
             CategoryName = s.Category?.Name,
             AllowOnlineBooking = s.AllowOnlineBooking,
-            DefaultMeetingType = s.DefaultMeetingType
+            DefaultMeetingType = s.DefaultMeetingType,
+            BookingFormId = s.BookingFormId,
+            BookingFormName = s.BookingForm?.Name
         });
     }
 
@@ -90,6 +96,7 @@ public class ServicesController : ControllerBase
         if (tenant == null) return NotFound();
 
         var s = await _context.Services.Include(s => s.Category)
+            .Include(s => s.BookingForm)
             .FirstOrDefaultAsync(s => s.TenantId == tenant.Id && s.Slug == slug && s.IsActive && !s.IsDeleted);
 
         if (s == null) return NotFound();
@@ -107,7 +114,9 @@ public class ServicesController : ControllerBase
             BufferMinutes = s.BufferMinutes,
             CategoryName = s.Category?.Name,
             AllowOnlineBooking = s.AllowOnlineBooking,
-            DefaultMeetingType = s.DefaultMeetingType
+            DefaultMeetingType = s.DefaultMeetingType,
+            BookingFormId = s.BookingFormId,
+            BookingFormName = s.BookingForm?.Name
         });
     }
 
@@ -143,7 +152,8 @@ public class ServicesController : ControllerBase
             BufferMinutes = request.BufferMinutes,
             CategoryId = request.CategoryId,
             AllowOnlineBooking = request.AllowOnlineBooking,
-            DefaultMeetingType = request.DefaultMeetingType
+            DefaultMeetingType = request.DefaultMeetingType,
+            BookingFormId = request.BookingFormId
         };
 
         _context.Services.Add(service);
@@ -160,7 +170,8 @@ public class ServicesController : ControllerBase
             DurationMinutes = service.DurationMinutes,
             BufferMinutes = service.BufferMinutes,
             AllowOnlineBooking = service.AllowOnlineBooking,
-            DefaultMeetingType = service.DefaultMeetingType
+            DefaultMeetingType = service.DefaultMeetingType,
+            BookingFormId = service.BookingFormId
         });
     }
 
@@ -205,6 +216,7 @@ public class ServicesController : ControllerBase
         service.CategoryId = request.CategoryId;
         service.AllowOnlineBooking = request.AllowOnlineBooking;
         service.DefaultMeetingType = request.DefaultMeetingType;
+        service.BookingFormId = request.BookingFormId;
         service.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();

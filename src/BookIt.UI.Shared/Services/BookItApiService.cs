@@ -79,12 +79,34 @@ public class BookItApiService
     public Task<AuthResponse?> SetupTenantAsync(TenantSetupRequest req) =>
         PostAsync<AuthResponse>("/api/auth/setup", req);
 
+    // ── API Version ──
+    public async Task<string?> GetApiVersionAsync()
+    {
+        var result = await GetAsync<System.Text.Json.JsonElement?>("/api/version");
+        if (result.HasValue && result.Value.TryGetProperty("version", out var v))
+            return v.GetString();
+        return null;
+    }
+
     // ── Tenant ──
     public Task<TenantResponse?> GetTenantAsync(string slug) =>
         GetAsync<TenantResponse>($"/api/tenants/{slug}");
 
     public Task<TenantResponse?> UpdateTenantAsync(string slug, UpdateTenantRequest req) =>
         PutAsync<TenantResponse>($"/api/tenants/{slug}", req);
+
+    public Task<bool> DeactivateAccountAsync(string slug) =>
+        PostBoolAsync($"/api/tenants/{slug}/deactivate", new { });
+
+    public Task<bool> DeleteAccountAsync(string slug) =>
+        DeleteAsync($"/api/tenants/{slug}");
+
+    public async Task<byte[]?> DownloadDataAsync(string slug)
+    {
+        var r = await _http.GetAsync($"/api/tenants/{slug}/export-data");
+        if (!r.IsSuccessStatusCode) return null;
+        return await r.Content.ReadAsByteArrayAsync();
+    }
 
     // ── Services ──
     public Task<List<ServiceResponse>?> GetServicesAsync(string slug) =>
@@ -95,6 +117,9 @@ public class BookItApiService
 
     public Task<bool> DeleteServiceAsync(string slug, Guid id) =>
         DeleteAsync($"/api/tenants/{slug}/services/{id}");
+
+    public Task<bool> UpdateServiceAsync(string slug, Guid id, CreateServiceRequest req) =>
+        PutAsync($"/api/tenants/{slug}/services/{id}", req);
 
     // ── Appointments ──
     public async Task<List<AppointmentResponse>> GetAppointmentsAsync(

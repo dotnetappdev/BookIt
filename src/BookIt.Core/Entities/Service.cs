@@ -26,6 +26,11 @@ public class Service : BaseEntity
     public ClassType? ClassType { get; set; }
 
     public MeetingType DefaultMeetingType { get; set; } = MeetingType.InPerson;
+
+    /// <summary>Optional booking form to display when a customer books this service.</summary>
+    public Guid? BookingFormId { get; set; }
+    public BookingForm? BookingForm { get; set; }
+
     public ICollection<StaffService> StaffServices { get; set; } = new List<StaffService>();
     public ICollection<AppointmentService> AppointmentServices { get; set; } = new List<AppointmentService>();
     public ICollection<ClassSession> ClassSessions { get; set; } = new List<ClassSession>();

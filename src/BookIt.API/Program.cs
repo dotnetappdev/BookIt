@@ -175,6 +175,14 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// Version info endpoint
+app.MapGet("/api/version", () =>
+{
+    var asm = System.Reflection.Assembly.GetExecutingAssembly();
+    var ver = asm.GetName().Version;
+    return Results.Ok(new { version = ver != null ? $"{ver.Major}.{ver.Minor}.{ver.Build}" : "1.0.0" });
+});
+
 try
 {
     Log.Information("BookIt API starting up");

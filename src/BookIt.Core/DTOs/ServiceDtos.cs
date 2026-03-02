@@ -17,6 +17,8 @@ public class ServiceResponse
     public string? CategoryName { get; set; }
     public bool AllowOnlineBooking { get; set; }
     public MeetingType DefaultMeetingType { get; set; }
+    public Guid? BookingFormId { get; set; }
+    public string? BookingFormName { get; set; }
 }
 
 public class CreateServiceRequest
@@ -47,4 +49,5 @@ public class CreateServiceRequest
     public Guid? CategoryId { get; set; }
     public bool AllowOnlineBooking { get; set; } = true;
     public MeetingType DefaultMeetingType { get; set; } = MeetingType.InPerson;
+    public Guid? BookingFormId { get; set; }
 }
