@@ -281,6 +281,22 @@ public class BookItApiService
     public Task<bool> DeleteClientAsync(Guid id) =>
         DeleteAsync($"/api/admin/clients/{id}");
 
+    // ── Subscription Tiers (Super Admin) ──
+    public Task<List<SubscriptionTierResponse>?> GetSubscriptionTiersAsync() =>
+        GetAsync<List<SubscriptionTierResponse>>("/api/admin/subscription-tiers");
+
+    public Task<SubscriptionTierResponse?> GetSubscriptionTierAsync(Guid id) =>
+        GetAsync<SubscriptionTierResponse>($"/api/admin/subscription-tiers/{id}");
+
+    public Task<SubscriptionTierResponse?> CreateSubscriptionTierAsync(UpsertSubscriptionTierRequest req) =>
+        PostAsync<SubscriptionTierResponse>("/api/admin/subscription-tiers", req);
+
+    public Task<SubscriptionTierResponse?> UpdateSubscriptionTierAsync(Guid id, UpsertSubscriptionTierRequest req) =>
+        PutAsync<SubscriptionTierResponse>($"/api/admin/subscription-tiers/{id}", req);
+
+    public Task<bool> DeleteSubscriptionTierAsync(Guid id) =>
+        DeleteAsync($"/api/admin/subscription-tiers/{id}");
+
     // ── Database Management ──
     public Task<object?> GetDatabaseStatusAsync() =>
         GetAsync<object>("/api/admin/database/status");

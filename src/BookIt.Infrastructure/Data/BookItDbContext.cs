@@ -59,6 +59,7 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
     public DbSet<ChatSession> ChatSessions => Set<ChatSession>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
+    public DbSet<SubscriptionTier> SubscriptionTiers => Set<SubscriptionTier>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -416,6 +417,17 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // SubscriptionTier
+        modelBuilder.Entity<SubscriptionTier>(entity =>
+        {
+            entity.HasIndex(t => t.Plan).IsUnique();
+            entity.Property(t => t.Name).HasMaxLength(100).IsRequired();
+            entity.Property(t => t.Description).HasMaxLength(500);
+            entity.Property(t => t.MonthlyPriceGbp).HasColumnType("decimal(18,2)");
+            entity.Property(t => t.MonthlyPriceUsd).HasColumnType("decimal(18,2)");
+            entity.Property(t => t.MonthlyPriceEur).HasColumnType("decimal(18,2)");
+        });
+
         // Seed data
         SeedData(modelBuilder);
     }
@@ -619,6 +631,107 @@ public class BookItDbContext : IdentityDbContext<ApplicationUser, IdentityRole<G
             CollectPhone = true, CollectNotes = true,
             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         });
+
+        // Default subscription tiers
+        var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        modelBuilder.Entity<SubscriptionTier>().HasData(
+            new SubscriptionTier
+            {
+                Id = new Guid("aa000000-0000-0000-0000-000000000001"),
+                Plan = Core.Enums.SubscriptionPlan.Free,
+                Name = "Free",
+                Description = "Perfect for solo businesses just getting started",
+                SortOrder = 0,
+                IsActive = true,
+                MonthlyPriceGbp = 0m,
+                MonthlyPriceUsd = 0m,
+                MonthlyPriceEur = 0m,
+                MaxServices = 3,
+                MaxStaff = 1,
+                MaxLocations = 1,
+                MaxBookingsPerMonth = -1,
+                CanUseOnlinePayments = false,
+                CanUseCustomForms = false,
+                CanUseAiAssistant = false,
+                CanUseInterviews = false,
+                CanUseApiAccess = false,
+                CanRemoveBranding = false,
+                CanUseMultipleStaff = false,
+                CreatedAt = seedDate
+            },
+            new SubscriptionTier
+            {
+                Id = new Guid("aa000000-0000-0000-0000-000000000002"),
+                Plan = Core.Enums.SubscriptionPlan.Starter,
+                Name = "Starter",
+                Description = "For growing teams and small businesses",
+                SortOrder = 1,
+                IsActive = true,
+                MonthlyPriceGbp = 19m,
+                MonthlyPriceUsd = 24.13m,
+                MonthlyPriceEur = 22.42m,
+                MaxServices = 10,
+                MaxStaff = 5,
+                MaxLocations = 1,
+                MaxBookingsPerMonth = -1,
+                CanUseOnlinePayments = true,
+                CanUseCustomForms = true,
+                CanUseAiAssistant = false,
+                CanUseInterviews = false,
+                CanUseApiAccess = false,
+                CanRemoveBranding = false,
+                CanUseMultipleStaff = true,
+                CreatedAt = seedDate
+            },
+            new SubscriptionTier
+            {
+                Id = new Guid("aa000000-0000-0000-0000-000000000003"),
+                Plan = Core.Enums.SubscriptionPlan.Pro,
+                Name = "Pro",
+                Description = "Scale your business with advanced features",
+                SortOrder = 2,
+                IsActive = true,
+                MonthlyPriceGbp = 49m,
+                MonthlyPriceUsd = 62.23m,
+                MonthlyPriceEur = 57.82m,
+                MaxServices = 50,
+                MaxStaff = 25,
+                MaxLocations = 3,
+                MaxBookingsPerMonth = -1,
+                CanUseOnlinePayments = true,
+                CanUseCustomForms = true,
+                CanUseAiAssistant = true,
+                CanUseInterviews = true,
+                CanUseApiAccess = true,
+                CanRemoveBranding = false,
+                CanUseMultipleStaff = true,
+                CreatedAt = seedDate
+            },
+            new SubscriptionTier
+            {
+                Id = new Guid("aa000000-0000-0000-0000-000000000004"),
+                Plan = Core.Enums.SubscriptionPlan.Enterprise,
+                Name = "Enterprise",
+                Description = "Unlimited scale for large organisations",
+                SortOrder = 3,
+                IsActive = true,
+                MonthlyPriceGbp = 129m,
+                MonthlyPriceUsd = 163.83m,
+                MonthlyPriceEur = 152.22m,
+                MaxServices = -1,
+                MaxStaff = -1,
+                MaxLocations = -1,
+                MaxBookingsPerMonth = -1,
+                CanUseOnlinePayments = true,
+                CanUseCustomForms = true,
+                CanUseAiAssistant = true,
+                CanUseInterviews = true,
+                CanUseApiAccess = true,
+                CanRemoveBranding = true,
+                CanUseMultipleStaff = true,
+                CreatedAt = seedDate
+            }
+        );
     }
 
     public string? CurrentUserEmail { get; set; }

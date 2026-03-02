@@ -22,6 +22,7 @@ public class BookItAuthState
     public bool IsManagerOrAbove => Role is UserRole.TenantAdmin or UserRole.SuperAdmin or UserRole.Manager;
     public bool IsStaffOrAbove => Role is UserRole.Staff or UserRole.Manager or UserRole.TenantAdmin or UserRole.SuperAdmin;
     public bool IsStaffOnly => Role == UserRole.Staff;
+    public bool IsSuperAdmin => Role == UserRole.SuperAdmin;
 
     public string Initials
     {

@@ -161,6 +161,21 @@
                             Icon="@Icons.Material.Filled.ManageSearch"
                             Style="@NavLinkStyle">Audit Trail</MudNavLink>
             }
+
+            <!-- Super Admin -->
+            @if (Auth.IsSuperAdmin)
+            {
+                <div style="@SectionLabelStyle">Super Admin</div>
+                <MudNavLink Href="/superadmin/clients"
+                            Icon="@Icons.Material.Filled.Business"
+                            Style="@NavLinkStyle">Clients</MudNavLink>
+                <MudNavLink Href="/superadmin/subscription-tiers"
+                            Icon="@Icons.Material.Filled.Layers"
+                            Style="@NavLinkStyle">Subscription Tiers</MudNavLink>
+                <MudNavLink Href="/superadmin/database"
+                            Icon="@Icons.Material.Filled.Storage"
+                            Style="@NavLinkStyle">Database</MudNavLink>
+            }
         </MudNavMenu>
 
         <!-- User footer strip -->
