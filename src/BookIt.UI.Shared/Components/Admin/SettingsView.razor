@@ -549,15 +549,15 @@
     <DialogContent>
         <MudStack Spacing="2">
             <MudAlert Severity="Severity.Error" Dense="true">This action is <strong>irreversible</strong>. All your data including bookings, customers, and settings will be permanently deleted.</MudAlert>
-            <MudText Typo="Typo.body2">To confirm, type <strong>I want to delete</strong> below:</MudText>
+            <MudText Typo="Typo.body2">To confirm, type <strong>@DeleteConfirmPhrase</strong> below:</MudText>
             <MudTextField @bind-Value="_deleteConfirmText" Variant="Variant.Outlined" Margin="Margin.Dense"
-                          Placeholder="I want to delete" Immediate="true" />
+                          Placeholder="@DeleteConfirmPhrase" Immediate="true" />
         </MudStack>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="@(() => { _deleteOpen = false; _deleteConfirmText = ""; })">Cancel</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Error"
-                   Disabled="@(_deleteConfirmText != "I want to delete" || _deleting)"
+                   Disabled="@(_deleteConfirmText != DeleteConfirmPhrase || _deleting)"
                    OnClick="DeleteAccount">
             @(_deleting ? "Deleting…" : "Delete Permanently")
         </MudButton>
@@ -586,6 +586,8 @@
     private bool _deleting;
     private string _deleteConfirmText = "";
     private bool _downloading;
+
+    private const string DeleteConfirmPhrase = "I want to delete";
 
     private string _name = "";
     private BusinessType _businessType = BusinessType.Other;

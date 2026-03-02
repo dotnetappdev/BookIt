@@ -140,6 +140,14 @@ public class ServicesController : ControllerBase
         while (await _context.Services.AnyAsync(s => s.TenantId == tenant.Id && s.Slug == uniqueSlug && !s.IsDeleted))
             uniqueSlug = $"{baseSlug}-{++suffix}";
 
+        // Validate BookingFormId belongs to this tenant (if supplied)
+        if (request.BookingFormId.HasValue)
+        {
+            var formExists = await _context.BookingForms.AnyAsync(f =>
+                f.Id == request.BookingFormId.Value && f.TenantId == tenant.Id && !f.IsDeleted);
+            if (!formExists) return BadRequest(new { message = "Booking form not found." });
+        }
+
         var service = new Service
         {
             TenantId = tenant.Id,
@@ -216,6 +224,14 @@ public class ServicesController : ControllerBase
         service.CategoryId = request.CategoryId;
         service.AllowOnlineBooking = request.AllowOnlineBooking;
         service.DefaultMeetingType = request.DefaultMeetingType;
+
+        // Validate BookingFormId belongs to this tenant (if supplied)
+        if (request.BookingFormId.HasValue)
+        {
+            var formExists = await _context.BookingForms.AnyAsync(f =>
+                f.Id == request.BookingFormId.Value && f.TenantId == tenant.Id && !f.IsDeleted);
+            if (!formExists) return BadRequest(new { message = "Booking form not found." });
+        }
         service.BookingFormId = request.BookingFormId;
         service.UpdatedAt = DateTime.UtcNow;
 
