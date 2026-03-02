@@ -192,7 +192,7 @@ No manual scripts needed — just run the API.
 | SuperAdmin | Full platform access — all tenants |
 | TenantAdmin | Full access within their tenant |
 | Manager | Manage staff / services (TenantId hidden) |
-| Staff | View own appointments, cancel with reason, view customers |
+| Staff | View own appointments & bookings CRUD, cancel with reason, view customers |
 | Customer | Book appointments, view own bookings |
 
 ---
@@ -332,6 +332,7 @@ No manual scripts needed — just run the API.
 | Book Appointment | `/{slug}/book` |
 | Admin Dashboard | `/{slug}/admin` |
 | Admin Calendar | `/{slug}/admin/calendar` |
+| Admin Bookings | `/{slug}/admin/bookings` |
 | Admin Services | `/{slug}/admin/services` |
 | Admin Customers | `/{slug}/admin/customers` |
 | Admin Forms | `/{slug}/admin/forms` |
