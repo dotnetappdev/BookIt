@@ -44,7 +44,7 @@ public class SubscriptionTiersController : ControllerBase
 
     /// <summary>Get a single subscription tier by id.</summary>
     [HttpGet("{id}")]
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = "SuperAdmin,TenantAdmin,Manager")]
     public async Task<ActionResult<SubscriptionTierResponse>> GetById(Guid id)
     {
         var tier = await _context.SubscriptionTiers.AsNoTracking()
